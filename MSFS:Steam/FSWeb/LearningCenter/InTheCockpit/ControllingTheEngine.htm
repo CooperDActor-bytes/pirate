@@ -1,0 +1,525 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 12 April 2005), see www.w3.org">
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=iso-8859-1">
+
+  <title>Controlling the Engine</title>
+  <link href="../../common/style.css" rel="stylesheet" type=
+  "text/css">
+</head>
+
+<body class="stdcolor" >
+  
+    <a name="top"></a>
+
+    <table width="100%" cellpadding="0" cellspacing="10" summary="SummaryTBD">
+      <tr>
+        <td>
+          <table width="100%" border="0" cellspacing="0"
+          cellpadding="0" summary="SummaryTBD">
+            <tr>
+              <td class="GSTable"><span class="GSH1">Controlling
+              the Engine</span></td>
+            </tr>
+
+            <tr>
+              <td bgcolor="#000000"><img src=
+              "../../Common/images/1ptrans.gif" width="1" height=
+              "1" alt="" border="0"></td>
+            </tr>
+          </table>
+
+          <div class="articleDeck">
+            Learning the basics of engine control will keep you
+            flying high
+          </div>
+
+          <div class="article-bodycopy">
+            <table border="0" cellspacing="10" cellpadding="0"
+            align="right" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <span class="TOCsubhead">Contents</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#UsingtheEngineControls">Using the
+                      Engine Controls</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#ThrottleControl">Throttle
+                      Control</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#MixtureControl">Mixture
+                      Control</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td>
+                        <a href="#PropellerControl">Propeller
+                        Control and Power Management</a>
+
+                        <table border="0" summary="SummaryTBD">
+                          <tr class="article-bodycopy">
+                            <td valign="top"><img src=
+                            "../../Common/images/RelatedBulletGrey.gif"
+                            width="6" height="12" alt="" border=
+                            "0"></td>
+
+                            <td><a href=
+                            "#FixedPitchPropellers">Fixed-Pitch
+                            Propellers</a></td>
+                          </tr>
+
+                          <tr class="article-bodycopy">
+                            <td valign="top"><img src=
+                            "../../Common/images/RelatedBulletGrey.gif"
+                            width="6" height="12" alt="" border=
+                            "0"></td>
+
+                            <td><a href=
+                            "#ConstantSpeedPropellers">Constant-Speed
+                            Propellers</a></td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#UsingtheEngineControlsinFlightSimulator">
+                      Using the Engine Controls in Flight
+                      Simulator</a></td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="2" align="center"><img src=
+                      "../../Common/images/1ptrans.gif" width="1"
+                      height="1" alt="" border="0"></td>
+                    </tr>
+                  </table>
+
+                <span class="TOCsubhead">Related
+                  Links</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../Aircraft/PistonEngines.htm">Piston
+                      Engines</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../Aircraft/TurbineEngines.htm">Turbine
+                      Engines</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../AdvancedFlyingSkills/FlyingTwinEngineAircraft.htm">
+                      Flying Twin-Engine Aircraft</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../AdvancedFlyingSkills/FlyingJets.htm">Flying
+                      Jets</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../ImportantSkills/UsingTheMouse.htm">Using
+                      the Mouse</a></td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="2" align="center"><img src=
+                      "../../Common/images/1ptrans.gif" width="1"
+                      height="1" alt="" border="0"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <p><em><strong>Note</strong>: For simplicity's sake, this article
+            focuses on piston engines. If you'd like information on
+            controlling turbine engines, see <a href=
+            "../AdvancedFlyingSkills/FlyingJets.htm">Flying
+            Jets</a>.</em></p>
+
+            <p>Engines can be humbling because they are reminders
+            that humans really can't fly&#8212;at least not for
+            long&#8212;without some help. So, you've got to be good
+            to your aircraft's engine. Here are some operating tips
+            that will help keep your aircraft's engine running
+            strong.</p>
+
+            <p>Many gauges on the control panel monitor engine
+            functions. Two important engine instruments that
+            measure engine power are the tachometer (which
+            indicates engine speed as measured in revolutions per
+            minute, or rpm), and the manifold pressure gauge (which
+            indicates the pressure of air moving into the
+            cylinders).</p><a name="UsingtheEngineControls"></a>
+
+            <p class="SubHead">Using the Engine Controls</p>
+
+            <p><img src="images/ControllingtheEngine01.jpg" width=
+            "197" height="85" alt="" border="0"></p>
+
+            <p>Most modern piston engine aircraft have two or three
+            engine controls. Piston aircraft with a fixed-pitch
+            propeller have two basic engine controls: a black
+            throttle control&#8212;which has the most direct effect
+            on power&#8212;and a red mixture control to adjust the
+            air/fuel mixture as the airplane climbs and descends.
+            Aircraft with a constant-speed propeller also have a
+            blue propeller control to adjust the propeller's
+            rotation speed.</p><a name="ThrottleControl"></a>
+
+            <p class="SubHead">Throttle Control</p>
+
+            <p>The throttle determines how much power the engine
+            can develop by controlling the amount of fuel and air
+            entering the engine cylinders. When fully open, the
+            throttle allows the maximum amount of fuel and air to
+            enter the system to produce maximum power. When the
+            throttle is closed, only a small amount of fuel and air
+            can enter the system, and the engine produces minimum
+            power. To open the throttle, push the throttle control
+            in. To close the throttle, pull the control out. The
+            manifold pressure gauge on the instrument panel shows
+            the pressure of the air moving into the engine's
+            cylinders, and gives an approximate measurement of
+            engine power. Generally speaking, the higher the
+            manifold pressure, the more power you have
+            available.</p><a name="MixtureControl"></a>
+
+            <p class="SubHead">Mixture Control</p>
+
+            <p>Because an aircraft's engine operates over a wide
+            range of altitudes, the fuel/air mixture can be
+            adjusted for maximum efficiency as you climb into
+            thinner air or descend into denser air. A mixture that
+            is too rich contains too much fuel for the existing
+            atmospheric conditions and may cause the engine to run
+            rough and lose power. The solution is to &quot;lean the
+            mixture:&quot; As you climb, make the mixture leaner by
+            pulling the mixture control back until the needle on
+            the exhaust gas temperature (EGT) gauge peaks, then
+            push the mixture control forward a little. Don't lean
+            the mixture too much, though: a mixture that is too
+            lean can cause the engine to overheat or result in a
+            problem known as detonation, a sudden, strong,
+            uncontrolled, and often damaging explosion of fuel and
+            air within the cylinder.</p><a name=
+            "PropellerControl"></a>
+
+            <p class="SubHead">Propeller Control and Managing
+            Power</p>
+
+            <p>Piston engines are typically connected to a
+            fixed-pitch or a constant-speed propeller.</p><a name=
+            "FixedPitchPropellers"></a>
+
+            <p class="SubHead2">Fixed-Pitch Propellers</p>
+
+            <p>Fixed-pitch propellers are bolted directly to the
+            crankshaft of the engine and therefore always turn at
+            the same speed as the engine. A fixed-pitch prop is
+            somewhat like a transmission with only one gear. This
+            configuration makes up for its lack of efficiency by
+            being very simple to operate. The only gauge that you
+            need to monitor is the tachometer. Because the
+            fixed-pitch propeller turns as fast as the engine, the
+            engine's rpm is the best indicator of engine power. Use
+            the tachometer to set your power during takeoff,
+            cruising, and landing&#8212;the higher the rpm, the
+            more power your engine is producing.</p>
+
+            <p>With a fixed-pitch propeller, managing power is
+            simple. Push the throttle in, and rpm (and power)
+            increases. Pull the throttle out, and rpm decreases. Be
+            aware, however, that as airspeed increases, rpm tends
+            to creep up, too. Monitor the tachometer carefully
+            during descents at high speed to make sure that the rpm
+            stays within limits.</p><a name=
+            "ConstantSpeedPropellers"></a>
+
+            <p class="SubHead2">Constant-Speed Propellers</p>
+
+            <p>A constant-speed propeller has a governor that
+            adjusts the angle of the blades to maintain the rpm you
+            select. This type of propeller makes much more
+            efficient use of the engine's power. Adjusting the
+            propeller in an airplane is very similar to using gears
+            in a car. In low gears the engine turns fast to get you
+            moving. Once you're underway, there's no need to use a
+            lot of power, so you shift to a higher gear to make
+            more efficient use of less power. In an airplane, the
+            propeller control changes the angle at which the
+            propeller blades meet the air, which affects how fast
+            the engine turns. The tachometer on the instrument
+            panel shows how fast your engine is turning.</p>
+
+            <p>During takeoff and during landing (in case you need
+            to abort and take off again) you'll need every bit of
+            power your engine can develop. So during these two
+            phases of flight, keep the propeller control pushed in:
+            the angle of the blades will be low, slicing through
+            the air easily so you can get the engine's full power
+            (like using a low gear in a car). During cruise, pull
+            the propeller control out a bit: the angle of the
+            blades will increase and take a bigger bite out of the
+            air, making more efficient use of the engine's power
+            (like using a high gear in a car). Any time you change
+            the throttle setting a governor will automatically
+            adjust the angle of the blades to maintain the
+            propeller speed.</p>
+
+            <p>A constant-speed propeller makes power management a
+            bit more complicated. You must monitor the manifold
+            pressure gauge, controlled by the throttle, and the
+            tachometer, which shows the propeller rpm. You adjust
+            rpm with the prop control.</p>
+
+            <p>When using the throttle and prop controls, remember
+            these basic rules to avoid overstressing the
+            engine:</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To increase power</strong></p>
+
+                  <ol>
+                    <li>Increase propeller speed by pushing the
+                    prop control forward.</li>
+
+                    <li>Increase manifold pressure by pushing the
+                    throttle control forward.</li>
+                  </ol>
+
+                  <p><strong>To decrease power</strong></p>
+
+                  <ol>
+                    <li>Reduce manifold pressure by pulling the
+                    throttle control backward.</li>
+
+                    <li>Decrease propeller speed by pulling the
+                    prop control backward.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name=
+            "UsingtheEngineControlsinFlightSimulator"></a>
+
+            <p class="SubHead">Using the Engine Controls in Flight
+            Simulator</p>
+
+            <p>In Flight Simulator, all three controls can be
+            adjusted with the keyboard or the mouse (just drag the
+            control in or out). Some joysticks have levers or
+            sliders for these controls.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To feather the propeller</strong></p>
+
+                  <ol>
+                    <li>In the cockpit, click the propeller control
+                    knob.</li>
+
+                    <li>Drag the knob to the desired position.<br>
+                    Fine adjustments can be made by rotating the
+                    mouse wheel.</li>
+                  </ol>
+
+                  <dl>
+                    <dd>- or -</dd>
+                  </dl>
+
+                  <ul>
+                    <li>Press <strong>CTRL+F1</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To adjust propeller feathering</strong></p>
+
+                  <ul>
+                    <li>Place the propeller at full forward speed
+                    by pressing <strong>CTRL+F4</strong>.</li>
+
+                    <li>Decrease propeller speed by pressing
+                    <strong>CTRL+F2</strong>.</li>
+
+                    <li>Increase propeller speed by pressing
+                    <strong>CTRL+F3</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table><br>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To control the throttle</strong></p>
+
+                  <ol>
+                    <li>In the cockpit, click the throttle
+                    knob.</li>
+
+                    <li>Drag the knob to the desired position.<br>
+                    Fine adjustments can be made by rotating the
+                    mouse wheel.</li>
+                  </ol>
+
+                  <dl>
+                    <dd>- or -</dd>
+                  </dl>
+
+                  <ol>
+                    <li>Press <strong>F3</strong> (or press <strong>9</strong> on the
+                    numeric keypad) to increase throttle.</li>
+
+                    <li>Press <strong>F2</strong> (or press <strong>3</strong> on the
+                    numeric keypad) to decrease throttle.</li>
+                  </ol>
+
+                  <p>Press <strong>F4</strong> to set the throttle at full
+                  open.</p>
+                </td>
+              </tr>
+            </table>
+
+            <p>By default, mixture control is handled automatically
+            in Flight Simulator, but you can override the automatic
+            settings if you prefer.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To adjust the mixture manually</strong></p>
+
+                  <ol>
+                    <li>On the Aircraft menu, click <strong>Realism
+                    Settings</strong>.</li>
+
+                    <li>Clear the <strong>Enable Auto Mixture</strong> check
+                    box.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><br>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To control mixture settings</strong></p>
+
+                  <ol>
+                    <li>In the cockpit, click the mixture
+                    knob.</li>
+
+                    <li>Drag the knob to the desired position.<br>
+                    Fine adjustments can be made by rotating the
+                    mouse wheel.</li>
+                  </ol>
+
+                  <dl>
+                    <dd>- or -</dd>
+                  </dl>
+
+                  <ol>
+                    <li>Press <strong>CTRL+SHIFT+F2</strong> to lean the
+                    mixture.</li>
+
+                    <li>Press <strong>CTRL+SHIFT+F3</strong> to enrich the
+                    mixture.</li>
+
+                    <li>Press <strong>CTRL+SHIFT+F4</strong> to set mixture
+                    to rich.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>For multi-engine aircraft, you may wish to control
+            the engines independently. For more information on
+            controlling multi-engine aircraft, see <a href=
+            "../AdvancedFlyingSkills/FlyingTwinEngineAircraft.htm">Flying
+            Twin-Engine Aircraft</a>.</p>
+          </div>
+
+          <div class="TopLink">
+            <a href="#top" class="TopLink">- top -</a>
+          </div>
+        </td>
+      </tr>
+    </table>
+  
+</body>
+</html>
