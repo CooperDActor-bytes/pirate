@@ -1,0 +1,880 @@
+
+body
+{
+    FONT-SIZE: 8pt;
+    FONT-FAMILY: arial;
+}
+.nav {
+	cursor:hand;
+    FONT-SIZE: 9pt;
+    COLOR: #003366;
+	font-weight: bold;
+	text-decoration:none;
+    FONT-FAMILY: verdana;
+}
+.nav:hover {
+    color:#DAA520;
+}
+
+/* The stdcolor class defines the most prevalent body styling (background color and margins). */
+.stdcolor {
+ 	background-color: #ffffff;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* The altcolor class defines an alternate background color with the most prevalent margins. */
+.altcolor {
+ 	background-color: #ffffff;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+A {
+   text-decoration: none;
+}
+
+A:hover {
+    color:#DAA520;
+}
+.TABS1 {
+	font-size: 10pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #ffffff;
+	background: #8295B5;
+	text-align: left;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin: 0px;
+	padding-left: 5px;
+	border: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.TABS1:hover {
+    color:#000000
+}
+.TABS2:hover {
+    color:#000000
+}
+.TABS2 {
+	font-size: 10pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	background: #ffffff;
+	text-align: left;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin: 0px;
+	padding-left: 5px;
+	border: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.Sitemaphead
+{
+	font-size: 12pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	text-align: left;
+	line-height: 12pt;
+    FONT-FAMILY: verdana; 
+}
+.SitemapIndentedCopy
+{
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-align: left;
+	margin-left: 10px;
+	line-height: 16pt;
+    FONT-FAMILY: verdana; 
+}
+.SitemapSubIndentedCopy
+{
+	font-size: 8pt;
+	margin-top: -5px;
+	font-style: italic;
+	line-height: 6pt;
+	font-weight: normal;
+	font-variant: normal;
+	text-align: left;
+	margin-left: 10px;
+    FONT-FAMILY: verdana; 
+}
+.SitemapDoubleIndentedCopy
+{
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-align: left;
+	margin-left: 30px;
+	line-height: 14pt;
+    FONT-FAMILY: verdana; 
+}
+.SitemapSubDoubleIndentedCopy
+{
+	font-size: 8pt;
+	margin-top: -5px;
+	font-style: italic;
+	line-height: 6pt;
+	font-weight: normal;
+	font-variant: normal;
+	text-align: left;
+	margin-left: 30px;
+    FONT-FAMILY: verdana; 
+}
+.Glossary {
+	font-size: 10pt;
+	font-style: normal;
+	line-height: 20pt;
+	font-weight: bold;
+	font-variant: normal;
+	color: #003366;
+	background: #ffffff;
+	text-align: auto;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin: 0px;
+	padding-right: 5px;
+	font-family: verdana;
+}
+.GSbodycopy {
+	color: #465157;
+	font-size: 8pt;
+	font-weight: normal;
+	font-family: verdana;
+}
+.GSBlurb
+{
+	font-size: 11pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bolder;
+	font-variant: normal;
+	color: #5E7080;
+	text-align: Center;
+    FONT-FAMILY: Arial; 
+}
+.GSBullet
+{
+	font-size: 10pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #5E7080;
+    FONT-FAMILY: Arial; 
+}
+.GSH1
+{
+	font-size: 14pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #660000;
+	text-align: left;
+    FONT-FAMILY: Arial; 
+}
+.GSIndentedCopy
+{
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #000000;
+	text-align: left;
+	margin-left:20;
+	margin-top:10;
+	margin-bottom:10;
+    FONT-FAMILY: Arial; 
+}
+.GSTable
+{
+    FONT-FAMILY: Arial; 
+	padding-left:0;
+	padding-top:0;
+	padding-bottom:0;
+	padding-right:0;
+}
+.GSSideBar
+{
+    FONT-SIZE: 8pt;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; 
+	background: #FFFFF0;
+	border-bottom:1 outset #666699;
+	border-right:1 outset #666699;
+	border-left:1 outset #666699;
+	border-top:1 outset #666699;
+	padding-left:10;
+	padding-top:10;
+	padding-bottom:5;
+	padding-right:10;
+}
+.GSSideBar2
+{
+    FONT-SIZE: 8pt;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; 
+	background: #FFFFF0;
+	color: #666699;
+	border-bottom:1 outset #666699;
+	border-right:1 outset #666699;
+	border-left:1 outset #666699;
+	border-top:1 outset #666699;
+	padding-left:2;
+	padding-top:2;
+	padding-bottom:2;
+	padding-right:2;
+	font-weight: bold;
+	font-variant: normal;
+	text-decoration: none;
+}
+.GSSideBar3
+{
+    FONT-SIZE: 8pt;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; 
+	background: #F8F8FF;
+	color: #5e6162;
+	border-bottom:1 outset #5e6162;
+	border-right:1 outset #5e6162;
+	border-left:1 outset #5e6162;
+	border-top:1 outset #5e6162;
+	padding-left:3;
+	padding-top:0;
+	padding-bottom:0;
+	padding-right:3;
+	font-weight: bold;
+	font-variant: normal;
+	text-decoration: none;
+}
+.GSSideBar4
+{
+    FONT-SIZE: 8pt;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; 
+	background: #F8F8FF;
+	color: #5e6162;
+	border-bottom:1 outset #5e6162;
+	border-right:1 outset #5e6162;
+	border-left:1 outset #5e6162;
+	border-top:1 outset #5e6162;
+	padding-left:3;
+	padding-top:0;
+	padding-bottom:0;
+	padding-right:3;
+	font-weight: bold;
+	font-variant: normal;
+	text-decoration: none;
+}
+.GSSideBarHead {
+	font-size: 8pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #003366;
+	text-align: center;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin: 1px;
+	padding: 1px;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.GSButtonBox
+{
+	text-align: Center;
+	background: #D3D4E8;
+	border-bottom:1 outset #3A4863;
+	border-right:1 outset #3A4863;
+	border-left:1 outset #3A4863;
+	border-top:1 outset #3A4863;
+	padding-left:10;
+	padding-top:10;
+	padding-bottom:10;
+	padding-right:10;
+	width: 250;
+}
+.GSButton
+{
+    FONT-SIZE: 12pt;
+	font-style: normal;
+	color: #003366;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	text-decoration: underline;
+	text-align: Center;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; 
+}
+.GSButton:hover
+{
+	color: #DAA520;
+}
+.HCHead {
+	font-size: 16pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #03355c;
+	text-align: center;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin: 1px;
+	padding: 1px;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.SubHead {
+	font-size: 12pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #B22222;
+	text-align: left;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin-bottom: -11px;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.SubHead2 {
+	font-size: 10pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	text-align: left;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	margin-bottom: -11px;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.FlyNowLink {
+	font-size: 10pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #646a98;
+	text-align: right;
+	font-family: verdana;
+}
+.TopLink {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #646a98;
+	text-align: right;
+	font-family: verdana;
+}
+.TopLink:hover {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #DAA520;
+	text-align: right;
+	font-family: verdana;
+}
+.RelatedLinkTable
+{
+	background: #A6A7A9;
+	border-bottom:1 outset #758694;
+	border-right:1 outset #758694;
+	border-left:1 outset #758694;
+	border-top:1 outset #758694;
+	width: 200;
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 20px;
+}
+.ListTable
+{
+	background: #FFFFF0;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #000000;
+	border-collapse: collapse;
+	empty-cells: show
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 20px;
+}
+.RelatedLinkTableThin
+{
+	background: #F5F5F5;
+	border-top:1 outset #6A6C95;
+	border-top-color: #000000;
+	border-top-width: 1;
+	width: 170;
+	margin-top: 5px;
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 10px;
+}
+.RelatedLink {
+	font-size: 8pt;
+	margin-bottom:3
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #646a98;
+	text-align: auto;
+	font-family: verdana;
+}
+.RelatedLink:hover {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #DAA520;
+	text-align: auto;
+	font-family: verdana;
+}
+.subheadnav {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	text-align: auto;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	margin: 1px;
+	padding: 1px;
+	border: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.lc-keyconcept-hdr01 {
+	font-size: 8pt;
+	font-weight: bold;
+	color: #003366;
+	vertical-align: middle;
+	text-indent: 10px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.deck {
+	font-size: 8pt;
+	font-weight: bold;
+	color: #666699;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.TOCsubhead {
+	font-size: 10pt;
+	font-style: italic;
+	font-weight: bold;
+	font-variant: small-caps;
+	text-transform: uppercase;
+	color: #000000;
+	text-align: Automatic;
+	text-indent: 8pt;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.article-bodycopy {
+	font-size: 8pt;
+	font-weight: normal;
+	font-family: verdana;
+}
+.Clickto {
+	font-size: 8pt;
+	font-weight: bold;
+	color: #3E4E5D;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.article-introcopy {
+	font-size: 8pt;
+	color: #808080;
+	font-weight: normal;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.articlecaptioncopy {
+	font-size: 8pt;
+	color: #000000;
+	font-style: italic;
+	font-weight: normal;
+	font-family: verdana;
+}
+.articlenavboxes {
+	font-size: 8pt;
+	color: #000000;
+	font-weight: normal;
+	align: top;
+	background: #FAEBD7;
+	border-bottom: 1 OUTSET #2D3542;
+	border-top: 1 OUTSET #2D3542;
+	border-left: 1 OUTSET #2D3542;
+	border-right: 1 OUTSET #2D3542;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.articlenavboxescopy {
+	font-size: 8pt;
+	text-align: auto;
+	color: #000000;
+	font-weight: normal;
+	align: top;
+	background: #FAEBD7;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.articlenavboxesnav {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #003366;
+	text-align: auto;
+	vertical-align: bottom;
+	display: table-cell;
+	list-style-type: none;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	margin-bottom: 5px;
+	padding: 0px;
+	border: none;
+	font-family: verdana;
+}
+
+.hyperlink {
+	cursor:hand; 
+	color:red;
+}
+.articleDeck {
+	font-size: 12pt;
+	font-weight: bolder;
+	font-style: italic;
+	font-variant: normal;
+	color: #A6A7A9;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.pullQuote {
+	font-size: 12pt;
+	font-weight: bold;
+	color: #03355c;
+	font-style: italic;
+	line-height: normal;
+	text-align: center;
+	width:375;
+	border-bottom: 1 solid #03355c;
+	border-top: 1 solid #03355c;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.LessonTitleTableLeft
+{
+	border: 1 solid #686D97;
+	padding-top: 2px;
+	padding-left: 15px;
+	padding-right: 2px;
+	padding-bottom: 2px;
+}
+.LessonTitleTableRight
+{
+	background: #ffffff;
+	border-bottom: 1 solid #686D97;
+	border-top: 1 solid #686D97;
+	padding-top: 2px;
+	padding-left: 2px;
+	padding-right: 2px;
+	padding-bottom: 2px;
+}
+.LessonHead1 {
+	font-size: 12pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.LessonHead2 {
+	font-size: 12pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.LessonSubHead {
+	font-size: 12pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #616683;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.LessonSubHead2 {
+	font-size: 12pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #7e82a5;
+	width: 100%;
+	border-bottom: 1 solid #7e82a5;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.LessonFigureTable
+{
+	background: #ffffff;
+	border: 1 solid #686D97;
+	padding-top: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+.Figure1 {
+	font-size: 8pt;
+	line-height: normal;
+	font-weight: bold;
+	font-family: verdana;
+}
+.Figure2 {
+	font-size: 8pt;
+	font-weight: bold;
+	color: #003366;
+	font-family: verdana;
+}
+.SideBarTable
+{
+	background: #F5DEB3;
+	width: 320px;
+	border: 1 solid #686D97;
+	padding-top: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	font-size: 8pt;
+	font-weight: normal;
+	font-family: verdana;
+}
+.SideBar
+{
+	background: #DEB887;
+	width: 230px;
+	float: right;
+	border-top: 1 solid #686D97;
+	border-left: 1 solid #686D97;
+	padding-top: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-bottom: 10px;
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-bottom: 10px;
+	font-size: 8pt;
+	font-weight: normal;
+	font-family: verdana;
+}
+
+.Note
+{
+	border: 1 solid #6A6C95;
+	padding-top: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	font-size: 8pt;
+	font-weight: normal;
+	font-family: verdana;
+}
+
+.KingVideoTitle {
+	font-size: 10pt;
+	line-height: normal;
+	font-weight: bold;
+	padding-top: 0px;
+	padding-left: 8px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	font-family: verdana;
+}
+.KingVideoSubTitle {
+	font-size: 8pt;
+	color: #000000;
+	padding-top: 0px;
+	padding-left: 8px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	line-height: normal;
+	font-weight: normal;
+	font-family: verdana;
+}
+.KingVideoLink {
+	font-size: 8pt;
+	font-style: italic;
+	line-height: normal;
+	font-weight: bold;
+	font-variant: normal;
+	color: #000000;
+	text-align: right;
+	text-decoration: none;
+	font-family: verdana;
+}
+LI.Partner {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #000000;
+	list-style-type: Square;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.PartnerListText {
+	font-size: 8pt;
+	font-style: normal;
+	line-height: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #000000;
+	text-indent: 0pt;
+	word-spacing: normal;
+	clear: none;
+	float: none;
+	height: auto;
+	width: auto;
+	text-decoration: none;
+	border: none;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+.caption {
+	font-size: 6.5pt;
+	color: #000000;
+	text-align: right;
+	font-weight: normal;
+	font-family: verdana;
+}
+.COFVideocaption {
+	font-size: 8pt;
+	font-style: italic;
+	color: #ffffff;
+	font-weight: normal;
+	font-family: Arial, Helvetica, sans-serif;
+}
+HR {
+size: 1;
+}
+.color {
+    color: #03355C;
+}
