@@ -1,0 +1,309 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 3.abl
+ *
+ *    DESC:			Instrument Lesson 3: Holding Patterns
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches about holding at a VOR.  The
+ *						student enters the pattern with a direct entry,
+ *						holds east of the VOR on the 180 degree radial,
+ *						completes more than one pattern, and then is allowed
+ *						to continue flying the pattern until ready to end
+ *						the lesson (by pressing Esc).
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson3;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\instr\lesson 3.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bAPKeepOff;
+	static	number	bDoOnce;
+	static	number	bReminder1;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnMsg(Normal,sThrottleSet);					// Tell the user to set the joystick throttle
+		fnThrottle_HoldRPM(2400);						// Init throttle rpm at 2400
+		bAPKeepOff = FALSE;
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	if ((AP.Master) and (bAPKeepOff)) then  //no autopilot
+		AP.Master = FALSE;
+	endif;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			//fnSQ_Play("Iclearance");  // sound does not exist
+			fnSQ_NormalMsg(sImFlying,0);
+			fnSQ_Play("I3-1"); // In this lesson, you're going
+			fnSQ_Play("I3-2"); // It's called a holding pattern
+			fnSQ_Pause(2);
+			fnSQ_Play("I3-3"); // We're over Puget Sound
+			fnSQ_Play("I3-4"); // I've got the airplane
+			fnSQ_Play("I3-5"); // We'll fly toward the Paine VOR
+			fnSQ_Pause(1);
+			fnSQ_Play("I3-6"); // We will maintain 4000 feet
+			fnSQ_Pause(3);
+			fnSQ_Play("I3-7"); // I'm sure you've been dutifully
+			// no AP in spec
+			//fnSQ_Play("I3-8"); // A good autopilot is your best friend
+			// explanation of the timer has been moved to Inst-1, per Marty
+			//fnSQ_GaugeHilight("Clock",8);
+			//fnSQ_NormalMsg(s9,0);
+			//fnSQ_Play("I3-9"); // On the upper left side of the instrument panel
+			//fnSQ_Play("I3-10"); // When you've found it,
+			//fnSQ_Play("I3-11"); // Most holding patterns are based on time
+			//fnSQ_Play("I3-12"); // Clicking the control button starts
+			//fnSQ_Play("I3-13"); // Clicking it again stops it,
+			//fnSQ_Play("I3-14"); // Watch the clock...
+			// no AP in spec
+			//fnSQ_Play("I3-15"); // you can manually fly if you wish
+			//fnSQ_Play("I3-16"); // if you choose to, hit the Z key
+			fnSQ_ChangeState(CaseTalk1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTalk1_1:
+			Writeln ("CaseTalk1_1");
+			Writeln(fn1Str1Num("DMEDIstance = ",VHFNAV1.DMEDistance));
+			if (VHFNAV1.DMEDistance < 2)  then
+				fnThrottle_Manual;
+				AP.Master 					= FALSE;
+//				bAPKeepOff 					= TRUE;
+				nHeadingTarget 			= 360;
+				nHeadingToleranceMax 	= 10;
+				nHeadingToleranceMin 	= -10;
+				nAltitudeTarget 			= 4000;
+				nAltitudeToleranceMax	= 100;
+				nAltitudeToleranceMin 	= -100;
+				bAltitudeCheck 			= TRUE;
+				bHeadingCheck 				= TRUE;
+				bRollCheck 					= FALSE;
+				bDoOnce 						= TRUE;
+				fnToleranceChecking(TRUE);
+				fnSQ_NormalMsg(s17,0);
+				fnSQ_Play("Common5"); // You've got the airplane
+				fnSQ_Play("I3-17"); // as soon as we pass the vor,
+				fnSQ_ChangeState(CaseTurn1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1: //First turn to outbound leg
+			Writeln("CaseTurn1");
+			if (VHFNAV1.ToFrom <> 1 ) then
+				bHeadingCheck = FALSE;
+				nHeadingTarget = 180;
+				AP.Heading = nHeadingTarget;
+				nRollToleranceMax	= 10;
+				nRollToleranceMin	= -10;
+				nRollTarget 		= 20;
+				fnSQ_NormalMsg(s18,0);
+				fnSQ_Play("I3-18");  // There. We've crossed the station. Start a standard rate turn
+				fnSQ_ToleranceFlag(TF_ROLL,5);
+				fnSQ_ToleranceFlag(TF_HEADING,75);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn1_1:
+			Writeln("CaseTurn1_1");
+			if (nTimer > 30) or ((nYaw > 90) and (nYaw < 100)) then    // part way into the turn
+				fnSQ_Play("I3-19"); // The outbound leg should last one minute
+				fnSQ_Play("I3-20"); // As you roll out on the 180 heading
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn1_2:
+			Writeln("CaseTurn1_2");
+			if (nYaw >= 170) and (nYaw <= 190) then
+				bRollCheck	= FALSE;
+				bHeadingCheck	= TRUE;
+				fnSQ_NormalMsg(s21,0);
+				fnSQ_Play("I3-21"); // We'll fly outbound...
+				fnSQ_Play("I3-22"); // It is very important to maintain our altitude
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2: //Inbound Leg
+			Writeln("CaseTurn2");
+			if ( nTimer > 60) then
+				bHeadingCheck = FALSE;
+				AP.Heading = 360;
+				nHeadingTarget = 360;
+				fnSQ_NormalMsg(s23,0); // The outbound time has elapsed. Begin a right turn to heading 360
+				fnSQ_Play("I3-23"); // Okay, the outbound time has expired
+				fnSQ_ToleranceFlag(TF_ROLL,5);
+				fnSQ_ToleranceFlag(TF_HEADING,75);
+				fnSQ_ChangeState(CaseTurn2_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn2_1:
+			Writeln("CaseTurn2_1");
+			if ((nYaw < 5) and (nYaw >= 0)) or ((nYaw <= 360) and (nYaw > 355)) or ( abs(nLocalizer) < 5 ) then
+				fnSQ_NormalMsg(s24,0);
+				fnSQ_Play("I3-24"); // As the needle moves toward the center
+				fnSQ_Play("I3-25"); // Remember the vor indicator becomes more sensitive
+				bHeadingCheck = FALSE;
+				bRollCheck	= FALSE;
+				fnSQ_ToleranceFlag(TF_LOCALIZER,20);
+				fnSQ_ChangeState(CaseTurn2_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn2_2:
+			Writeln("CaseTurn2_2");
+			if ((bLocalizerCheck) and (bWithinTolerance) and (abs(nRoll) < 10)) or (VHFNAV1.DMEDistance < 2) or ( abs(nLocalizer) < 1 ) then
+				fnSQ_NormalMsg(s26,0);
+				bLocalizerCheck 	= FALSE;
+				bHeadingCheck 		= TRUE;
+				fnSQ_Play("I3-26"); // Now we're back on the inbound leg
+				fnSQ_Play("I3-27"); // Watch for the TO/FROM indicator to flip
+				fnSQ_Play("I3-30"); // Once we pass the
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn3: //Outbound Leg
+			Writeln("CaseTurn3 - look for toFrom");
+			if ( VHFNAV1.ToFrom <> 1 /*this may be happening anyway */)
+			or (VHFNAV1.DMEDistance <= 0.6 /* are they are close enough */) then
+				bLocalizerCheck	= FALSE;
+				bHeadingCheck 		= FALSE;
+				nHeadingTarget 	= 180;
+				AP.Heading 			= nHeadingTarget;
+				fnSQ_NormalMsg(s28,0);
+				fnSQ_Play("I3-28");	// There, we've passed the station
+				fnSQ_ToleranceFlag(TF_ROLL,5);
+				fnSQ_ToleranceFlag(TF_HEADING,75);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn3_1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+		endcase;
+
+		case CaseTurn3_1:
+			Writeln("CaseTurn3_1");
+			if (nTimer > 25) or (diff(nYaw,180) < 90) then
+				fnSQ_Play("I3-29");	// Typically, we would remain
+				fnSQ_Play("I3-31");	// We can use the GPS system to help monitor
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn3_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn3_2:
+			Writeln("CaseTurn3_2");
+			if (nYaw > 170) and (nYaw < 190) and (abs(nRoll) < 10) then
+				nState = CasePostFlight;
+				bRollCheck	= FALSE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			Writeln("CasePostFlight");
+				fnSQ_NormalMsg(s32,0);
+				fnSQ_Play("I3-32");	// Great job, fly a couple more laps
+				fnSQ_Play("I3-33");	// Look at the flight analysis
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostFlight_1:
+			Writeln ("CasePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseWait);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

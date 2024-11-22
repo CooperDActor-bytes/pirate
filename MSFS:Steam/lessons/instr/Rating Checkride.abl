@@ -1,0 +1,1436 @@
+/*******************************************************************
+ *    FILENAME:	Rating Checkride.abl
+ *
+ *    DESC:			Instrument Pilot Checkride
+ *
+ *    COMMENTS:	As per Spec
+ * 					This flight allows the student to demonstrate the
+ *						skills learning in the Instrument lessons and earn
+ *						a completion certificate when criteria is met.
+ *						Student follows instructions given to complete a
+ *						VOR approach, missed approach, holding, and an ILS
+ *						approach.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Checkride;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\instr\rating checkride.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 3000;         // First important altitude (autopilot takeover)
+	kAlt2           = 1060;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 060;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Reciprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	//specific konstants for this lesson
+	kDebug          = FALSE;        // set TRUE if you want things done for you
+	kSEALat         = 47.4353889;   // SEA VOR Latitude
+	kSEALON         = -122.3096111; // SEA VOR Longitude
+	kPARKKLat       = 47.5324;      // PARKK LOM latitude
+	kPARKKLon       = -122.30694;   // PARKK LOM longitude
+	kNOLLALat       = 47.6324;      // NOLLA LOM latitude
+	kNOLLALon       = -122.38952;   // NOLLA LOM longitude
+
+var
+	static	number	bAPKeepOff;     // Do we allow the player to use the autopilot?
+	static	number	bDoOnce;
+	static	number	bDoOnce2;
+	static	number	nObsTolerance; // This may want to be added to the lib
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+				number	nLocDev;
+				number	nGsDev;
+				number	nTemp2;
+	static	number	bCheat;
+	static	number	bFailedElement;
+	static	number	bOBSSet;
+
+	// Section 1 Vars
+	static	number	b066ToFacts;
+	static	number	bFactsInTime;
+	static	number	bFactsAlt;
+	static	number	bMilltInTime;
+	static	number	bMilltAlt;
+	static	number	bOddInTime;
+	static	number	bOddAlt;
+	static	number	bMdaAlt;
+	static	number	bSeaInTime;
+	static	number	bSeaAlt;
+	static	number	b338Course;
+	static	number	b339Course;
+	static	number	bBeginMissedApp;
+	static	number	bMissedAppAlt;
+	static	number	bParkk;
+
+	// Section 2
+	static	number	bTurnLeftToSea;
+	static	number	b159Course;
+	static	number	b3000Alt;
+	static	number	bCrossSeaAny;
+	static	number	bCrossSea320;
+	static	number	bStandardTurns;
+	static	number	bOutboundLeg;
+	static	number	bInterceptRadial;
+	static	number	bCrossSeaToComplete;
+
+	// Section 3
+	static	number	b326Course;
+	static	number	bNav1ToBoeing;
+	static	number	bNav1ToBoeingInTime;
+	static	number	bCrossNolla;
+	static	number	bTrackLocalizerOut;
+
+	// Section 4
+	static	number	b265Heading;
+	static	number	bProcedureOutbound;
+	static	number	b085Heading;
+	static	number	bIntLocalizer;
+	static	number	bIntGlideslope;
+	static	number	bStayOnILS;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit.abl";
+		Writeln ("Finished with Init");
+		fnMsg(Normal,sThrottleSet);
+		fnThrottle_HoldRPM(2400);
+		bAPKeepOff = FALSE;
+		bDoOnce = FALSE;
+		//if (kDebug) then
+			AP.Heading = 066;
+			AP.HeadingHold = TRUE;
+			AP.AltitudeHold = TRUE;
+			ADF1.Frequency = 281.0;
+		//	AP.NavHold = TRUE;
+		//endif;
+
+		// Set this var to TRUE if you wish to
+		// fly the lesson manually but not get booted by the eval segments.
+		bCheat				=	FALSE;
+		bOBSSet				=	FALSE;
+
+		// Section 1 Vars
+		b066ToFacts			=	FALSE;
+		bFactsInTime		=	FALSE;
+		bFactsAlt			=	FALSE;
+		bMilltInTime		=	FALSE;
+		bMilltAlt			=	FALSE;
+		bOddInTime			=	FALSE;
+		bOddAlt				=	FALSE;
+		bMdaAlt				=	FALSE;
+		bSeaInTime			=	FALSE;
+		bSeaAlt				=	FALSE;
+		b338Course			=	FALSE;
+		b339Course			=	FALSE;
+		bBeginMissedApp	=	FALSE;
+		bMissedAppAlt		=	FALSE;
+		bParkk				=	FALSE;
+
+		// Section 2
+		bTurnLeftToSea		=	FALSE;
+		b159Course			=	FALSE;
+		b3000Alt				=	FALSE;
+		bCrossSeaAny		=	FALSE;
+		bCrossSea320		=	FALSE;
+		bStandardTurns		=	FALSE;
+		bOutboundLeg		=	FALSE;
+		bInterceptRadial	=	FALSE;
+		bCrossSeaToComplete	=	FALSE;
+
+		// Section 3
+		b326Course			=	FALSE;
+		bNav1ToBoeing		=	FALSE;
+		bNav1ToBoeingInTime	=	FALSE;
+		bCrossNolla			=	FALSE;
+		bTrackLocalizerOut=	FALSE;
+
+		// Section 4
+		b265Heading			=	FALSE;
+		bProcedureOutbound=	FALSE;
+		b085Heading			=	FALSE;
+		bIntLocalizer		=	FALSE;
+		bIntGlideslope		=	FALSE;
+		bStayOnILS			=	FALSE;
+
+		nDoneFlag = 1; //set flag to indicate did not successfully complete lesson
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	if ((AP.Master) and (bAPKeepOff)) then  //no autopilot
+		AP.Master = FALSE;
+	endif;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			AP.Heading = 066;
+			fnResetToleranceFlags;
+			nAltitudeTarget 			= 5000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -50;
+			nSpeedTarget 				= 100;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nHeadingTarget				= 066;
+			nHeadingToleranceMax 	= 10;
+			nHeadingToleranceMin 	= -10;
+			nLocalizerTolerance		= 2;
+			nGlideSlopeTolerance		= 2;
+			nToleranceTimeWarn		= 20;
+			nToleranceTimeErr			= 20;
+			nVORSelect 					= 1;
+			nObsTolerance				= 3;
+			nMoveOnTo					= CaseTimeOut; //if they time out - quit the lesson
+			bTextWarnings           = TRUE;
+			bAudioWarnings          = FALSE;
+			bToleranceTimeCheck		= FALSE;
+			bHeadingCheck				= FALSE;
+			bAltitudeCheck 			= TRUE;
+			bSpeedCheck					= TRUE;
+			fnSQ_NormalMsg(s1,0);	// Sit back and relax; Listen to the instructor
+			fnSQ_Play("INSTCR-1");  // Today, on your instrument checkride
+			fnSQ_Play("INSTCR-2");  // I will not ask you to do anything illegal
+			fnSQ_Play("INSTCR-3");  // Feel free to use the Pause function
+			fnSQ_Play("INSTCR-4");  // Because this is a simulator
+			fnSQ_NormalMsg(sTuneRadio,0);  //
+			fnSQ_ResetTimer;        // Start the timer to see how long before the player tunes SEA
+			fnSQ_ChangeState(CaseTalk1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1_1: //Student must get on the right Frequency
+			Writeln ("CaseTalk1_1");
+			if (kDebug) then
+				VHFNAV1.Frequency = 116.80;
+			endif;
+			if (Diff(VHFNAV1.Frequency,116.8) < 0.03) then
+				fnSQ_NormalMsg(s2,0);
+				fnSQ_Pause(1);
+				fnSQ_NormalMsg(s1,0);
+				fnSQ_ChangeState(CaseTalk1_2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 30) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				fnSQ_NormalMsg(sINSTCR_DING5,0);
+				fnSQ_Play("INSTCR-DING5");
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTalk1_2:
+			Writeln ("CaseTalk1_2");
+			fnSQ_Play("INSTCR-5");  // Your clearance is direct to the FACTS IAF
+			fnSQ_Play("INSTCR-6");  // For the purposes of this examination
+			fnSQ_Play("INSTCR-7");  // You are the pilot in command
+			fnSQ_ChangeState(CaseTalk2);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2: //The First approach, first segment - 5000', 066 till FACTS
+			Writeln ("CaseTalk2");
+			fnSQ_NormalMsg(s3,0); // you are flying
+			fnSQ_Play("INSTCR-8");  // I am disabling the autopilot now.
+			nOBS1Target 		= 338;
+			AP.Heading 		= 338;
+			if(not kDebug) then
+				AP.Master = FALSE;
+				bAPKeepOff = FALSE;
+				fnThrottle_Manual;
+			else
+				VHFNAV1.OBS 		= 338;
+				fnThrottle_HoldRPM(2400);
+			endif;
+			//fnSQ_ToleranceFlag(TF_OBS1, 30);
+			//fnSQ_NormalMsg(s3_3,0); // set your NAV1 OBS to 338
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTalk3);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk3: //Lets get on the right OBS
+			Writeln ("CaseTalk3");
+			if (VHFNAV1.OBS <= (338 + nObsTolerance)) and (VHFNAV1.OBS >= (338 - nObsTolerance)) then
+				AP.Heading			= 338;
+				nHeadingTarget 			= 338;
+				VHFNAV1.OBS			= 338;
+				fnSQ_ToleranceFlag(TF_LOCALIZER, 120); // get on the localizer path
+				fnSQ_ToleranceFlag(TF_HEADING, 120);  // get on the heading
+				if (kDebug) then
+					AP.NavHold = TRUE;
+					bDoOnce = TRUE;
+				endif;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer >  30) then
+				bOBSSet = TRUE;
+				fnSQ_ChangeState(CaseApp3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1: //At FACTS - D17.0 - At FACTS we descend to 3000ft
+			Writeln ("CaseDesc1");
+			if (VHFNAV1.DMEDistance <= 17.1) then
+				if (kDebug) and (bDoOnce) then
+					AP.Altitude = 3000;
+					fnThrottle_HoldRPM(2000);
+				endif;
+				bAltitudeCheck = FALSE;
+				if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bFactsAlt = TRUE; endif;
+				nAltitudeMax = 0;
+				nAltitudeMin = 0;
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseDesc1_2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bFactsInTime = TRUE;
+				nState = CaseApp3;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1_2: //At MILLT - D11.0 - At MILLT must be at 3000
+			Writeln ("CaseDesc1_2");
+			if (VHFNAV1.DMEDistance <= 11.1) and (not bDoOnce) then
+				bDoOnce = TRUE;
+				nAltitudeTarget = 3000;
+				bAltitudeCheck = TRUE;
+				bWithinTolerance = FALSE;
+				nManTime = 0;
+			endif;
+			if (bDoOnce) then nManTime = nManTime + 1; endif;
+			//if (bWithinTolerance) and (bAltitudeCheck) then
+			if (nMantime >= 3) and (bAltitudeCheck) then
+				if (kDebug) then
+					AP.Altitude = 1600;
+					fnThrottle_HoldRPM(2100);
+				endif;
+				bAltitudeCheck = FALSE;
+				if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bMilltAlt = TRUE; endif;
+				nAltitudeMax = 0;
+				nAltitudeMin = 0;
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseDesc2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bMilltInTime = TRUE;
+				nState = CaseApp3;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc2: //At NDB - D4.3 - At NDB must be at 1060
+			Writeln ("CaseDesc2");
+			if (VHFNAV1.DMEDistance <= 4.4) and (not bDoOnce) then
+				bDoOnce = TRUE;
+				nAltitudeTarget = 1600;
+				bAltitudeCheck = TRUE;
+				bWithinTolerance = FALSE;
+				nManTime = 0;
+			endif;
+			if (bDoOnce) then nManTime = nManTime + 1; endif;
+			//if (bWithinTolerance) and (bAltitudeCheck) then
+			if (nManTime >= 3) and (bAltitudeCheck) then
+				if (kDebug) then
+					AP.Altitude = 840;
+					fnThrottle_HoldRPM(2000);
+				endif;
+				bAltitudeCheck = FALSE;
+				if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bOddAlt = TRUE; endif;
+				nAltitudeMax = 0;
+				nAltitudeMin = 0;
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseDesc2_1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 360) then
+				bOddInTime = TRUE;
+				nState = CaseApp3;
+			endif;
+		endcase;
+
+		case CaseDesc2_1:
+			Writeln ("CaseDesc2_1");
+			if (VHFNAV1.DMEDistance <= 1) then
+				// see if we can cone this in alittle.
+				bLocalizerCheck = FALSE;
+				fnSQ_ChangeState(CaseDesc2_2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bSeaInTime = TRUE;
+				nState = CaseApp3;
+			endif;
+		endcase;
+
+		case CaseDesc2_2: //Send the message to stay on localizer
+			Writeln ("CaseDesc2_2");
+			if (VHFNAV1.ToFrom <> 1) and (not bDoOnce) then
+				nAltitudeTarget = 840;
+				bAltitudeCheck = TRUE;
+				bDoOnce = TRUE;
+				bWithinTolerance = FALSE;
+				nManTime = 0;
+			endif;
+			if (bDoOnce) then nManTime = nManTime + 1; endif;
+			//if (bWithinTolerance) and (bAltitudeCheck) then
+			if (nManTime >= 3) and (bAltitudeCheck) then
+				bAltitudeCheck = FALSE;
+				if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bSeaAlt = TRUE; endif;
+				if (nAltitudeMin <> 0) then bMdaAlt = TRUE; endif;
+				nAltitudeMax = 0;
+				nAltitudeMin = 0;
+				nAltitudeToleranceMin		= -100;
+				bLocalizerCheck = FALSE;
+				if (nLocalizerMaxDev <> 0) then b338Course = TRUE; endif;
+				nLocalizerMaxDev = 0;
+				bDoOnce = FALSE;
+				AP.NavHold = FALSE;
+				fnSQ_ChangeState(CaseApp1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bSeaInTime = TRUE;
+				nState = CaseApp3;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseApp1: //Check to see if things went ok up to here
+			Writeln ("CaseApp1");
+			fnTolerance(TF_SPEED,OFF,0);
+			fnSQ_NormalMsg(s6,0);
+			fnSQ_Play("instcr-9");  // go around, go around
+			AP.Heading 				= 339;
+			VHFNAV1.OBS 			= 339;		// may as well just go ahead and set it for them - 1 degree??
+			nHeadingTarget 			= 339;
+			nOBS1Target 			= 339;
+			nVertSpeedTarget		= 500;
+			nVertSpeedToleranceMin	= -300;
+			nVertSpeedToleranceMax	= 1000;
+			fnSQ_ToleranceFlag(TF_LOCALIZER, 30);
+			fnSQ_ToleranceFlag(TF_VERTSPEED, 15);
+			if (kDebug) then
+				AP.HeadingHold		= TRUE;
+				AP.Altitude 		= 2100;
+				fnThrottle_HoldRPM(2600);
+			endif;
+			bDoOnce = FALSE;
+			bDoOnce2 = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseApp2);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseApp2:
+			Writeln ("CaseApp2");
+			if (nAltitude > 2000) and (not bDoOnce2) then
+				bVertSpeedCheck = FALSE;
+				bDoOnce2 = TRUE;
+			endif;
+			if (VHFNAV1.DMEDistance >= 1) and (not AP.NavHold) and (kDebug) then
+				AP.NavHold = TRUE;
+				fnThrottle_HoldRPM(2400);
+			endif;
+			nTemp = posHere.DistanceTo(kPARKKLat,kPARKKLon);
+			writeln (fn1Str1Num("***Distance to PARKK = ",nTemp));
+			if (nTemp < 0.8) and (not bDoOnce) then
+				bLocalizerCheck = FALSE;
+				bAltitudeCheck = TRUE;
+				nAltitudeTarget = 2100;
+				bDoOnce = TRUE;
+				bWithinTolerance = FALSE;
+				nManTime = 0;
+			endif;
+			if (bDoOnce) then nManTime = nManTime + 1; endif;
+			//if (bWithinTolerance) and (bAltitudeCheck) then
+			if (nManTime >= 3) and (bAltitudeCheck) then
+				bAltitudeCheck = FALSE;
+				if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bMissedAppAlt = TRUE; endif;
+				if (nAltitudeMin <> 0) then bMdaAlt = TRUE; endif;
+				nAltitudeMax = 0;
+				nAltitudeMin = 0;
+				bLocalizerCheck = FALSE;
+				if (nLocalizerMaxDev <> 0) then b339Course = TRUE; endif;
+				nLocalizerMaxDev = 0;
+				if (nVertSpeedMax <> 0) or (nVertSpeedMin <> 0) then bBeginMissedApp = TRUE; endif;
+				bDoOnce = FALSE;
+				fnSQ_ChangeState(CaseApp3);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 360) then
+				bParkk = TRUE;
+				nState = CaseApp3;	//They haven't made it over PARKK close enough, and they've taken too long.
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseApp3: //Do another sweep check and see if they have been good
+			Writeln ("CaseApp3");
+			bFailedElement = FALSE;
+			if (nSpeedMin <> 0) or (nSpeedMax <> 0) then bFailedElement = TRUE;	endif;
+			if (nHeadingMin <> 0) or (nHeadingMax <> 0) then bFailedElement = TRUE;	endif;
+			if (bOBSSet) then bFailedElement = TRUE; endif;
+			if (bFactsInTime) then bFailedElement = TRUE; endif;
+			if (bFactsAlt) then bFailedElement = TRUE; endif;
+			if (b338Course) then bFailedElement = TRUE; endif;
+			if (bMilltInTime) then bFailedElement = TRUE; endif;
+			if (bMilltAlt) then bFailedElement = TRUE; endif;
+			if (bOddInTime) then bFailedElement = TRUE; endif;
+			if (bOddAlt) then bFailedElement = TRUE; endif;
+			if (bMdaAlt) then bFailedElement = TRUE; endif;
+			if (bSeaInTime) then bFailedElement = TRUE; endif;
+			if (bSeaAlt) then bFailedElement = TRUE; endif;
+			if (bBeginMissedApp) then bFailedElement = TRUE; endif;
+			if (bMissedAppAlt) then bFailedElement = TRUE; endif;
+			if (b339Course) then bFailedElement = TRUE;	endif;
+			if (bParkk) then bFailedElement = TRUE;	endif;
+			nState = CaseApp4;
+		endcase;
+
+		case CaseApp4:
+			Writeln ("CaseApp4");
+			if (bFailedElement) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				if (nSpeedMin <> 0) or (nSpeedMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING2,0);
+					fnSQ_Play("INSTCR-DING2");
+				endif;
+				if (nHeadingMin <> 0) or (nHeadingMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING3,0);
+					fnSQ_Play("INSTCR-DING3");
+				endif;
+				if (bOBSSet) then
+					fnSQ_NormalMsg(sINSTCR_DING8,0);
+					fnSQ_Play("INSTCR-DING8");
+				endif;
+				if (bFactsAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING7,0);
+					fnSQ_Play("INSTCR-DING7");
+				endif;
+				if (bFactsInTime) then
+					fnSQ_NormalMsg(sINSTCR_DING7a,0);
+					fnSQ_Play("INSTCR-DING7a");
+				endif;
+				if (b338Course) then
+					fnSQ_NormalMsg(sINSTCR_DING9,0);
+					fnSQ_Play("INSTCR-DING9");
+				endif;
+				if (bMilltAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING10,0);
+					fnSQ_Play("INSTCR-DING10");
+				endif;
+				if (bMilltInTime) then
+					fnSQ_NormalMsg(sINSTCR_DING10a,0);
+					fnSQ_Play("INSTCR-DING10a");
+				endif;
+				if (bOddAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING11,0);
+					fnSQ_Play("INSTCR-DING11");
+				endif;
+				if (bOddInTime) then
+					fnSQ_NormalMsg(sINSTCR_DING11a,0);
+					fnSQ_Play("INSTCR-DING11a");
+				endif;
+				if (bMdaAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING12,0);
+					fnSQ_Play("INSTCR-DING12");
+				endif;
+				if (bSeaAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING13,0);
+					fnSQ_Play("INSTCR-DING13");
+				endif;
+				if (bSeaInTime) then
+					fnSQ_NormalMsg(sINSTCR_DING13a,0);
+					fnSQ_Play("INSTCR-DING13a");
+				endif;
+				if (bBeginMissedApp) then
+					fnSQ_NormalMsg(sINSTCR_DING14,0);
+					fnSQ_Play("INSTCR-DING14");
+				endif;
+				if (bMissedAppAlt) then
+					fnSQ_NormalMsg(sINSTCR_DING15,0);
+					fnSQ_Play("INSTCR-DING15");
+				endif;
+				if (b339Course) then
+					fnSQ_NormalMsg(sINSTCR_DING16,0);
+					fnSQ_Play("INSTCR-DING16");
+				endif;
+				if (bParkk) then
+					fnSQ_NormalMsg(sINSTCR_DING17,0);
+					fnSQ_Play("INSTCR-DING17");
+				endif;
+				if (not kDebug) and (not bCheat) then
+					fnSQ_ChangeState(CaseFail);
+					fnSQ_Synchronize;
+					bOBSSet = FALSE;
+				endif;
+			endif;
+			fnSQ_ChangeState(CaseApp5);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseApp5:
+			Writeln ("CaseApp5");
+			if bCheat or (not bFailedElement) then
+				// Student did a good job - give them new instructions and move them on.
+				nAltitudeTarget = 3000;
+				bLocalizerCheck = FALSE;
+				fnSQ_ToleranceFlag(TF_ALTITUDE, 150); // 2 mins
+				nRollToleranceMax	= 15;
+				nRollToleranceMin	= -15;
+				nRollTarget 		= -20; // must turn left
+				bHeadingCheck = FALSE;
+				nHeadingTarget 	= 159;
+				if (kDebug) then
+					AP.Altitude 		= 3000;
+					AP.NavHold 		= FALSE;
+					AP.Heading 		= 250;
+					AP.HeadingHold 		= TRUE;
+					fnThrottle_HoldRPM(2600);
+				endif;
+				fnSQ_NormalMsg(INSTCR_10,0);
+				fnSQ_Play("instcr-10"); // when you pass the outer marker; heading 160 / climb 3000ft
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Entry);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Entry: //Turning left after PARKK
+			Writeln ("CaseHold1Entry");
+			if (nYaw < 265) and (nYaw > 250) and (kDebug) then
+				AP.Heading 		= 159;
+			endif;
+			if (cpoffice.marker == 1) then
+				fnSQ_ToleranceFlag(TF_ROLL,10)
+			endif;
+			if (nYaw > 150) and (nYaw < 170) then
+				bRollCheck	= FALSE;
+				if (nRollMin <> 0) or (nRollMax <> 0) then bTurnLeftToSea = TRUE; endif;
+				nRollMin = 0;
+				nRollMax = 0;
+				nOBS1Target 	= 159;
+				//fnSQ_ToleranceFlag(TF_OBS1,20);
+				if (kDebug) then
+					VHFNAV1.OBS 		= 159;
+					AP.HeadingHold 		= FALSE;
+				endif;
+				fnSQ_NormalMsg(INSTCR_11,0);
+				fnSQ_Play("INSTCR-11");
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Entry_2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				nTimer = 0;
+				bCrossSeaAny = TRUE;
+				nState = CaseHold1Entry_2;
+			endif;
+		endcase;
+
+//		case CaseHold1Entry_1: //Out of turn getting lined up with SEA
+//			Writeln ("CaseHold1Entry_1");
+//			if (((VHFNAV1.OBS <= (159 + nObsTolerance)) and (VHFNAV1.OBS >= (159 - nObsTolerance))) or (nTimer >  30)) then
+//				VHFNAV1.OBS = 159;
+//				if (kDebug) then
+//					AP.NavHold = TRUE;
+//				endif;
+//				fnSQ_ResetTimer;
+//				fnSQ_ToleranceFlag(TF_LOCALIZER,90);
+//				fnSQ_ChangeState(CaseHold1Entry_2);
+//				fnSQ_Synchronize;
+//			endif;
+//		endcase;
+
+		case CaseHold1Entry_2: //Passing over SEA VOR and turn left into Holding Patern
+			Writeln ("CaseHold1Entry_2");
+			if (VHFNAV1.DMEDistance < 1.0) and (not bDoOnce) then
+				bLocalizerCheck = FALSE;
+				nLocalizerMaxDev = 0;
+				bDoOnce = TRUE;
+				if (kDebug) then
+					AP.HeadingHold 	= TRUE;
+				endif;
+			endif;
+			// This had better happen within 5 minutes of PARKK
+			if (VHFNAV1.ToFrom <> 1) then
+				if (kDebug) then
+					fnThrottle_HoldRPM(2400);
+					AP.Heading 		= 069; // 90 degrees off of 339
+					AP.NavHold 		= FALSE;
+					AP.HeadingHold 		= TRUE;
+					// we want this to happen for a about 50 secs then turn to inbound 140
+				endif;
+				bDoOnce = FALSE;
+				bOBS1Check = FALSE; // we need to turn this so the student can choose their course as needed.
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Entry_3);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bCrossSeaAny = TRUE;	//They didn't cross the sea vor the first time in a timely fashion
+				nState = CaseHold1Out_2;
+				// in case they didn't get close enough to shut this off
+				//if (bLocalizerCheck) then
+				//	bLocalizerCheck = FALSE;
+				//	if (nLocalizerMaxDev <> 0) then b159Course = TRUE; endif;
+				//	nLocalizerMaxDev = 0;
+				//endif;
+			endif;
+		endcase;
+
+		case CaseHold1Entry_3: // They need to be on the 140 inbound to SEA heading 320
+			Writeln ("CaseHold1Entry_3");
+			nTemp = posHere.DistanceTo(kSEALat,kSEALon);
+			if (kDebug) and (nTimer > 60) and (not bDoOnce) then
+				AP.Heading 			= 240;
+				VHFNAV1.OBS 		= 320;
+				AP.NavHold 			= TRUE;
+				bDoOnce 				= TRUE;
+			endif;
+			if (kDebug) and (nYaw > 230) and (nTimer > 70) then
+				AP.Heading 			= 320;
+				AP.NavHold 			= TRUE;
+				AP.HeadingHold		= FALSE;
+			endif;
+			if ((kDebug) and (nTimer > 150)) or ((kDebug) and (nTemp < 0.9)) then
+				AP.NavHold 			= FALSE;
+				AP.HeadingHold 	= TRUE;
+			endif;
+			if ((nTemp < 0.4) and (nTimer > 30) and (nYaw > 300) and (nYaw < 340)) then // were passing vor here
+				if (VHFNAV1.OBS <= (320 + nObsTolerance)) and (VHFNAV1.OBS >= (320 - nObsTolerance)) then
+					VHFNAV1.OBS = 320;
+					bDoOnce = FALSE;
+					fnSQ_ResetTimer;
+					nRollToleranceMax	= 15;
+					nRollToleranceMin	= -15;
+					nRollTarget 		= 20; // must turn right until 180 degree turn
+					if (kDebug) then
+						AP.NavHold 		= FALSE;
+						AP.Heading		= 131;
+						AP.HeadingHold	= TRUE;
+					endif;
+					fnSQ_ToleranceFlag(TF_ROLL,15); // roll to the right at VOR
+					fnSQ_ChangeState(CaseHold1Entry_4);
+					fnSQ_Synchronize;
+				else
+					bOBSSet = TRUE;
+					fnSQ_ChangeState(CaseFail);
+					fnSQ_Synchronize;
+				endif;
+			endif;
+			if (nTimer > 300) then
+				bCrossSea320 = TRUE;
+				nState = CaseHold1Out_2;
+			endif;
+		endCase;
+
+		case CaseHold1Entry_4: //Turning Into Holding Patern
+			Writeln ("CaseHold1Entry_4");
+			if (nYaw > 60) and (nYaw < 70) then
+				if(kDebug) then
+					AP.Heading = 140;
+				endif;
+			endif;
+			if (nYaw > 120) then bRollCheck = FALSE; endif;
+			if (nYaw > 120) and (nYaw < 150) and (abs(nRoll) < 4) then
+				bRollCheck = FALSE;
+				nHeadingTarget = 140;
+				fnSQ_ToleranceFlag(TF_HEADING,10);
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Entry_5);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 180) then
+				bOutboundLeg = TRUE;
+				nState = CaseHold1Out_2;
+			endif;
+		endcase;
+
+		case CaseHold1Entry_5: //Outbound on 140 heading for 1 min
+			Writeln ("CaseHold1Entry_5");
+			// Started turn too early?
+			if (nTimer < 55) and (abs(nRoll) > 10) then bOutboundLeg = TRUE; endif;
+			if (nTimer > 60) then
+				bHeadingCheck = FALSE;
+				fnSQ_ToleranceFlag(TF_ROLL,20); // this is another right turn
+				if (kDebug) then
+					AP.Heading = 315;
+					AP.NavHold = TRUE;
+					AP.HeadingHold = TRUE;
+				endif;
+				bDoOnce = FALSE;
+				fnSQ_ChangeState(CaseHold1Out);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Out: //Inbound on 140 -- last strech
+			Writeln ("CaseHold1Out");
+			// Started turn too late?
+			if (nTimer > 90) and (abs(nRoll) < 5) and (not bDoOnce) then bOutboundLeg = TRUE; writeln("*****Started turn too late."); endif;
+			if (nYaw > 295) and (not bHeadingCheck) and (not bDoOnce) then
+				bDoOnce = TRUE;
+				bRollCheck = FALSE;
+				nHeadingTarget = 320;
+				nHeadingToleranceMax 	= 30;
+				nHeadingToleranceMin 	= -30;
+				fnSQ_ToleranceFlag(TF_HEADING,10);
+				fnSQ_ToleranceFlag(TF_LOCALIZER,30);
+				bWithinTolerance = FALSE;
+				if (kDebug) then
+					AP.NavHold = FALSE;
+					AP.HeadingHold = TRUE;
+				endif;
+				nManTime = 0;
+			endif;
+			if (bDoOnce) then nManTime = nManTime + 1; endif;
+			//if (bHeadingCheck) and (bWithinTolerance) then
+			if (nManTime >= 3) and (bHeadingCheck) and (bLocalizerCheck) then
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Out_1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				bOutboundLeg = TRUE;
+				nState = CaseHold1Out_2;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Out_1: //Pass SEA VOR for last time and run check
+			Writeln	("CaseHold1Out_1");
+			nTemp = posHere.DistanceTo(kSEALat,kSEALon);
+			if (nTemp < 0.9) then
+				bLocalizerCheck = FALSE;
+				if (nLocalizerMaxDev <> 0) then bInterceptRadial = TRUE; endif;
+				nLocalizerMaxDev = 0;
+				bHeadingCheck = FALSE;
+				if (kDebug) then
+					AP.HeadingHold = TRUE;
+				endif;
+			endif;
+			if (nTemp < 0.5) or (VHFNAV1.ToFrom == 0) then
+				if (kDebug) then
+					AP.NavHold = FALSE;
+				endif;
+				nState = CaseHold1Out_2;
+			endif;
+			if (nTimer > 120) then // if they never pass over SEA VOR then boot em
+				bCrossSeaToComplete = TRUE;
+				fnSQ_ChangeState(CaseHold1Out_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseHold1Out_2:	//Evaluate
+			writeln("CaseHold1Out_2");
+			bFailedElement = FALSE;
+			if (nSpeedMin <> 0) or (nSpeedMax <> 0) then bFailedElement = TRUE;	endif;
+			if (nHeadingMin <> 0) or (nHeadingMax <> 0) then bFailedElement = TRUE;	endif;
+			if (nRollMax <> 0) or (nRollMin <> 0) then bStandardTurns = TRUE; bFailedElement = TRUE; endif;
+			if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then b3000Alt = TRUE; bFailedElement = TRUE; endif;
+			if (bOBSSet) then bFailedElement = TRUE; endif;
+			if (bTurnLeftToSea) then bFailedElement = TRUE; endif;
+			if (b159Course) then bFailedElement = TRUE; endif;
+			if (bCrossSeaAny) then bFailedElement = TRUE; endif;
+			if (bCrossSea320) then bFailedElement = TRUE; endif;
+			if (bOutboundLeg) then bFailedElement = TRUE; endif;
+			if (bInterceptRadial) then bFailedElement = TRUE; endif;
+			if (bCrossSeaToComplete) then bFailedElement = TRUE; endif;
+			if (bFailedElement) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				if (nSpeedMin <> 0) or (nSpeedMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING2,0);
+					fnSQ_Play("INSTCR-DING2");
+				endif;
+				if (nHeadingMin <> 0) or (nHeadingMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING3,0);
+					fnSQ_Play("INSTCR-DING3");
+				endif;
+				if (bOBSSet) then
+					fnSQ_NormalMsg(sINSTCR_DING8,0);
+					fnSQ_Play("INSTCR-DING8");
+				endif;
+				if (bStandardTurns) then
+					fnSQ_NormalMsg(sINSTCR_DING24,0);
+					fnSQ_Play("INSTCR-DING24");
+				endif;
+				if (b3000Alt) then
+					fnSQ_NormalMsg(sINSTCR_DING21,0);
+					fnSQ_Play("INSTCR-DING21");
+				endif;
+				if (bTurnLeftToSea) then
+					fnSQ_NormalMsg(sINSTCR_DING18,0);
+					fnSQ_Play("INSTCR-DING18");
+				endif;
+				if (b159Course) then
+					fnSQ_NormalMsg(sINSTCR_DING18a,0);
+					fnSQ_Play("INSTCR-DING18a");
+				endif;
+				if (bCrossSeaAny) then
+					fnSQ_NormalMsg(sINSTCR_DING22,0);
+					fnSQ_Play("INSTCR-DING22");
+				endif;
+				if (bCrossSea320) then
+					fnSQ_NormalMsg(sINSTCR_DING23,0);
+					fnSQ_Play("INSTCR-DING23");
+				endif;
+				if (bOutboundLeg) then
+					fnSQ_NormalMsg(sINSTCR_DING25,0);
+					fnSQ_Play("INSTCR-DING25");
+				endif;
+				if (bInterceptRadial) then
+					fnSQ_NormalMsg(sINSTCR_DING26,0);
+					fnSQ_Play("INSTCR-DING26");
+				endif;
+				if (bCrossSeaToComplete) then
+					fnSQ_NormalMsg(sINSTCR_DING27,0);
+					fnSQ_Play("INSTCR-DING27");
+				endif;
+				if (not kDebug) and (not bCheat) then
+					fnSQ_ChangeState(CaseFail);
+					fnSQ_Synchronize;
+					bOBSSet = FALSE;
+				endif;
+			endif;
+			if (not bFailedElement) or (kDebug) or (bCheat) then
+				fnSQ_NormalMsg(INSTCR_12,0);
+				fnSQ_Play("INSTCR-12");
+				bAltitudeCheck = FALSE;
+				nAltitudeTarget = 2200;
+				fnSQ_ToleranceFlag(TF_ALTITUDE,120);
+				nHeadingTarget = 326;
+				nHeadingToleranceMax 	= 10;
+				nHeadingToleranceMin 	= -10;
+				fnSQ_ToleranceFlag(TF_HEADING,10);
+				if (kDebug) then
+					AP.Heading = 326;
+					VHFNAV1.OBS = 326;
+					AP.HeadingHold = TRUE;
+					ADF1.Frequency = 362.0;
+					fnThrottle_HoldRPM(2600);
+					AP.Altitude = 2200;
+				endif;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Out_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Out_3: //Check to see if the OBS is set and get them on course to NOLLA
+			Writeln ("CaseHold1Out_3");
+			if (kDebug) then
+				VHFNAV1.Frequency = 110.9;
+				VHFNAV1.OBS = 130;
+			endif;
+			if (nTimer > 45) then
+			if (Diff(VHFNAV1.Frequency,110.9) < 0.03) and (VHFNAV1.OBS <= (130 + nObsTolerance)) and (VHFNAV1.OBS >= (130 - nObsTolerance)) then
+				VHFNAV1.OBS = 130;
+				bOBS1Check = FALSE;
+				//fnSQ_ToleranceFlag(TF_HEADING,100);
+				//fnSQ_ToleranceFlag(TF_LOCALIZER,100);
+				//if (kDebug) then
+				//	AP.NavHold = TRUE;
+				//endif;
+				if (ADF1.Frequency <> 362.0) then
+					ADF1.Frequency = 362.0;
+					// we may need a sound file here to tell them they didn't set this correctly.
+				endif;
+				bDoOnce = FALSE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Exit);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 60) then
+				bOBSSet = TRUE;
+				bNav1ToBoeing = TRUE;
+				bNav1ToBoeingInTime = TRUE;
+				fnSQ_ChangeState(CaseHold1Exit_2);
+				fnSQ_Synchronize;
+			endif;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Exit: // At NOLLA must turn to 310
+			Writeln ("CaseHold1Exit");
+			nTemp = posHere.DistanceTo(kNOLLALat,kNOLLALon);
+			writeln(fn1Str1Num("Distance to NOLLA = ",nTemp));
+			if (nTemp < 0.5) then
+				bHeadingCheck = FALSE;
+				if (nHeadingMin <> 0) or (nHeadingMax <> 0) then b326Course = TRUE; endif;
+				nHeadingMin = 0;
+				nHeadingMax = 0;
+				//fnSQ_ToleranceFlag(TF_LOCALIZER,30);
+				bDoOnce = FALSE;
+				fnSQ_Play("INSTCR-13");
+				nHeadingTarget = 310;
+				fnSQ_ToleranceFlag(TF_HEADING, 20);
+				if (kDebug) then
+					AP.Heading = 310;
+					AP.HeadingHold = TRUE;
+					VHFNAV1.Frequency = 110.90;
+				endif;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseHold1Exit_1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 600) then
+				bCrossNolla = TRUE;
+				fnSQ_ChangeState(CaseHold1Exit_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseHold1Exit_1:
+			writeln("CaseHold1Exit_1");
+			nTemp = posHere.DistanceTo (kNOLLALat,kNOLLALon);
+			if (nYaw > 300) and (nYaw < 320) and (nTimer > 10) then
+				nTimer = 0;
+				nState = CaseHold1Exit_2;
+			endif;
+			if (nTemp >= 10.0) or (nTimer > 120) then
+				bTrackLocalizerOut = TRUE;
+				fnSQ_ChangeState(CaseHold1Exit_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseHold1Exit_2:
+			writeln("CaseHold1Exit_2");
+			bFailedElement = FALSE;
+			if (nSpeedMin <> 0) or (nSpeedMax <> 0) then bFailedElement = TRUE;	endif;
+			if (nAltitudeMax <> 0) or (nAltitudeMin <> 0) then bFailedElement = TRUE; endif;
+			if (b326Course) then bFailedElement = TRUE; endif;
+			if (bOBSSet) then bFailedElement = TRUE; endif;
+			if (bNav1ToBoeing) then bFailedElement = TRUE; endif;
+			if (bNav1ToBoeingInTime) then bFailedElement = TRUE; endif;
+			if (bCrossNolla) then bFailedElement = TRUE; endif;
+			if (bTrackLocalizerOut) then bFailedElement = TRUE; endif;
+			if (bFailedElement) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				if (nSpeedMin <> 0) or (nSpeedMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING2,0);
+					fnSQ_Play("INSTCR-DING2");
+				endif;
+				if (nAltitudeMin <> 0) or (nAltitudeMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING1,0);
+					fnSQ_Play("INSTCR-DING1");
+				endif;
+				if (b326Course) then
+					fnSQ_NormalMsg(sINSTCR_DING28,0);
+					fnSQ_Play("INSTCR-DING28");
+				endif;
+				if (bNav1ToBoeing) then
+					fnSQ_NormalMsg(sINSTCR_DING29,0);
+					fnSQ_Play("INSTCR-DING29");
+				endif;
+				if (bNav1ToBoeingInTime) then
+					fnSQ_NormalMsg(sINSTCR_DING30,0);
+					fnSQ_Play("INSTCR-DING30");
+				endif;
+				if (bOBSSet) then
+					fnSQ_NormalMsg(sINSTCR_DING8,0);
+					fnSQ_Play("INSTCR-DING8");
+				endif;
+				if (bCrossNolla) then
+					fnSQ_NormalMsg(sINSTCR_DING31,0);
+					fnSQ_Play("INSTCR-DING31");
+				endif;
+				if (bTrackLocalizerOut) then
+					fnSQ_NormalMsg(sINSTCR_DING32,0);
+					fnSQ_Play("INSTCR-DING32");
+				endif;
+				if (not kDebug) and (not bCheat) then
+					fnSQ_ChangeState(CaseFail);
+					fnSQ_Synchronize;
+					bOBSSet = FALSE;
+				endif;
+			endif;
+			if (not bFailedElement) or (kDebug) or (bCheat) then
+				nTimer = 0;
+				fnSQ_ResetTimer;
+				nState = CaseHold1Exit_3;
+				bDoOnce = FALSE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseHold1Exit_3: //Outbound from NOLLA
+			Writeln ("CaseHold1Exit_3");
+			nTemp = posHere.DistanceTo (kNOLLALat,kNOLLALon);
+			bHeadingCheck				= FALSE;
+			if (kDebug) then
+				AP.Heading = 265;
+			endif;
+			// Detect Start of Turn
+			if (abs(nRoll) > 10) and (not bDoOnce) then
+				nHeadingTarget = 265;
+				fnSQ_ToleranceFlag(TF_HEADING, 30);
+				bDoOnce = TRUE;
+			endif;
+			// Detect Rollout and start timer
+			if (diff (nYaw,265) < 10) and (abs(nRoll) < 4) and (bDoOnce) then
+				bDoOnce = FALSE;
+			 	fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseIAF);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 120) or (VHFNAV1.DMEDistance > 10.0) then
+				b265Heading = TRUE;
+				nState = CaseLanding_2;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseIAF: //Getting set up for Approach
+			Writeln ("CaseIAF");
+			// Start turn too early?
+			if (nTimer < 55) and (abs(nRoll) > 5) then bProcedureOutbound = TRUE; writeln("*****Started turn too soon."); endif;
+			if (nTimer > 60) then
+				bHeadingCheck = FALSE;
+				if (nHeadingMin <> 0) or (nHeadingMax <> 0) then b265Heading = TRUE; endif;
+				nHeadingMin = 0;
+				nHeadingMax = 0;
+				nHeadingTarget = 085;
+				//fnSQ_ResetTimer;
+				if (kDebug) then
+					AP.Heading = 080;
+					AP.HeadingHold = TRUE;
+				endif;
+				nState = CaseIAF_1;
+			endif;
+			if (nTimer > 120) then
+				bProcedureOutbound = TRUE;
+				nState = CaseLanding_2;
+			endif;
+		endcase;
+
+		case CaseIAF_1:
+			writeln ("CaseIAF_1");
+			// Started turn too late?
+			if (nTimer > 90) and (abs(nRoll) < 10) and (not bDoOnce) then bProcedureOutbound = TRUE; writeln("*****Started turn too late."); endif;
+			if (nYaw > 75) and (nYaw < 95)  then
+				bDoOnce = TRUE;
+				nHeadingTarget = 085;
+				bHeadingCheck = TRUE;
+				//fnSQ_ToleranceFlag(TF_LOCALIZER,40);
+				if (kDebug) then
+					AP.Heading = 085;
+					AP.HeadingHold = TRUE;
+				endif;
+				fnSQ_NormalMsg(INSTCR_14,0);
+//				fnSQ_Play("INSTCR-14");
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseIAF_2);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 300) then
+				b085Heading = TRUE;
+				nState = CaseLanding_2;
+			endif;
+		endcase;
+
+		case CaseIAF_2:  //Getting lined up with NOLLA for aproach
+			Writeln ("CaseIAF_2");
+			if (abs(nLocalizer) < 3) then
+				bHeadingCheck = FALSE;
+				if (nHeadingMin <> 0) or (nHeadingMax <> 0) then b085Heading = TRUE; endif;
+				nHeadingMin = 0;
+				nHeadingMax = 0;
+				if (kDebug) then
+					AP.NavHold = TRUE;
+				endif;
+				fnTolerance(TF_LOCALIZER,ON,30);
+				fnTolerance(TF_GLIDESLOPE,ON,90);
+				fnTolerance(TF_OBS1,OFF,0);
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseFinal1);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 120) then
+				bIntLocalizer = TRUE;
+				nState = CaseLanding_2;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFinal1:
+			Writeln ("CaseFinal1");
+			nFlapsTarget				= 1;
+			nAltitudeTarget			= 2200;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nState = CaseFinal1_1;
+		endcase;
+
+		case CaseFinal1_1:
+			Writeln ("CaseFinal1_1");
+			if (nAltAGL <= 300) then
+				nPoint[0,LAT] 				= 47.54041;
+				nPoint[0,LON] 				= -122.3117;
+				nPoint[1,LAT] 				= 47.54067;
+				nPoint[1,LON] 				= -122.3110;
+				nPoint[2,LAT] 				= 47.51498;
+				nPoint[2,LON] 				= -122.2893;
+				nPoint[3,LAT] 				= 47.51472;
+				nPoint[3,LON] 				= -122.2900;				nTimer = 0;
+				bLocalizerCheck	= FALSE;
+				if(nLocalizerMaxDev <> 0) then bIntLocalizer = TRUE; endif;
+				nLocalizerMaxDev = 0;
+				bGlideSlopeCheck = FALSE;
+				if(nGlideSlopeMaxDev <> 0) then bIntGlideSlope = TRUE; endif;
+				nGlideSlopeMaxDev = 0;
+				fnTolerance(TF_SPEED,OFF,0);
+				bCrashCheck = FALSE;
+				fnTolerance(TF_RUNWAY,ON,0);
+				fnSQ_ChangeState(CaseLanding);
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 500) then
+				bIntLocalizer = TRUE;
+				bIntGlideSlope = TRUE;
+				nState = CaseLanding_2;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  		case CaseLanding:
+			writeln("CaseLanding");
+			if (nTimer > 60) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				fnSQ_NormalMsg(sINSTCR_DING39,0);
+				fnSQ_Play("INSTCR-DING39");
+				nState = CaseFail;
+			endif;
+			if (bWow) then
+				fnMsg(Normal, " ");
+				fnResetToleranceFlags;
+				bDoOnce 					= TRUE;
+				bLandedOffRunway			= TRUE;
+				bTaxiedOffRunway			= FALSE;
+				bStoppedOffRunway			= TRUE;
+				fnToleranceChecking(TRUE);
+				nState = CaseLanding_1;
+			endif;
+		endcase;
+
+		case CaseLanding_1: //Make sure they stay on the runway
+			writeln("CaseLanding_1");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnSQ_ToleranceFlag(TF_SPEED,30);
+				nTimer 					= 0;
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 5;
+				nSpeedToleranceMin	= 0;
+				bDoOnce = FALSE;
+			endif;
+			if not bTaxiedOffRunway then bTaxiedOffRunway = bWarnRunway; endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_2:		// Final evaluation
+			writeln("CaseLanding_2");
+			bFailedElement = FALSE;
+			if (nSpeedMin <> 0) or (nSpeedMax <> 0) then bFailedElement = TRUE;	endif;
+			if (b265Heading) then bFailedElement = TRUE; endif;
+			if (bProcedureOutbound) then bFailedElement = TRUE; endif;
+			if (b085Heading) then bFailedElement = TRUE; endif;
+			if (bIntLocalizer) then bFailedElement = TRUE; endif;
+			if (bIntGlideslope) then bFailedElement = TRUE; endif;
+			if (bIntLocalizer) or (bIntGlideSlope) then bStayOnILS = TRUE; endif;
+			if (bLandedOffRunway) or (bTaxiedOffRunway) or (bStoppedOffRunway) then bFailedElement = TRUE; endif;
+			if (bFailedElement) then
+				fnSQ_NormalMsg(sINSTCR_FAIL,0);
+				fnSQ_Play("INSTCR-FAIL");
+				if (nSpeedMin <> 0) or (nSpeedMax <> 0) then
+					fnSQ_NormalMsg(sINSTCR_DING2,0);
+					fnSQ_Play("INSTCR-DING2");
+				endif;
+				if (b265Heading) then
+					fnSQ_NormalMsg(sINSTCR_DING33,0);
+					fnSQ_Play("INSTCR-DING33");
+				endif;
+				if (bProcedureOutbound) then
+					fnSQ_NormalMsg(sINSTCR_DING34,0);
+					fnSQ_Play("INSTCR-DING34");
+				endif;
+				if (b085Heading) then
+					fnSQ_NormalMsg(sINSTCR_DING35,0);
+					fnSQ_Play("INSTCR-DING35");
+				endif;
+				if (bStayOnILS) then
+					fnSQ_NormalMsg(sINSTCR_DING38,0);
+					fnSQ_Play("INSTCR-DING38");
+				endif;
+				if (bIntLocalizer) then
+					fnSQ_NormalMsg(sINSTCR_DING36,0);
+					fnSQ_Play("INSTCR-DING36");
+				endif;
+				if (bIntGlideslope) then
+					fnSQ_NormalMsg(sINSTCR_DING37,0);
+					fnSQ_Play("INSTCR-DING37");
+				endif;
+				if bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway then
+					//fnSQ_NormalMsg(sGoodEffort,0);
+					fnSQ_Play("CommonGoodEffort");	// That was a good effort
+					if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+						fnSQ_NormalMsg(commonLandOffStopOff,0);
+						fnSQ_Play("commonLandOffStopOff");
+					endif;
+					if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+						fnSQ_NormalMsg(commonLandOffStopOn,0);
+						fnSQ_Play("commonLandOffStopOn");
+					endif;
+					if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+						fnSQ_NormalMsg(commonLandOnStopOff,0);
+						fnSQ_Play("commonLandOnStopOff");
+					endif;
+					if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+						fnSQ_NormalMsg(commonLandOnDriftOffStopOn,0);
+						fnSQ_Play("commonLandOnDriftOffStopOn");
+					endif;
+				endif;
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			else
+				nDoneFlag = 4; // this will give them a certificate
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFail:
+			Writeln ("CaseFail");
+			fnSQ_Pause(4);
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			nDoneFlag	= 4; //set flag to indicate successfully earned certificate
+			fnSQ_Play("INSTCR-PASS");
+			fnSQ_Pause(4);
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostFlight_1:
+			Writeln ("CasePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.
