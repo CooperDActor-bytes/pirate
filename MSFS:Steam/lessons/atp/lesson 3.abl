@@ -1,0 +1,626 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 3.abl
+ *
+ *    DESC:			ATP Lesson 3:  Full ILS Approach
+ *
+ *    COMMENTS:	As per Spec
+ *						We will allow the student to either hand-fly the
+ *						lesson or to use the autopilot for the entire
+ *						lesson.  The briefing will make clear that this
+ *						class does not teach using the autopilot, but also
+ *						that the student is not precluded from using it
+ *						either.
+ *
+ *						The student should have completed the instrument
+ *						course before starting this class as we'll use
+ *						terminology and skills taught in that course.
+ *******************************************************************/
+//#debug_on
+//#print_on
+
+module Lesson3;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\atp\lesson 3.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	//specific konstants for this lesson
+	kSEALat         = 47.4353889;   // SEA VOR Latitude
+	kSEALON         = -122.3096111; // SEA VOR Longitude
+	kNOLLALat       = 47.6324;      // NOLLA LOM latitude
+	kNOLLALon       = -122.38952;   // NOLLA LOM longitude
+
+
+var
+	static	number	bDoOnce;
+	static	number	bDoGood;
+	static	number	nTemp9;
+	static	number	bRadio1;
+	static	number	bRadio2;
+	static	number	bRadio3;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	nLat;
+	static	number	nLon;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		// setup the variables with values to aviod errors
+		nEngineCount = 2;
+		bRadio1	= FALSE;
+		bRadio2 = FALSE;
+		bRadio3 = FALSE;
+		nTemp9  = TRUE;
+		//KBFI 13R
+		nPoint[0,LAT] 				= 47.54041;
+		nPoint[0,LON] 				= -122.3117;
+		nPoint[1,LAT] 				= 47.54067;
+		nPoint[1,LON] 				= -122.3110;
+		nPoint[2,LAT] 				= 47.51877;
+		nPoint[2,LON] 				= -122.2925;
+		nPoint[3,LAT] 				= 47.5185;
+		nPoint[3,LON] 				= -122.2932;
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	nLat = posHere.Latitude;
+	nLon = posHere.Longitude;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			fnResetToleranceFlags;
+			nSpeedTarget				=   300;
+			nSpeedToleranceMax		=    15;
+			nSpeedToleranceMin		=   -15;
+			nHeadingTarget				=   343;
+			nHeadingToleranceMax		=     5;
+			nHeadingToleranceMin		=    -5;
+			nAltitudeTarget			= 18000;
+			nAltitudeToleranceMax	=   300;
+			nAltitudeToleranceMin	=  -300;
+			bToleranceTimeCheck 		= TRUE;// we don't really want to do this...
+			fnTolerance(TF_SPEED,ON,0);
+			fnTolerance(TF_HEADING,ON,0);
+			fnTolerance(TF_ALTITUDE,ON,0);
+
+			fnSQ_NormalMsg(sImFlying,0);
+			fnSQ_Play("a3-1"); //In this lesson, you’ll use the skills you’ve learned so far
+			fnSQ_Play("a3-2"); //We’ll fly the same ILS approach you flew in the Instrument lessons
+			fnSQ_Play("a3-3"); //This way you can see how much different it is to fly approaches in smaller and bigger aircraft.
+			fnSQ_Play("a3-4"); //You’re approaching the Olympia VOR.  Your job is to cross the Seattle VOR at 6000.
+			fnSQ_Play("a3-5"); //I’ll keep tabs on your progress and tell you to do a few things
+			fnSQ_Play("a3-6"); //You’ve got a little time before we cross the Olympia VOR, so plan your descent.
+			//fnSQ_Play("a3-7"); //But first, get ready to copy your clearance now.
+			fnSQ_Pause(5); // todo: Pause (for how long?)
+			// Rod issues clearance to NOLLA, advises to tune radios
+			fnSQ_Play("a3-8"); //Ok, your clearance is to cross the Olympia VOR at FL180. Then proceed to the Seattle VOR ..
+			fnSQ_Pause(10);
+			fnSQ_ChangeState(Case1stSeg);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case Case1stSeg:
+			writeln ("Case1stSeg");
+			AP.MASTER = FALSE;
+			AP.ArmAutoThrottle = FALSE;
+			fnThrottle_Manual;
+			fnSQ_NormalMsg(s10,0); //You are flying: Fly to the Olympia VOR then the Seattle VOR
+			fnSQ_Play("a3-10"); //OK, Captain, you have control of the aircraft.  Take us to the Olympia VOR
+			fnSQ_ChangeState(Case1stSeg_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case Case1stSeg_1:
+			Writeln ("Case1stSeg_1");
+			if (VHFNav1.ToFrom <> 1) then
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_HEADING,OFF,0);
+				nAltitudeTarget			= 12000; // set this up for preceding case to check altitude
+				nSpeedTarget			= 250;
+				nSpeedToleranceMax		=  25;
+				nSpeedToleranceMin		= -15;
+   			nLocalizerTolerance 		= 5;
+   			/***** todo: Shouldn't we tell them that the need to slow to 250? *****/
+   			fnSQ_NormalMsg(s11,0);// Slow to 250 knots and track to the Seattle VOR
+				fnSQ_Play("a3-11"); //There’s the Olympia VOR. Track to the Seattle VOR as instructed in your clearance.
+				fnSQ_Play("a3-9"); //I’d suggest getting your radios set up before your descent
+				fnSQ_ToleranceFlag(TF_SPEED,85);
+				bDoOnce = TRUE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(Case1stSeg_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_2: // new case just for radios
+			Writeln ("Case1stSeg_2");
+			if (nTimer > 30) and (bDoOnce) then
+				// we can either do it for them and kick them out
+				// but to make my life easyier I choose to do this. -elliot
+				bDoOnce = FALSE;
+				fnSQ_NormalMsg(sTooSlow,0); //You needed to do a better job tuning your radio's
+				VHFNAV1.Frequency = 116.8;
+				VHFNAV1.StandbyFrequency = 110.9;
+				VHFNAV2.Frequency = 113.4;
+				VHFNAV1.OBS = 022; // set this for them as well
+				AP.Heading = 022;
+			endif;
+			if (diff(VHFNAV1.Frequency, 116.8) <= 0.03) then // SEA VOR
+				bRadio1 = TRUE;
+			endif;
+			if (diff(VHFNAV1.StandbyFrequency, 110.9) <= 0.03) then // this is the inbound ILS they need at the end
+				bRadio2	= TRUE;
+			endif;
+			if (diff(VHFNAV2.Frequency, 113.4) <= 0.03) then // this is the OLY VOR just for referance
+				bRadio3 = TRUE;
+			endif;
+			if (bRadio1) and (bRadio2) and (bRadio3) then
+				nLocalizerTolerance = 4;
+				fnSQ_ToleranceFlag(TF_LOCALIZER,65);
+				fnSQ_ChangeState(Case1stSeg_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_3:
+			Writeln ("Case1stSeg_3");
+			if (nDMEDistance <= 30) and (bSpeedCheck) and (bLocalizerCheck) then
+				fnClearMsg;
+				if (not bWarnSpeed) and (not bWarnLocalizer) then
+					fnSQ_Play("a3-12"); //You’re doing a good job tracking inbound to the VOR
+				else
+					// tell them they suck :)
+				endif;
+				fnSQ_NormalMsg(s39,0);
+				bDoOnce = TRUE;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(Case1stSeg_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_4:
+			Writeln ("Case1stSeg_4");
+			//check this first in case they overshot the DME and are above 12000ft
+			if (nVSnow < -3500) then
+				nManTime = nManTime + 1;
+				Writeln (Fn1str1num("Mantime = ", nMantime));
+				if (nManTime >= 5) then
+					fnSQ_ErrorMsg(s40,0);
+					fnSQ_ResetTimer;
+					nTemp9 = FALSE;
+				endif;
+			else
+				nManTime = 0;
+				if (nTimer > 20) and (not nTemp9) then
+					nTemp9 = TRUE;
+					fnClearMsg;
+				endif;
+			endif;
+			if (bDoOnce) and (nDMEDistance < 16) then
+				if (not fnAtAltitude) then
+					bDoOnce = FALSE;
+					fnSQ_Play("a3-14"); //You’re not descending fast enough to cross the Seattle VOR at 6000
+				endif;
+			endif;
+			if (bDoOnce) and (nAltitude <= 12000 ) then
+				if (nDMEDistance >= 16) and (nDMEDistance <= 20) then
+					fnSQ_Play("a3-13"); //You’re on a good descent profile.  Well done.
+				else
+					if (nDMEDistance > 20 ) then
+						fnSQ_Play("a3-15"); //You’re descending at a high rate...
+					endif;
+				endif;
+				fnClearMsg;
+				bDoOnce = FALSE
+			endif;
+			if (not bDoOnce) then
+				nAltitudeTarget			= 6000;
+				nAltitudeToleranceMax		=  500;
+				nAltitudeToleranceMin		=  -35; // give some room for losers like me :)
+				fnSQ_ChangeState(Case1stSeg_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_5:
+			Writeln ("Case1stSeg_5");
+			nTemp = posHere.DistanceTo(kSEALat,kSEALon);
+			if (nTemp < 3.0) and (not bDoOnce) then
+				fnTolerance(TF_LOCALIZER,OFF,0);
+				bDoOnce = TRUE;
+			endif;
+			if (VHFNav1.ToFrom <> 1) then // we have reached Seattle VOR
+				if (fnAtAltitude) and (not bWarnSpeed) then
+					fnSQ_Play("a3-16");//OK, good job.
+				else
+					fnSQ_ErrorMsg(s17,0); //You are not quite within the parameters of the clearance
+					fnSQ_Play("a3-17"); //Well, you’re at the Seattle VOR, and you’re not quite within the parameters of the clearance
+					fnSQ_Play("a3-18"); // I’d like to suggest that you take the other ATP lessons then come back to this one after some more practice.
+					//fnSQ_ChangeState(CaseEnd); // todo: should we end it all here and now?
+				endif;
+				fnSQ_ChangeState(CaseTurn1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1:
+			Writeln ("CaseTurn1");
+			// Prompt student to turn left to a heading of 323, descend to 2200, maintain 200 knots, and fly heading to cross NOLLA at 12.3DME
+			fnTolerance(TF_SPEED,OFF,0);
+			fnTolerance(TF_LOCALIZER,OFF,0);
+			bDoOnce = TRUE;
+			nSpeedTarget			= 200;
+			nSpeedToleranceMax		=  15;
+			nSpeedToleranceMin		= -15;
+ 			nHeadingTarget			= 326;
+			nHeadingToleranceMax		=   5;
+			nHeadingToleranceMin		=  -5;
+			nLocalizerTolerance		= 2;
+			nAltitudeTarget			= 2200;
+			nAltitudeToleranceMax		=  300;
+			nAltitudeToleranceMin		=  -30; // give a smidgon of room for bad fliers
+			AP.Heading = 326;
+			VHFNAV1.OBS = 326;
+			fnSQ_NormalMsg(s19,0); //Turn left and track the 323 degree course, decend to 2200 feet and slow to 200 knots
+			fnSQ_Play("a3-19"); //Now turn left to a heading of 323 and track the 323 degree course from the Seattle VOR.
+			fnSQ_Play("a3-20"); //Descend to 2200 feet.
+			fnSQ_Play("a3-21"); //You should also slow to 200 knots.
+			fnSQ_Play("a3-22"); //Fly to the NOLLA outer marker, which is also at 12.3 DME from the VOR.
+			fnSQ_ToleranceFlag(TF_LOCALIZER,45);
+			fnSQ_ChangeState(CaseTurn1_2);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_2:
+			Writeln ("CaseTurn1_2");
+			nTemp = posHere.DistanceTo(kNOLLALat,kNOLLALon);
+			if (bDoOnce) then if (fnAtAltitude) then
+				fnTolerance(TF_SPEED,ON,75);
+				bDoOnce = FALSE;
+			endif; endif;
+			if (nDMEDistance >= 11.7) and (diff(nYaw,326) <= 5) and (fnAtAltitude) and (nTemp <= 1.1) then
+				fnTolerance(TF_LOCALIZER,OFF,0);
+				fnSQ_ToleranceFlag(TF_SPEED,75);
+				AP.Heading			=  310;
+				nHeadingTarget			=  310;
+				nHeadingToleranceMax		=    5;
+				nHeadingToleranceMin		=   -5;
+				nRollTarget			=    0;
+				nRollToleranceMax		=    3;
+				nRollToleranceMin		=   -3;
+				fnSQ_NormalMsg(s23,0); //Turn left to heading 310
+				fnSQ_Play("a3-23"); //We’re just about to reach NOLLA.  When the ADF needle swings, turn left to 310.
+				fnSQ_TOleranceFlag(TF_HEADING,15);
+				fnSQ_TOleranceFlag(TF_ALTITUDE,5); // don't worry, were already at this alitude :)
+				fnSQ_ChangeState(CaseTurn1_3);
+				fnSQ_Synchronize;
+			endif;
+			if (nDMEDistance > 16) then
+				nState = CaseEnd;// they passed nolla and need to be restarted... right?
+			endif;
+		endcase;
+
+		case CaseTurn1_3:
+			Writeln ("CaseTurn1_3");
+			if (bHeadingCheck) and (not bWarnHeading) and (fnAtRoll) then
+				fnSQ_NormalMsg(s24,0); //Tune your Nav1 radio to 110.9
+				fnSQ_Play("a3-24"); //Now is a good time to tune in the ILS, on 110.9 and set your inbound course to 130.
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2:
+			Writeln ("CaseTurn2");
+			if (diff(VHFNAV1.Frequency, 110.9) <= 0.03) then
+				if (VHFNAV1.OBS == 130) then
+					fnSQ_ChangeState(CaseTurn2_1);
+					fnSQ_Synchronize;
+				endif;
+			endif;
+			if (nTimer > 30) then
+				VHFNAV1.OBS = 130; // doing this for the student
+				VHFNAV1.Frequency = 110.9; // doing this for the student
+				VHFNAV1.StandbyFrequency = 113.4;
+				VHFNAV2.Frequency = 116.8;
+			endif;
+		endcase;
+
+		case CaseTurn2_1:
+			Writeln ("CaseTurn2_1");
+			if (nDMEDistance >= 11 ) then
+				fnTolerance(TF_HEADING,OFF,0);
+				AP.Heading 		= 265;
+				nHeadingTarget		= 265;
+				nHeadingToleranceMax	=  10;
+				nHeadingToleranceMin	= -10;
+				fnSQ_NormalMsg(s25,0); //Turn left to heading 265 for 90 seconds
+				fnSQ_Play("a3-25"); //It’s time to start the course reversal, so turn left to 265 degrees
+				fnSQ_Play("a3-26"); //We’ll fly this leg for 90 seconds.
+				fnSQ_Play("a3-27"); //Once you rollout, turn your landing light on, arm the spoilers, and set autobrakes to 3.
+				fnSQ_ToleranceFlag(TF_HEADING,30);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn2_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn2_2:
+			Writeln ("CaseTurn2_2");
+			if (bHeadingCheck) and (not bWarnHeading) and (fnAtRoll) then
+				fnSQ_ResetTimer;
+				nState = CaseTurn2_3;
+			endif;
+		endcase;
+
+		case CaseTurn2_3:
+			Writeln ("CaseTurn2_3");
+			if (nTimer >= 90) then
+				fnTolerance(TF_HEADING,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				bLandingLightsTarget = ON;
+				AP.Heading			= 085;
+				nHeadingTarget			= 085;
+				nHeadingToleranceMax		=  10;
+				nHeadingToleranceMin		= -10;
+				nSpeedTarget 			= 180;
+				nSpeedToleranceMax 		=  20; // please leave a little room for those of us who aren't perfect pilots :)
+				nSpeedToleranceMin 		= -10;
+				nFlaps737Target			=   3;
+
+				fnSQ_NormalMsg(s28,0); //Turn right to heading 085, slow to 180 knots and set flaps to 5
+				fnSQ_Play("a3-28"); //Now it’s time to reverse your course and find the localizer
+				fnSQ_Play("a3-29"); //Slow the aircraft down to 180 knots, and set the flaps to 5.
+				fnSQ_ToleranceFlag(TF_SPEED,75);
+				fnSQ_ToleranceFlag(TF_FLAPS737,15);
+				fnSQ_ToleranceFlag(TF_HEADING,75);
+				fnSQ_ToleranceFlag(TF_LANDINGLIGHTS,5);
+				fnSQ_ChangeState(CaseTurn2_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn2_4:
+			Writeln ("CaseTurn2_4");
+			Writeln (Fn1str1num("nlocalizer = ", nLocalizer));
+			if (abs(diff(nYaw, nHeadingTarget)) <= 30) and (abs(nLocalizer) < 3.6) then
+				fnTolerance(TF_HEADING,OFF,0);
+				AP.Heading		= 130;
+				VHFNAV1.OBS 		= 130;
+				nLocalizerTolerance	= 4.0;
+				nGlideSlopeTolerance	= 3.6;
+				fnSQ_NormalMsg(s30,0); //Intercept the 130 course inbound on the ILS
+				fnSQ_Play("a3-30"); //There’s some movement on the CDI, so start your turn to intercept the localizer and track inbound.
+				fnSQ_Play("a3-31"); //Continue to maintain 2200 feet while tracking the localizer.
+				fnSQ_Play("a3-32"); //We’re looking to intercept the glideslope then begin our descent.
+				fnSQ_ToleranceFlag(TF_LOCALIZER,15);
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1:
+			Writeln ("CaseDesc1");
+			if (nGlideslope <> 0) and (abs(nGlideSlope) < 0.5) and (abs(nLocalizer) < 5 ) then
+			// *** What does our DME need to be at this point ? *** //
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnSQ_NormalMsg(s33,0); //Capture the glideslope and continue flying the ILS to the decision altitude of 264 feet
+				fnSQ_Play("a3-33"); //The glideslope needle is becoming active, so capture the glideslope and
+				fnSQ_ToleranceFlag(TF_GLIDESLOPE,15);
+				fnSQ_ChangeState(CaseDesc1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_1:
+			Writeln ("CaseDesc1_1");
+			//if (abs(nGlideSlope) < 0.4) then
+			if (bGlideSlopeCheck) and (not bWarnGlideSlope) then
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_FLAPS737,OFF,0);
+				nSpeedTarget			= 150;
+				nSpeedToleranceMax		=  25;
+				nSpeedToleranceMin		= -10;
+				nFlaps737Target			=   7;
+				bLandingGear737Target		=  ON;
+
+				fnSQ_NormalMsg(s34,0); //Lower your landing gear, set the flaps to 30 and slow to 150 knots
+				fnSQ_Play("a3-34"); //It’s time to lower your gear and set the flaps to 30.
+				fnSQ_Play("a3-35"); //Do all that in steps rather than all at once to help you keep on course and glideslope.
+				fnSQ_Play("a3-36"); //Slow to Vref, which is 150 knots. Continue flying the approach.
+				fnSQ_ToleranceFlag(TF_SPEED,50);
+				fnSQ_ToleranceFlag(TF_FLAPS737,15);
+				fnSQ_ToleranceFlag(TF_LANDINGGEAR737,10);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseDesc1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_2:
+			Writeln ("CaseDesc1_2");
+			if (nAltAGL <= 375) then
+				if ((not bWarnSpeed) and (not bWarnLocalizer) and (not bWarnGlideSlope)) then
+					// Student reaches 300 feet within tolerances, Rod announces runway in sight
+					fnSQ_NormalMsg(s37,0);
+					fnSQ_Play("a3-37"); //I’ve got the runway lights in sight.  Good approach.  Let’s land the airplane now.
+					fnSQ_ChangeState(CaseLanding);
+					fnSQ_Synchronize;
+				else
+					fnSQ_ErrorMsg(s38,0);
+					fnSQ_Play("a3-38"); //We don’t have the runway in sight, so we’ll have to go around. I’ve got the airplane
+					fnSQ_Play("a3-39"); //I’m going to end the lesson and suggest that you retake this lesson or fly the solo flight
+					fnSQ_ChangeState(CaseEnd);
+					fnSQ_Synchronize;
+				endif;
+        	endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding:
+			Writeln ("CaseLanding");
+			if (nAltAGL < 100) and (not bRunwayCheck) then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (vorSelect.ToFrom == 1) and (nAltAGL <= 50 ) then
+				fnTolerance(TF_GLIDESLOPE,OFF,0);
+				fnTolerance(TF_LOCALIZER,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+			if (vorSelect.ToFrom <> 1) then
+				nState = CaseFail;
+				// the student has somehow passed the airport... oops
+			endif;
+		endcase;
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_1:
+			Writeln ("CaseLanding_1");
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+			if (bWOW) then
+				bDoOnce = TRUE;
+				bLandedOffRunway = TRUE;
+				bTaxiedOffRunway = FALSE;
+				bStoppedOffRunway = TRUE;
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_4:
+			writeln("CaseLanding_4");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnTolerance(TF_SPEED,ON,25);
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 10;
+				nSpeedToleranceMin 	= 0;
+				bDoOnce = FALSE;
+			endif;
+			if (not bTaxiedOffRunway) then bTaxiedOffRunway = bWarnRunway;	endif;
+			if (IsStopped)then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_5:
+			writeln("CaseLanding_5");
+			if (bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway) then
+				fnSQ_Play("CommonGoodEffort");	// That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				//todo: should not call sound files from other lessons
+				fnSQ_Play("solo22"); //Well, you got the plane on the ground, but I think you might need to practice a bit more.
+				fnSQ_Play("A3-41");
+				fnSQ_Play("A3-42");
+				fnSQ_Play("A3-43");
+				fnSQ_Play("A3-44");
+				fnSQ_Pause(3);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_Play("A3-40");
+				fnSQ_Play("A3-45");
+				fnSQ_Pause(3);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

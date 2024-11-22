@@ -1,0 +1,1026 @@
+/*******************************************************************
+ *    FILENAME:	checkride.abl
+ *
+ *    DESC:			ATP Lesson 4: Checkride
+ *
+ *    COMMENTS:	As per Spec
+ *						This checkride tests the skills learned in the ATP
+ *						lessons. The flight departs Portland, Oregon (KPDX),
+ *						flies over the Olympia VOR (OLM), flies over the Paine
+ *						VOR (PAE), and flies a full ILS approach and landing
+ *						into Paine Field (KPAE). The student will fly the
+ *						Boeing 737.  The student will:
+ *						•	depart from runway 28R in Portland makes a climbing
+ *							right turn to fly the 332 degree course to the
+ *							Olympia VOR (OLM).
+ *						•	perform a takeoff, climb, and level off at FL280.
+ *						•	adhere to given airspeeds, including the 250 knot
+ *							restriction below 10,000 feet (on both departure
+ *							and descent into Paine).
+ *						•	calculate the best descent profile to cross the
+ *							OLM VOR at FL220, and accomplish that descent.
+ *						•	calculate the best descent profile to cross the
+ *							PAE VOR at 3000, and accomplish that descent.
+ *						•	Fly the full ILS Runway 16R approach into KPAE.
+ *						•	Land successfully on runway 16R
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Checkride;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\atp\atp checkride.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	//specific konstants for this lesson
+	KPAELat         = 47.8978;      // Paine 16R rollout end
+	KPAELon         = -122.28528;   // Paine 16R rollout end
+
+var
+	static	number	bDoOnce;
+	static	number	bCheat;
+	static	number	bDoBad1;
+	static	number	bDoBad2;
+	static	number	bDoBad3;
+	static	number 	bDoBadTotal;
+	static	number   bRadio1;
+	static	number   bRadio2;
+	static	number   bRadio3;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number[42]	ErrorFlag;	//Remember each and every error
+	static	number[5]	DoneTest;	//Remember testing error conditions
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		nEngineCount=2;
+		fnNormalMsg(sIdle);
+		fnThrottle_Hold(0.05);
+		bDoBad1 = 0;
+		bDoBad2 = 0;
+		bDoBad3 = 0;
+		bDoBadTotal = 0;
+		bCheat = FALSE;
+		for nLooper = 0 to 41 do
+			ErrorFlag[nLooper] = 0;         // Initialize array to 0
+         	endfor;
+		for nLooper = 0 to 4 do		// not that many tests neccisary
+			DoneTest[nLooper] =0;// Initialize array to 0
+		endfor;
+		//Setup runway coords, set up for Paine Field runway 16R
+		//KPAE 16R-34L
+		nPoint[0,LAT] 				= 47.92015;
+		nPoint[0,LON] 				= -122.2862;
+		nPoint[1,LAT] 				= 47.92015;
+		nPoint[1,LON] 				= -122.2855;
+		nPoint[2,LAT] 				= 47.89543;
+		nPoint[2,LON] 				= -122.2850;
+		nPoint[3,LAT] 				= 47.89543;
+		nPoint[3,Lon] 				= -122.2856;
+		bCrashCheck = FALSE;
+		nDoneFlag = 1; //set flag to indicate did not successfully complete lesson
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	case CaseTalk1: //Examiner introduces checkride
+		Writeln ("CaseTalk1_1");
+		fnClearMsg;
+		fnSQ_Play("CHECK1");  // On this checkride, I’ll expect you to fly from
+		fnSQ_Play("CHECK2");  // To earn the ATP certificate, I’m looking for precision in your flying.
+		fnSQ_Play("CHECK3");  //  Throughout this flight I’ll be paying close attention to the criteria listed in the briefing.
+		fnSQ_Play("CHECK4");  // Because I’m an examiner, I won’t coach you. I also may not point out errors when they happen.
+		fnSQ_Play("CHECK5");  // At a few checkpoints along the way, I’ll announce if you’ve done
+		fnSQ_Play("CHECK6");  // If you’re doing well, I’ll give you your next
+		fnSQ_Play("CHECK7");  // At that point, you can choose to continue flying on
+		fnSQ_Play("CHECK8");  // On this flight, I’ll monitor air traffic control and give you all
+		fnThrottle_Manual;	// Give the student control at this point
+		AP.Master 		= FALSE;
+		fnSQ_Play("CHECK9");  // Your departure instructions are to intercept the 332
+		fnSQ_Play("CHECK10");  // I want to you level off before you reach 25 DME from the
+		fnSQ_Play("CHECK11");  // Go ahead and configure the aircraft for takeoff.
+		fnSQ_Play("CHECK12");  // When you’re ready, you are cleared
+		//Student departs PDX, cleans up aircraft according to abbreviated checklist
+		fnSQ_ChangeState(CaseRolling1);
+		fnSQ_Synchronize;
+	endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	case CaseRolling1:
+        	Writeln ("CaseRolling1");
+		if (eMotors[1].N1 >= 50) then
+			// engine engaged check flaps, autobrake, and landing lights
+			if (cpoffice.LandingLightsOn <> 1) and (ErrorFlag[1] <> 1) then
+				ErrorFlag[1] = 1; // You did not switch on the landing lights for takeoff
+				bDoBad1 = bDoBad1+ 1;
+			endif;
+			if (cpOffice.FlapsHandlePos <> 3) and (ErrorFlag[2] <> 1) then
+				ErrorFlag[2]= 1; // You did not set takeoff flaps to 5
+	  			bDoBad1 = bDoBad1+ 1;
+			endif;
+			if (AP.AutoBrake <> 1) and (ErrorFlag[3] <> 1)  then
+				ErrorFlag[3] = 1; // You did not set autobrakes to RTO
+				bDoBad1 = bDoBad1+ 1;
+			endif;
+			bDoOnce = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTakeoff);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// This case will continue until 1500 ft
+// pitch = 20 degrees +/- 5
+// speed no less than 170
+// no more than 250 below 10000
+// Sets flaps to 0 after exceeding 200 knots
+// do we care if they stay on the runway?
+// check that they didn't rotate at too high speed
+// check that N1 was in range at takeoff
+
+    	case CaseTakeoff:
+        	Writeln ("CaseTakeoff");
+		if (not bWOW) and (not bDoOnce) then
+			fnTolerance(TF_RUNWAY,OFF,0);
+			bCrashCheck = TRUE;
+			if (eMotors[1].N1 > 98) or (eMotors[1].N1 < 90) then
+				ErrorFlag[4] = 1; //You did not set proper takeoff power of 95% N1
+			endif;
+			if (nIASNow > 175) then
+				ErrorFlag[5] = 1; //You rotated ay an excessively high speed
+			endif;
+			fnSQ_ResetTimer;
+			bDoOnce = TRUE;
+		endif;
+		if (nTimer > 15) and (bDoOnce) then
+			if (nIASNow < 170) and (ErrorFlag[6] <> 1) then
+				ErrorFlag[6] = 1;//No less than 170 KIAS durring climb.
+			endif;
+			if (nIASNow > 220) and (cpOffice.FlapsHandlePos <> 0) and (ErrorFlag[11] <> 1)  then
+				// we may need to do this in the next case as well
+				ErrorFlag[11] = 1;
+			else
+				if (nIASNow > 220) and (DoneTest[1] <> 1) then
+					DoneTest[1] = 1; // we need to know if this has happend
+				endif;
+			endif;
+			if (nIASNow > 250) then
+				ErrorFlag[7] = 1; //You exceeded 250 knots below 10 thousand feet
+			endif;
+			if (eMotors[1].N1 > 97) or (eMotors[1].N1 < 88) then
+				ErrorFlag[4] = 1; //You did not set proper takeoff power of 95% N1
+			endif;
+		endif;
+		if (nAltAGL > 2500) or (nTimer > 240) then
+			// it is time to move on :)
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTakeoff_1);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// During first part of Segment 1 Climb, we need to monitor the following
+// Positive rate of climb
+// No less than 170 KIAS
+// Does not exceed 250 KIAS when below 10000 feet
+// Sets climb power within 2500 feet AGL
+// Climb at 90%N1 +/- 3%
+// Sets flaps to 0 after exceeding 200 knots
+// Flies climb out between 235 and 250 knots
+
+	case CaseTakeoff_1:
+		Writeln ("CaseTakeoff_1");
+		// Set up to monitor Climb power, Altitude, and Speed
+		if ((eMotors[1].N1 > 94) or (eMotors[1].N1 < 85)) and (ErrorFlag[9] <> 1) then
+			ErrorFlag[9] = 1; //You did not set climb power to 90% N1 at 2000 feet
+		endif;
+		if (nIASNow > 220) and (cpOffice.FlapsHandlePos <> 0) and (ErrorFlag[11] <> 1)  then
+			// we may need to do this in the next case as well
+			ErrorFlag[11] = 1;
+		else
+			if (nIASNow > 220) and (DoneTest[1] <> 1) then
+				DoneTest[1] = 1; // we need to know if this has happend
+			endif;
+		endif;
+		if (nIASNow < 170) and (ErrorFlag[6] <> 1) then
+			ErrorFlag[6] = 1;//No less than 170 KIAS durring climb.
+		endif;
+		if (nIASNow > 250) and (ErrorFlag[7] <> 1) then
+			ErrorFlag[7] = 1; //You exceeded 250 knots below 10 thousand feet
+		endif;
+		if (not bDoOnce) then
+      	if(round(cpOffice.LandingGearHandlePos) <> 0) then ErrorFlag[10]= 1; endif;
+		endif;
+		bDoOnce	= FALSE;
+		fnSQ_ResetTimer;
+		fnSQ_ChangeState(CaseClimb1);
+		fnSQ_Synchronize;
+	endcase;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This is the rest of the way up the climb
+// Enforce Airspeed and N1 checking durring climb to 28000 (per spec) making it nearly imposible to pass flight
+// I start to check the coarse and heading at 10000 but this may need to happen sooner than this
+
+    	case CaseClimb1:
+		Writeln ("CaseClimb1");
+		if (nAltitude < 10000) then
+			if (nIASNow > 250) then
+				ErrorFlag[7] = 1; //You exceeded 250 knots below 10 thousand feet
+			endif;
+			if ((eMotors[1].N1 > 93) or (eMotors[1].N1 < 85)) and (ErrorFlag[9] <> 1) then
+				ErrorFlag[9] = 1; //You did not set climb power to 90% N1 at 2000 feet
+			endif;
+		else // (nAltitude > 10000)
+			// The spec say's not to go below 170, but not any warnings about speed above this point.
+			if (abs(nLocalizer) >= 4) and (ErrorFlag[15] <> 1) then // the student might be on coarse check radios
+				if (diff(VHFNAV1.Frequency, 113.4) <= 0.03) then
+					bRadio1 = TRUE;
+				endif;
+				if(VHFNAV1.OBS == 322) and (diff(nYaw, 322) < 15) then
+					bRadio2 = TRUE;
+				endif;
+				if (not bRadio1) or (not bRadio2) then
+					ErrorFlag[39] = 1;//You did not tune your radios or did not tune your OBS correctly.
+				endif;
+				ErrorFlag[15] = 1;//You strayed off of the 332 degree course to the Olympia VOR
+			endif;
+			if (eMotors[1].N1 > 93) or (eMotors[1].N1 < 80) then
+				ErrorFlag[9] = 1; //You did not set climb power to 90% N1 starting at 2000 feet
+			endif;
+		endif;
+		if (nIASNow < 170) and (ErrorFlag[6] <> 1) then
+			ErrorFlag[6] = 1;//No less than 170 KIAS durring climb.
+		endif;
+		if  (nDMEDistance < 25) then
+			// they made it here before reaching the 28000 ft altitude
+			// opps were not here for some reason
+			ErrorFlag[13]= 1; //You did not level off at Flight level 280 before 25 DME from the Olympia VOR
+		endif;
+		if (nAltitude >= 27900) or (nTimer > 1500) or (nDMEDistance < 20) then
+			if (nAltitude <= 27850) and (ErrorFlag[13]<> 1) then
+				ErrorFlag[13]= 1;
+			endif;
+			// they made it somehow, check them on and we'll call this the first segment
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseClimb2);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// They are decending to olympia and attaining 22000 feet before passing the VOR.
+// This may or may not be that possible comming from a full 28000 feet.
+// We need to check the coarse
+// Vertical Speed
+// Speed under 340
+//
+    	case CaseClimb2:
+        	Writeln ("CaseClimb2");
+		if (abs(nLocalizer) >= 4) and (ErrorFlag[15] <> 1) and (nDMEDistance > 5.5) then // the student might be on coarse check radios
+			if (diff(VHFNAV1.Frequency, 113.4) <= 0.03) then
+				bRadio1 = TRUE;
+			endif;
+			if(VHFNAV1.OBS == 322) and (diff(nYaw, 322) < 15) then
+				bRadio2 = TRUE;
+			endif;
+			if ((not bRadio1) or (not bRadio2)) and (ErrorFlag[39] <> 1) then
+				ErrorFlag[39] = 1;//You did not tune your radios or did not tune your OBS correctly.
+			endif;
+			ErrorFlag[15] = 1;//You strayed off of the 332 degree course to the Olympia VOR
+		endif;
+		if (nVSnow < -4000) and (ErrorFlag[14] <> 1) then
+			ErrorFlag[14] = 1;
+		endif;
+		if (nIASNow < 190) or (nIASNow > 340) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if (VHFNAV1.ToFrom <> 1) or (nTimer > 800) then
+			if (nAltitude >= 23000) or (nAltitude <= 21800) then
+				ErrorFlag[16]= 1; //You did not cross the Olympia VOR at the assigned altitude
+			endif;
+			fnSQ_ChangeState(CaseClimb2_1);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// This ends up as a long check but fortunatly most of this won't need to be checked over and over.
+//
+
+	case CaseClimb2_1:
+		Writeln ("CaseClimb2_1");
+		if (ErrorFlag[1] == 1) then
+			fnSQ_NormalMsg(sDing1,0);
+			fnSQ_Play("atpding1"); // You did not switch on the landing lights for takeoff
+			bDoBad1 = bDoBad1 + 1;
+		endif;
+		if (ErrorFlag[2] == 1) then
+			fnSQ_NormalMsg(sDing2,0);
+			fnSQ_Play("atpding2");  // You did not set takeoff flaps to 5
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[3] == 1) then
+			fnSQ_NormalMsg(sDing3,0);
+			fnSQ_Play("atpding3");  // You did not set autobrakes to RTO
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[4] == 1) then
+			fnSQ_NormalMsg(sDing4,0);
+			fnSQ_Play("atpding4");  // You did not set proper takeoff power of 95% N1
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[5] == 1) then
+			fnSQ_NormalMsg(sDing5,0);
+			fnSQ_Play("atpding5");  // You rotated ay an excessively high speed
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[6] == 1) then
+			fnSQ_NormalMsg(sDing6,0);
+			fnSQ_Play("atpding6");  // No less than 170 KIAS durring climb.
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[7] ==1) then
+			fnSQ_NormalMsg(sDing7,0);
+			fnSQ_Play("atpding7");  // You exceeded 250 knots below 10 thousand feet
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[8] ==1) then
+			fnSQ_NormalMsg(sDing8,0);
+			fnSQ_Play("atpding8");  // You were not at an apropriate pitch durring the initial climb
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[9] ==1) then
+			fnSQ_NormalMsg(sDing9,0);
+			fnSQ_Play("atpding9");  // You did not set climb power to 90% N1 starting at 2000 feet
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[10] ==1) then
+			fnSQ_NormalMsg(sDing10,0);
+			fnSQ_Play("atpding10");  // You did not raise your gear soon enough after takeoff
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[11] ==1) then
+			fnSQ_NormalMsg(sDing11,0);
+			fnSQ_Play("atpding11");  // You did not retract your flaps before accelerating through 200 knots
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[12] ==1) then
+			fnSQ_NormalMsg(sDing12,0);
+			fnSQ_Play("atpding12");  // Your airspeed during climb out was not within the proper range
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[13] ==1) then
+			fnSQ_NormalMsg(sDing13,0);
+			fnSQ_Play("atpding13");  // You did not level off at 28000 feet before 25 DME from the Olympia VOR
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[14] ==1) then
+			fnSQ_NormalMsg(sDing14,0);
+			fnSQ_Play("atpding14");  // You exceeded 4000 feet per minute on descent
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[15] ==1) then
+			fnSQ_NormalMsg(sDing15,0);
+			fnSQ_Play("atpding15");  // You strayed off of the 332 degree course to the Olympia VOR
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[16] ==1) then
+			fnSQ_NormalMsg(sDing16,0);
+			fnSQ_Play("atpding16");  // You did not cross the Olympia VOR at the assigned altitude
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (ErrorFlag[39] ==1) then
+			fnSQ_NormalMsg(sDing39,0);
+			fnSQ_Play("atpding39");  // You did not tune your radios or did not tune your OBS correctly.
+			bDoBad1 = bDoBad1+ 1;
+		endif;
+		if (bDoBad1 > 2) and (not bCheat) then
+			fnSQ_Play("FAIL1INTRO");  // You’ve exceed at least two tolerances listed in the briefing.
+			fnSQ_Play("FAIL1END");  // You can either continue flying or end the flight.
+			fnSQ_ChangeState(CaseFail);
+			fnSQ_Synchronize;
+		else
+			// Will check Airspeed on Descent below 10k ft, so zero errorflag
+			ErrorFlag[7] = 0; // 250+ under 10000
+			ErrorFlag[14] = 0; // more decent to come
+			ErrorFlag[39] = 0;
+			ErrorFlag[37] = 0;
+			fnSQ_NormalMsg(DoneWell,0);
+			fnSQ_Play("CHECK13");  // You’ve done well so far on this flight.
+			bDoBadTotal = bDoBad1; // keep track of the score
+			bRadio1 = FALSE; bRadio2 = FALSE; // reset these for upcoming checks
+			bDoOnce = FALSE;
+			fnSQ_ChangeState(CaseDesc1);
+			fnSQ_Synchronize;
+			fnSQ_ResetTimer;
+		endif;
+	endcase;
+
+/*******************************************************************************************************************/
+// they just made it past olympia VOR give them about 1 minute to get turned to the right coarse.
+// They must not exceed 4000 fpm.
+// Speed under 250+ while altitude < 10000
+//
+
+	case CaseDesc1:
+		Writeln ("CaseDesc1");
+		nTemp = posHere.DistanceTo(KPAELat,KPAELon);
+		if (nTimer > 60) and (not bDoOnce) then // give the student time to get on the corect coarse.
+			if (abs(diff360( nYaw, 003)) > 10) then
+				ErrorFlag[17] = 1; //You did not initiate the procedure turn of 003 after crossing the OLY VOR.
+			endif;
+			fnSQ_ResetTimer; // give a few more seconds so the next heading check doesn't ding them immediatly
+			bDoOnce = TRUE;
+			fnClearMsg;
+		else
+			if (bDoOnce) and (nTimer > 15) then
+				if (abs(diff360(nYaw, 003)) > 10) then
+					ErrorFlag[18] = 1; // You strayed off of the 003 degree course to the Paine VOR
+				endif;
+			endif;
+		endif;
+		if (nIASNow < 200) or (nIASNow > 340) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if (nVSnow < -4000) and (ErrorFlag[14] <> 1) then
+			ErrorFlag[14] = 1;
+		endif;
+		if (nAltitude < 10000) then
+			if (nIASNow > 250) and (ErrorFlag[7] <> 1) then
+				ErrorFlag[7] = 1;
+			endif;
+		endif;
+		if (nTemp <= 1) or (nTimer > 1080) then
+			// yeah! well done.
+			if (nAltitude <= 2950) or (nAltitude >= 3500) then
+				ErrorFlag[19] = 1; //You did not cross the Paine VOR at the assigned altitude
+			endif;
+			fnSQ_ChangeState(CaseDesc1_1);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*******************************************************************************************************************/
+// We will run a check here and fortunitly there is not alot to have to catch up on.
+//
+
+	case CaseDesc1_1:
+		Writeln ("CaseDesc1_1");
+		if (ErrorFlag[14] ==1) then
+			fnSQ_NormalMsg(sDing14,0);
+			fnSQ_Play("atpding14");  // You exceeded 4000 feet per minute on descent
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+		if (ErrorFlag[18] ==1) then
+			fnSQ_NormalMsg(sDing18,0);
+			fnSQ_Play("atpding18");  // You strayed off of the 003 degree course to the Paine VOR
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+		if (ErrorFlag[7] == 1) then
+			fnSQ_NormalMsg(sDing7,0);
+			fnSQ_Play("atpding7");  // You exceeded 250 knots below 10 thousand feet
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+		if (ErrorFlag[17] == 1) then
+			fnSQ_NormalMsg(sDing17,0);
+			fnSQ_Play("atpding17");  // You did not initiate the procedure turn of 003 after crossing the OLY VOR.
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+		if (ErrorFlag[37] == 1) then
+			fnSQ_NormalMsg(sDing37,0);
+			fnSQ_Play("atpding37");  // You did not maintain the proper airspeed
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+		if (ErrorFlag[19] == 1) then
+			fnSQ_NormalMsg(sDing19,0);
+			fnSQ_Play("atpding19"); ////You did not cross the Paine VOR at the assigned altitude
+			bDoBad2 = bDoBad2+ 1;
+		endif;
+
+		if (bDoBad2 > 2) and (not bCheat) then
+			fnSQ_Play("FAIL1INTRO");  // You’ve exceed at least two tolerances listed in the briefing.
+			fnSQ_Play("FAIL1END");  // You can either continue flying or end the flight.
+			fnSQ_ChangeState(CaseFail);
+			fnSQ_Synchronize;
+		else
+			// Will check Airspeed on Descent below 10k ft, so zero errorflag
+			ErrorFlag[7] = 0; // we will want to continue to check this
+			ErrorFlag[37] = 0;
+			ErrorFlag[14] = 0;
+			fnSQ_NormalMsg(DoneWell,0);
+			fnSQ_Play("CHECK14");  // You’ve done well so far on this flight.
+			bDoBadTotal = bDoBadTotal + bDoBad2; // keeping track of total score
+			bDoOnce = FALSE;
+			bRadio1 = FALSE;
+			bRadio2 = FALSE;
+			bDoOnce = FALSE;
+			fnSQ_ChangeState(CaseTurn1);
+			fnSQ_Synchronize;
+			fnSQ_ResetTimer;
+		endif;
+	endcase;
+
+/*******************************************************************************************************************/
+// passing PAINE VOR
+// We want to give the students some time to acheve the correct coarse.
+// I think 25 seconds is apropriate.
+// check speed below 10000,
+// Make turn to 339 degree coarse until the marker (RITTS)
+// we could also add a nTemp value to test the cordinates of the marker in case were close but pass..
+// maybe .7 mile radius.
+//
+	case CaseTurn1:
+		Writeln ("CaseTurn1");
+		if (nTimer > 30) and (not bDoOnce) then // were giving them time to turn
+			if (diff360(nYaw, 339) > 10) and (ErrorFlag[20] <> 1) then
+				ErrorFlag[20] = 1; //You did not initiate the procedure turn to 339 after crossing the PAE VOR.
+			endif;
+			bDoOnce = TRUE;
+			fnSQ_ResetTimer;
+			fnClearMsg;
+		else
+			if (bDoOnce) and (nTimer > 15) then
+				// giving a few seconds unless the last chase had already dinged them
+				if (diff360(nYaw, 339) > 10) and (ErrorFlag[21] <> 1) then
+					ErrorFlag[21] = 1; //You strayed off the 339 degree course from the Paine VOR
+				endif;
+			endif;
+		endif;
+		if ((nAltitude < 2950) or (nAltitude > 3500)) and (ErrorFlag[21] <> 1) then
+			ErrorFlag[22] = 1; //You did not maintain your assigned altitude of 3000 feet
+		endif;
+		if (nIASNow < 160) or (nIASNow > 250) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if (cpoffice.marker == 1) or (nTimer > 300) then // we are at RITTS (outer marker) (?)
+			// move on to next case here
+			bDoOnce = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTurn1_1);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// Must initiate turn to 294 and maintain for 60 seconds
+// maintain speed and altitude
+//
+
+	case CaseTurn1_1:
+		Writeln ("CaseTurn1_1");
+		if (not bDoOnce) then // were giving them time to turn
+			if (nTimer > 90) or (diff360(nYaw, 294) <= 10 ) then
+				if (diff360(nYaw, 294) > 10) and (ErrorFlag[23] <> 1) then
+					ErrorFlag[23] = 1; //You did not initiate the procedure turn to 294 after crossing the RITTS outer marker
+				endif;
+				bDoOnce = TRUE;
+				fnSQ_ResetTimer;
+				fnClearMsg;
+			endif;
+		else
+			if (bDoOnce) and (nTimer > 10) then
+				if (diff360(nYaw, 294) > 10) and (ErrorFlag[24] <> 1) then
+					ErrorFlag[24] = 1; //You strayed off the 294 degree heading during the course reversal
+				endif;
+			endif;
+		endif;
+		if ((nAltitude < 2950) or (nAltitude > 3500)) and (ErrorFlag[22] <> 1) then
+			ErrorFlag[22] = 1; //You did not maintain your assigned altitude of 3000 feet
+		endif;
+		if ((nIASNow < 160) or (nIASNow > 250)) and (ErrorFlag[37] <> 1) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if ((bDoOnce) and (nTimer > 60)) or (nTimer > 500) then
+			// on to the next case
+			bDoOnce = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTurn1_2);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// Check radios before we try and track the ILS inbound
+// not forgeting to check speed and altitude
+//
+
+	case CaseTurn1_2:
+		Writeln ("CaseTurn1_2");
+		// check the radios to see if were tuned to the ILS aproach 16R with 159 degree inbound
+		// then move on track the inbound localizer
+		//
+
+		if ((nAltitude < 2950) or (nAltitude > 3500)) and (ErrorFlag[22] <> 1) then
+			ErrorFlag[22] = 1; // You did not maintain your assigned altitude of 3000 feet
+		endif;
+		if ((nIASNow < 160) or (nIASNow > 250)) and (ErrorFlag[37] <> 1) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if (diff(VHFNAV1.Frequency, 109.3) <= 0.03) then
+			bRadio1 = TRUE;
+		endif;
+		if(VHFNAV1.OBS == 159) then
+			bRadio2 = TRUE;
+		endif;
+		if ((bRadio1) and (bRadio2)) or (nTimer > 30) then // absolutly need the radios set!
+			if ((not bRadio1) or (not bRadio2)) then
+				ErrorFlag[25] = 1; // You did not set the radio's correctly on the 294 outbound to the 16R ILS on 159 coarse.
+				VHFNAV1.Frequency = 109.3;
+				VHFNAV1.OBS = 159;
+			endif;
+			bDoOnce = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTurn1_3);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// Maintain the 114 until the ILS
+// Flies course reversal turn of 114 degrees with 10 degrees
+// checking heading
+// checking speed under 10000
+//
+
+	case CaseTurn1_3:
+		Writeln ("CaseTurn1_3");
+		if (nTimer > 60) and (not bDoOnce) then // giving them 60 seconds to get to coarse.
+			if (diff360(nYaw, 114) >= 10) and (ErrorFlag[26] <> 1) then
+				ErrorFlag[26] = 1; //You did not time and turn to your 114 degree heading.
+			endif;
+			bDoOnce = TRUE;
+			fnSQ_ResetTimer;
+		else
+			if (bDoOnce) then
+				if (diff360(nYaw, 114) >= 10) and (ErrorFlag[27] <> 1) then
+					ErrorFlag[27] = 1; //You strayed off the 114 degree heading during the course reversal
+				endif;
+			endif;
+		endif;
+		if ((nAltitude < 2950) or (nAltitude > 3500)) and (ErrorFlag[22] <> 1) then
+			ErrorFlag[22] = 1; //You did not maintain your assigned altitude of 3000 feet
+		endif;
+		if ((nIASNow < 160) or (nIASNow > 250)) and (ErrorFlag[37] <> 1) then
+			ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+		endif;
+		if (abs(nLocalizer) < 4) and (abs(diff360(nYaw, 114)) < 10 ) then
+			// they are intercepting the inbound localizer on the 159
+			bDoOnce = FALSE;
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseFinal1);
+			fnSQ_Synchronize;
+		endif;
+	endcase;
+
+/*****************************************************************************************************************/
+// Final Approach
+// this is the final aproach segment of the flight
+// Does not exceed 200 knots after RITTS (?)
+// Does not fly slower than 145 between RITTS and Middle marker (?)
+// Sets autobrakes to at least 1
+// Sets flaps to at least 30
+
+	case CaseFinal1:
+		Writeln ("CaseFinal1");
+		nTemp = posHere.DistanceTo(KPAELat,KPAELon);
+//		if (nTimer > 30) and (not bDoOnce) then // make sure we give them time to make the inbound coarse 159
+//			if ((abs(nLocalizer) > 4) or (abs(diff(nYaw, 159)) > 15)) and (nTemp > 1.2) and (ErrorFlag[38] <> 1) then
+//				ErrorFlag[38] = 1; //You did not track the inbound 159 course.
+//			endif;
+//			bDoOnce = TRUE;
+//			fnSQ_ResetTimer;
+//		else
+//			if (nTimer > 40) and (bDoOnce) then
+//				if (abs(nGlideSlope) > 0.5) and (nAltAGL > 350) and (ErrorFlag[40] <> 1) then
+//					ErrorFlag[40] = 1; //You did not capture and maintain the GlideSlope.
+//				endif;
+//			endif;
+//			if (bDoOnce) then
+//				if ((abs(nLocalizer) > 4) or (abs(diff(nYaw, 159)) > 15)) and (nTemp > 1.2) and (ErrorFlag[29] <> 1) then
+//					ErrorFlag[29] = 1; //You did not stay on the ILS approach
+//				endif;
+//			endif;
+//		endif;
+		if (cpoffice.marker == 1) then // 1 is the outer marker (hopefully)
+			DoneTest[2] = 1; // now we know that weve already past this marker.
+			fnSQ_ResetTimer;
+		endif;
+		if (DoneTest[2] <> 0) then // they are close to landing
+			if (nIASNow < 145) then
+				ErrorFlag[33] = 1; // Your airspeed decreased below Vref (145) on final approach
+			endif;
+			// we will run the checks at this point to see if they have
+			// set the flaps and autobrake.
+			if (nTimer > 30) then
+				if (round(cpOffice.LandingGearHandlePos) <> 1) then
+					ErrorFlag[41] = 1; //You did not deploy landing gear.
+				endif;
+				if (cpOffice.FlapsHandlePos < 7) then
+					ErrorFlag[30] = 1;  // You did not set flaps to at least 30 degrees on final approach
+				endif;
+				if (AP.AutoBrake <> 1) then
+					ErrorFlag[31] = 1; //You did not set autobrakes for landing
+				endif;
+			endif;
+			if (nAltAGL < 300) then
+				// time to land :)
+				fnSQ_ChangeState(CaseLanding);
+				fnSQ_Synchronize;
+			endif;
+			if (nIASNow > 200) then
+				ErrorFlag[28] = 1; // You exceeded 200 knots after crossing the RITTS outer marker
+			endif;
+		else
+			// we know that they havn't passed the marker.
+			// we want to wait..
+			if ((nIASNow < 160) or (nIASNow > 250)) and (ErrorFlag[37] <> 1)  then
+				ErrorFlag[37] = 1; // you did not maintain the proper airspeed.
+			endif;
+		endif;
+		if (nVsnow < -4000) and (ErrorFlag[14] <> 1) then
+			ErrorFlag[14] = 1;
+		endif;
+	endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding:
+			Writeln ("CaseLanding");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (vorSelect.ToFrom == 1) and (nAltAGL <= 50 ) then
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+			if (vorSelect.ToFrom <> 1) then
+				nState = CaseFail;
+				// the student has somehow passed the airport... oops
+			endif;
+		endcase;
+
+		case CaseLanding_1:
+			Writeln ("CaseLanding_1");
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+			if (bWOW) then
+				fnResetToleranceFlags;
+				fnTolerance(TF_RUNWAY,ON,0);
+				bTextWarnings           	= FALSE;
+				bAudioWarnings          	= FALSE;
+				bToleranceTimeCheck        = FALSE;
+				fnToleranceChecking(TRUE);
+				bDoOnce = TRUE;
+				bLandedOffRunway = TRUE;
+				bTaxiedOffRunway = FALSE;
+				bStoppedOffRunway = TRUE;
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_4:
+			writeln("CaseLanding_4");
+			if  (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				nSpeedTarget 				= 0;
+				nSpeedToleranceMax 		= 10;
+				nSpeedToleranceMin 		= 0;
+				bDoOnce = FALSE;
+			endif;
+			if (not bTaxiedOffRunway) then
+				bTaxiedOffRunway = bWarnRunway;
+			endif;
+			if (not bDoOnce) and (bWOW) then
+				fnSQ_ToleranceFlag(TF_SPEED,25);
+			endif;
+			if (nIASNow < 5) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_5:
+			writeln("CaseLanding_5");
+			if bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway then
+				fnSQ_Play("CommonGoodEffort");					// That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				ErrorFlag[36] = 1; //You did not bring the aircraft to a stop on the runway surface.
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_NormalMsg(sDing41,0);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+/*******************************************************************************************************************/
+// were not done, we want to see how they did for the third set of checks.
+//
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			if (ErrorFlag[14] ==1) then
+				fnSQ_NormalMsg(sDing14,0);
+				fnSQ_Play("atpding14");  // You exceeded 4000 feet per minute on descent
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[20] ==1) then
+				fnSQ_NormalMsg(sDing20,0);
+				fnSQ_Play("atpding20");  // You did not initiate the procedure turn to 339 after crossing the PAE VOR.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[21] ==1) then
+				fnSQ_NormalMsg(sDing21,0);
+				fnSQ_Play("atpding21");  // You strayed off the 339 degree course from the Paine VOR
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[22] ==1) then
+				fnSQ_NormalMsg(sDing22,0);
+				fnSQ_Play("atpding22");  // You did not maintain your assigned altitude of 3000 feet
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[23] ==1) then
+				fnSQ_NormalMsg(sDing23,0);
+				fnSQ_Play("atpding23");  // You did not initiate the procedure turn to 294 after crossing the RITTS outer marker
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[24] ==1) then
+				fnSQ_NormalMsg(sDing24,0);
+				fnSQ_Play("atpding24");  // You strayed off the 294 degree heading during the course reversal
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[25] ==1) then
+				fnSQ_NormalMsg(sDing25,0);
+				fnSQ_Play("atpding25");  // You did not set the radio's correctly on the 294 outbound to the 16R ILS on 159 coarse.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[26] ==1) then
+				fnSQ_NormalMsg(sDing26,0);
+				fnSQ_Play("atpding26");  // You did not time and turn to your 114 degree heading.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[27] ==1) then
+				fnSQ_NormalMsg(sDing27,0);
+				fnSQ_Play("atpding27");  // You strayed off the 114 degree heading during the course reversal
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[28] ==1) then
+				fnSQ_NormalMsg(sDing28,0);
+				fnSQ_Play("atpding28");  // You exceeded 200 knots after crossing the RITTS outer marker
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[29] ==1) then
+				fnSQ_NormalMsg(sDing29,0);
+				fnSQ_Play("atpding29");  // You did not stay on the ILS approach
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[30] ==1) then
+				fnSQ_NormalMsg(sDing30,0);
+				fnSQ_Play("atpding30");  // You did not set flaps to at least 30 degrees on final approach.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[31] ==1) then
+				fnSQ_NormalMsg(sDing31,0);
+				fnSQ_Play("atpding31");  //You did not set autobrakes for landing.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[32] == 1) then
+				fnSQ_NormalMsg(sDing32,0);
+				fnSQ_Play("atpding32");  //You did not arm the spoilers for landing (might not be able to do this)
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[33] ==1) then
+				fnSQ_NormalMsg(sDing33,0);
+				fnSQ_Play("atpding33");  // Your airspeed decreased below Vref (145) on final approach
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[36] ==1) then
+				fnSQ_NormalMsg(sDing36,0);
+				fnSQ_Play("atpding36");  // You did not bring the aircraft to a stop on the runway surface.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[37] ==1) then
+				fnSQ_NormalMsg(sDing37,0);
+				fnSQ_Play("atpding37");  // You did not maintain the proper airspeed.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[38] ==1) then
+				fnSQ_NormalMsg(sDing38,0);
+				fnSQ_Play("atpding38");  // You did not track the inbound 159 course.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[39] ==1) then
+				fnSQ_NormalMsg(sDing39,0);
+				fnSQ_Play("atpding39");  // You did not tune your radios or did not tune your OBS correctly.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[40] ==1) then
+				fnSQ_NormalMsg(sDing40,0);
+				fnSQ_Play("atpding40");  // You did not capture and maintain the GlideSlope.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (ErrorFlag[41] ==1) then
+				fnSQ_NormalMsg(sDing41,0);
+				fnSQ_Play("atpding41");  // You did not lower landing gear.
+				bDoBad3 = bDoBad3+ 1;
+			endif;
+			if (bDoBad3 > 2) and (not bCheat) then
+				fnSQ_Play("FAIL1INTRO");  // You’ve exceed at least two tolerances listed in the briefing.
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			else
+				fnSQ_Play("CHECK17");  // You’ve passed the ATP checkride and will receive Flight Simulator’s top honor.
+				bDoBadTotal = bDoBadTotal + bDoBad3; // keeping track of total score
+				nDoneFlag = 6;
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+				fnSQ_ResetTimer;
+			endif;
+		endcase;
+/*******************************************************************************************************************/
+
+    	case CaseFail:
+        	Writeln ("CaseFail");
+		  	fnSQ_ChangeState(CaseEnd);
+        	fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

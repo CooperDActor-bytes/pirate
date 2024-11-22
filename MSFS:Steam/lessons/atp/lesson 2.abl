@@ -1,0 +1,869 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 2.abl
+ *
+ *    DESC:			ATP Lesson 2:  Energy management
+ *
+ *    COMMENTS:	As per Spec
+ *						In this lesson, the student will become familiar with
+ *						flying the Boeing 737 from a cruise altitude to a
+ *						specific altitude and location.  The student will
+ *						start in-flight at FL280 and approximately fly the
+ *						GLASR FIVE ARRIVAL procedure.  The student will fly
+ *						outbound from the Spokane VOR on the 255 radial
+ *						(slightly different than the procedure calls for)
+ *						starting at about 90 DME at 300 KIAS.  At the WITRO
+ *						intersection, the student will slow the airplane to
+ *						250 knots.  At the SWAUK intersection, the student
+ *						will begin a descent to cross the PAE VOR at 8000
+ *						feet. While real world flying allows a pilot to level
+ *						off prior to reaching the fix at which this altitude
+ *						restriction applies, the student will be expected to
+ *						cross the VOR at 8,000, within +500 feet. During the
+ *						descent, the student will be taught how to anticipate
+ *						the required descent rates and how to monitor progress
+ *						during the descent. The most successful flight will have
+ *						the student beginning to level at 8000 just prior to the
+ *						PAE VOR.  After crossing the VOR, the student will be
+ *						given a vector to a heading of 130.  If the student
+ *						wants to complete the approach into KSEA, the student
+ *						will be allowed to, but will not be required to fly the
+ *						approach in order to complete the lesson. (If an
+ *						opportunity to reuse coding from Lesson 1 to monitor the
+ *						student's approach exists, we can include the approach
+ *						and landing as completion criteria for the lesson.)
+ *
+ *						We will allow the student to either hand-fly the
+ *						lesson or to use the autopilot for the entire lesson.
+ *						The briefing will make clear that this lesson does
+ *						not teach using the autopilot, but also that the
+ *						student is not precluded from using it either.
+ *
+ *						The student should have completed the instrument
+ *						course before starting this lesson, as we'll use
+ *						terminology and skills taught in that course.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson1;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\atp\lesson 2.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+var
+	static	number	bDoOnce;
+	static	number	bReminder1;
+	static	number	bDoGood;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	nLat;
+	static	number	nLon;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		nEngineCount=2;
+		fnThrottle_Hold(0.6);
+		nPoint[1,LAT] 				= 47.46369;
+		nPoint[1,LON] 				= -122.3080;
+		nPoint[2,LAT] 				= 47.46368;
+		nPoint[2,LON] 				= -122.3075;
+		nPoint[3,LAT] 				= 47.43128;
+		nPoint[3,LON] 				= -122.3078;
+		nPoint[0,LAT] 				= 47.43128;
+		nPoint[0,LON] 				= -122.3083;
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	nLat = posHere.Latitude;
+	nLon = posHere.Longitude;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			fnThrottle_Manual;
+			// set up to monitor speed and heading and altitude
+			fnResetToleranceFlags;
+			nAltitudeTarget			= 28000;
+			nAltitudeToleranceMax		= 300;
+			nAltitudeToleranceMin		= -300;
+			nSpeedTarget			= 300;
+			nSpeedToleranceMax		= 15;
+			nSpeedToleranceMin		= -15;
+			nHeadingTarget			= 255;
+			nHeadingToleranceMax		= 10;
+			nHeadingToleranceMin		= -10;
+			bAltitudeCheck			= TRUE;
+			bSpeedCheck			= TRUE;
+			bHeadingCheck			= TRUE;
+			fnToleranceChecking(TRUE);
+			fnSQ_NormalMsg(sImFlying,0); // Rod is flying: Sit back and relax for a bit
+			fnSQ_Play("a2-1"); //They say that everything that goes up must come down
+			fnSQ_Play("a2-2"); //Before I turn control over to you
+			fnSQ_Play("a2-3"); //Here's what we'll do in this lesson
+			fnSQ_Play("a2-4"); //When we reach the WITRO intersection, you'll slow to 250 knots
+			fnSQ_Play("a2-5"); //We'll monitor the descent and make adjustments so you cross the VOR
+			bDoOnce = TRUE;
+			bReminder1 = TRUE;
+			fnSQ_ChangeState(Case1stSeg);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case Case1stSeg:
+			Writeln ("Case1stSeg");
+			if (bDoOnce) then
+				fnSQ_NormalMsg(sPilotFlying,0); //You are flying: Maintain 255 degree heading, 300 knots, and 28000 feet
+				AP.Master = FALSE; // shouldn't we tell them this?
+				AP.ArmAutoThrottle = FALSE;
+				bDoOnce = FALSE;
+			endif;
+			if ( nDMEDistance >= 103 ) and (bReminder1) then
+				fnTolerance(TF_SPEED,OFF,0);
+				nSpeedTarget			= 250;
+				nSpeedToleranceMax		=  15;
+				nSpeedToleranceMin		= -15;
+				fnSQ_NormalMsg(s6,0);
+				fnSQ_Play("a2-6"); //We're at WITRO intersection, slow to 250 knots
+				fnSQ_Play("a2-7"); //Try reducing power to about 35% N1
+				fnSQ_ToleranceFlag(TF_SPEED,75);
+				bReminder1 = FALSE;
+			endif;
+			if ( nDMEDistance >= 103 ) and (not bReminder1) and (Diff(nIASNow, 250) < 30) then
+				fnClearMsg;
+				fnSQ_Play("a2-8");  //As we fly toward our descent point, you want to calculate decent rate
+				fnSQ_Play("a2-9");  //we'll use the 3 to 1 rule, where we'll fly 3 miles for every one thouasand feet we descend
+				fnSQ_Play("a2-10"); //So we subtract 8000 from 28000 and drop the last three digits. That's 20 * 3 = 60
+				fnSQ_Play("a2-11"); //And because we're at 28,00 feet, I guess we can call this "higher math."
+				fnSQ_Play("a2-12"); //As for our descent rate, we multiply our ground speed by 6, 375 * 6 = 2250.
+				fnSQ_Play("a2-13"); //So our two key numbers are to start descending at 60 DME and at a rate of 2250 fpm
+				fnSQ_ChangeState(Case1stSeg_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_1:
+			Writeln ("Case1stSeg_1");
+			if ( nDMEDistance >= 115 ) then
+				// prompt to set nav1 to 110.6
+				fnSQ_Play("a2-14"); //Before we begin our descent, we also want to set up our radios
+				fnSQ_NormalMsg(s15,0);
+				fnSQ_Play("a2-15"); //Change NAV 1 to 110.6
+				fnSQ_ChangeState(Case1stSeg_2);
+				fnSQ_ResetTimer;
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_2:
+			Writeln ("Case1stSeg_2");
+			//todo: should probably make a tolerance for nav radios
+			if (nTimer > 30) then
+				VHFNAV1.Frequency = 110.6;
+//				fnSQ_Play("dobetter");
+			endif;
+			if (VHFNAV1.Frequency == 110.6) then
+				fnSQ_NormalMsg(s16,0);
+				fnSQ_Play("a2-16"); //Change NAV 1 Stand By to 110.3
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(Case1stSeg_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_3:
+			Writeln ("Case1stSeg_3");
+			if (nTimer > 30 ) then
+				VHFNAV1.StandbyFrequency = 110.3;
+//				fnSQ_Play("dobetter");
+			endif;
+			if (VHFNAV1.StandbyFrequency == 110.3) then
+				fnSQ_NormalMsg(s17,0);
+				fnSQ_Play("a2-17"); //Change NAV 2 to 115.5
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(Case1stSeg_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_4:
+			Writeln ("Case1stSeg_4");
+			if (nTimer > 30) then
+				VHFNAV2.Frequency = 115.5;
+//				fnSQ_Play("dobetter");
+			endif;
+			if (VHFNAV2.Frequency == 115.5) then
+				fnSQ_Play("a2-18"); //Press shift 2 again
+				fnSQ_NormalMsg(s18a,0);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(Case1stSeg_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case Case1stSeg_5:
+			Writeln ("Case1stSeg_5");
+			// explicitly set nVORSelect = 2
+			nVORSelect = 2;
+			fnSQ_GaugeHilight("RMI",8);
+			fnSQ_Play("a2-19"); //Our decent point will start at about 130 DME from Spokane.
+			fnSQ_Play("a2-20"); //We’ve changed that VOR to NAV 2, so watch the DME in the RMI
+			fnSQ_ChangeState(CaseCruise1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseCruise1:
+			Writeln ("CaseCruise1");
+			if ( nDMEDistance >=  125 ) then
+				//  prompt to watch HSI
+				fnSQ_NormalMsg(s21,0);
+				fnSQ_Play("a2-21"); //I anticipate receiving the Paine VOR in a few miles
+				fnSQ_Play("a2-22"); //You want to start your descent at 60 DME, which is also about 130 DME from Spokane.
+				fnSQ_ChangeState(CaseCruise1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise1_1:
+			Writeln ("CaseCruise1_1");
+			if ( nDMEDistance >=  129.5 ) then
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnTolerance(TF_HEADING,OFF,0);
+				nLocalizerTolerance 	= 3;
+				nVORSelect = 1;
+				fnSQ_NormalMsg(s23,0);
+				fnSQ_Play("a2-23"); //There’s 60 DME, so start your descent to 8000 at about 2250 feet per minute.
+				fnSQ_Play("a2-24"); //You may need to reduce power a bit to keep the airplane at an indicated airspeed of 250 knots.
+				fnSQ_Play("a2-24a"); //I'd suggest setting power to about 35 % N1.
+				fnSQ_Play("a2-25"); //Also start tracking inbound on the 255 course to Paine.
+				fnSQ_Play("a2-26"); //Our goal from here is to cross over the VOR right at 8000 feet.
+				fnSQ_Play("a2-27"); //As we descend, your main job, besides flying the airplane, of course, is to anticipate where you need to be when you pass through each flight level.
+				fnSQ_NormalMsg(s28,0);
+				fnSQ_Play("a2-28"); //So our next goal is to pass through Flight Level 260 at about 54 DME.
+				nVertSpeedTarget	=   -2250; // setting this so that at least there is some form of checking for descent
+				nVertSpeedToleranceMax	=  500;
+				nVertSpeedToleranceMin	= -500;
+				fnSQ_ToleranceFlag(TF_VERTSPEED,5);
+				fnSQ_ToleranceFlag(TF_LOCALIZER,50);
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//todo: This is how I recieved the following case staements from Don.  But after working through the script, I really think we
+//      should change the Case statements to advance based on DME instead of Altitude.  The current method causes several problems.
+//
+// 1. Nothing is forcing the user to decend unless we put into effect a vertical speed tolerance. But the vertical speed will vary
+//    as the user tries to maintain the correct decent path.
+// 2. If the user is decending way to slow, he will overshoot the VOR.  However, the VOR toFrom checking isn't until the last case statement
+//    ( < 1000 ft).  This causes a problem if the user overshoots the VOR then decends to 8000 feet the script will say Good job! Because it
+//    only checks for (vorSelect.ToFrom <> defToFromTo).
+// 3. We know that the DME will allways be decreasing as we approach the VOR (because of heading & speed tolerances). However the altitude
+//    can be increased/decreased rapidly, or just stay the same.
+
+		case CaseDesc1:
+			Writeln ("CaseDesc1");
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+			if ( nAltitude <= 26000 ) then
+				if (nDMEDistance >= 52) and (nDMEDistance <= 56) then
+					fnClearMsg;
+					fnSQ_Play("a2-29"); //Ok, there’s 26 thousand. You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 52 ) then
+						fnSQ_Play("A2-30"); //You’re too high to reach your target decent profile
+						nVertSpeedToleranceMax	=  500;
+					else
+						fnSQ_Play("A2-31"); //You’re too low to reach your target descent profile
+						nVertSpeedToleranceMax	=  2500;
+					endif;
+				endif;
+				fnSQ_ChangeState(CaseDesc1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_1:
+			Writeln ("CaseDesc1_1");
+			if ( nAltitude <= 25900 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-32"); //As we approach Flight level 250, let’s do some mental math to monitor our progress.
+				fnSQ_Play("a2-33"); //We’ll be at 25 thousand and we’re going to 8 thousand, so,  25 minus 8 is 17, times 3 is 51.
+				fnSQ_NormalMsg(s34,0);
+				fnSQ_Play("a2-34"); //So we can check for 51 DME as we pass through FL250.
+				fnSQ_Play("a2-35"); //Try to be within 1 mile of your target at each check. How are you doing?
+				fnSQ_ChangeState(CaseDesc1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Coded according to spec
+// This needs to be checked. the high and low conditions are opposite above
+// and I have changed it to be consistent with above (and below)
+// Also I am adding a 1 mi tolerance mentioned in the dialog -Don
+
+		case CaseDesc1_2:
+			Writeln ("CaseDesc1_2");
+			if ( nAltitude <= 25000 ) then
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+				if (nDMEDistance >= 50) and (nDMEDistance <= 52) then
+					fnSQ_Play("a2-36"); //Ok, there’s 25 thousand. You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 50 ) then
+						// too high
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						// too low
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s37a,0);
+				fnSQ_Play("a2-37"); //As we pass through each 2000 feet, I’ll monitor your progress
+				fnSQ_ChangeState(CaseDesc1_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_3:
+			Writeln ("CaseDesc1_3");
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+			if ( nAltitude <= 24000 ) then
+				//todo: now we're using 2 mi tolerance (?) per spec
+				if (nDMEDistance >= 46) and (nDMEDistance <= 50) then
+					// good job
+					fnSQ_Play("a2-38"); //Ok, there’s 24 thousand. You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 46 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+
+					endif;
+				endif;
+				fnSQ_ChangeState(CaseDesc1_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_4:
+			Writeln ("CaseDesc1_4");
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+			if ( nAltitude <= 24000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-39"); //As we approach Flight level 230, let’s do some more mental math
+				fnSQ_NormalMsg(s40,0);
+				fnSQ_Play("a2-40"); //We’ll be at 23 thousand and we’re going to 8 thousand, so, 23 minus 8 is 15, times 3 is 45.
+				fnSQ_ChangeState(CaseDesc1_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_5:
+			Writeln ("CaseDesc1_5");
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+			if ( nAltitude <= 23000 ) then
+				if (nDMEDistance >= 43) and (nDMEDistance <= 47) then
+					fnSQ_Play("a2-41"); //Ok, there’s 23 thousand. You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 43 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s41a,0);
+				fnSQ_ChangeState(CaseDesc2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2:
+			Writeln ("CaseDesc2");
+			if (bVertSpeedCheck) and (fnAtVerticalSpeed) then fnTolerance(TF_VERTSPEED,OFF,0); endif;
+			if ( nAltitude <= 22000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-42"); //Ok, there’s 22 thousand.
+				fnSQ_NormalMsg(s42a,0);
+				if (nDMEDistance >= 40) and (nDMEDistance <= 44) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if ( nDMEDistance < 40 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_ChangeState(CaseDesc2_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2_1:
+			Writeln ("CaseDesc2_1");
+			if ( nAltitude <= 20000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-43"); //Ok, there’s 20 thousand.
+				if (nDMEDistance >= 34) and (nDMEDistance <= 38) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 34 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s43a,0);
+				fnSQ_ChangeState(CaseDesc2_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2_2:
+			Writeln ("CaseDesc2_2");
+			if ( nAltitude <= 18000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-44"); //Ok, there’s 18 thousand.
+				if (nDMEDistance >= 28) and (nDMEDistance <= 32) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 28 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s44a,0);
+				fnSQ_ChangeState(CaseDesc2_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2_3:
+			Writeln ("CaseDesc2_3");
+			if ( nAltitude <= 16000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-45"); //Ok, there’s 16 thousand.
+				if (nDMEDistance >= 22) and (nDMEDistance <= 26) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 22 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s45a,0);
+				fnSQ_ChangeState(CaseDesc2_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2_4:
+			Writeln ("CaseDesc2_4");
+			if ( nAltitude <= 14000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-46"); //Ok, there’s 14 thousand.
+				if (nDMEDistance >= 16) and (nDMEDistance <= 20) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 16 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_NormalMsg(s46a,0);
+				fnSQ_ChangeState(CaseDesc2_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc2_5:
+			Writeln ("CaseDesc2_5");
+			if ( nAltitude <= 12000 ) then
+				fnClearMsg;
+				fnSQ_Play("a2-47"); //Ok, there’s 12 thousand.
+				if (nDMEDistance >= 10) and (nDMEDistance <= 14) then
+					fnSQ_Play("profile1"); //You appear to be on a good descent profile.
+					nVertSpeedToleranceMax	=  500;
+					nVertSpeedToleranceMin	= -500;
+				else
+					if (nDMEDistance < 10 ) then
+						fnSQ_Play("A2-30");
+						nVertSpeedToleranceMax	=  300;
+						nVertSpeedToleranceMin	= -1000;
+					else
+						fnSQ_Play("A2-31");
+						nVertSpeedToleranceMax	=  1000;
+						nVertSpeedToleranceMin	= -300;
+					endif;
+				endif;
+				fnSQ_ChangeState(CaseDesc3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc3:
+			Writeln ("CaseDesc3");
+			if ( nAltitude <= 10000 ) or ( nDMEDistance < 5 ) then
+				fnTolerance(TF_VERTSPEED,OFF,0);
+				nAltitudeTarget = 8000;
+				fnSQ_NormalMsg(s48,0);
+				bLocalizerCheck = FALSE;
+				bHeadingCheck = TRUE;
+				fnSQ_Play("a2-48"); //You’re within 2 thousand feet of your assigned altitude
+				fnSQ_Play("a2-49"); //Remember that at 8000 feet, the DME will read about 1.2
+				fnSQ_ToleranceFlag(TF_ALTITUDE,45);
+				fnSQ_ChangeState(CaseDesc3_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc3_1:
+			Writeln ("CaseDesc3_1");
+			//todo: not very accurate
+			if (vorSelect.ToFrom <> 1) and ( nDMEDistance < 5 ) then
+				// we are going away from VOR
+				If (nAltitude >= 8000) and (nAltitude <= 8500) then
+					fnSQ_NormalMsg(s50,0);
+					fnSQ_Play("a2-50"); //You’re over the VOR now. Good job.
+					fnSQ_ChangeState(CaseTurn1);
+					fnSQ_Synchronize;
+				else
+					if (nAltitude >= 7500) and (nAltitude < 8000) then
+						fnSQ_NormalMsg(s52,0);
+						fnSQ_Play("a2-52"); //There’s the VOR. You’re actually below your assigned altitude of 8000.
+						fnSQ_Play("startover");
+						fnSQ_ChangeState(CaseTurn1);
+						fnSQ_Synchronize;
+					else
+						if (nAltitude > 8500 ) then
+							fnSQ_NormalMsg(s51,0);
+							fnSQ_Play("a2-51"); //You’re crossing the VOR now, and you are more than 500 feet above your assigned altitude.
+							if (nAltitude < 9500 ) then
+								fnSQ_Play("startover");
+								fnSQ_ChangeState(CaseTurn1);
+								fnSQ_Synchronize;
+							else
+								fnSQ_Play("a2-54");
+								fnSQ_ChangeState(CaseEnd);
+								fnSQ_Synchronize;
+							endif;
+						else
+							if ( nAltitude < 7500 ) then
+								fnSQ_NormalMsg(s53,0);
+								fnSQ_Play("a2-52"); //You’re crossing the VOR now, and you are more than 500 feet below your assigned altitude.
+								fnSQ_Play("a2-54"); //I think you might want to take this lesson again from the start before proceeding with the approach.
+								fnSQ_ChangeState(CaseEnd);
+								fnSQ_Synchronize;
+							endif;
+						endif;
+					endif;
+				endif;
+
+			else
+				if (nDMEDistance >  5) and (vorSelect.ToFrom == 2) then
+					// audio to say they overshoot the landing...
+					// lets get them back on course by pushing them into the next case
+					fnSQ_NormalMsg(s52a,0); // It looks like you overshoot the decent. Try and get back on coarse.
+					fnSQ_ChangeState(CaseTurn1);
+					fnSQ_Synchronize;
+				endif;
+				// remember that if they undershoot this case will loop anyway
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1:
+			Writeln ("CaseTurn1");
+			// prompt student to turn
+			fnTolerance(TF_HEADING,OFF,0);
+			fnTolerance(TF_SPEED,OFF,0);
+			fnSQ_Play("a2-55"); //OK, let’s fly a simple ILS approach into SeaTac.
+			fnSQ_Play("a2-56"); //I’ll talk you through it, but use all the skills you learned in the instrument lessons.
+			fnSQ_NormalMsg(s54,0);
+			fnSQ_Play("a2-58"); //Slow down to 200 knots indicated airspeed.
+			fnSQ_Play("a2-57"); //Start a left turn to a heading of 130 degrees.
+//			fnSQ_Play("a2-57b"); // I'm going to go ahead and tune your radios
+			VHFNAV1.Frequency = 110.3;
+			VHFNAV2.Frequency = 110.6;
+			nHeadingTarget				= 130;
+			nRollTarget				= -25;
+			nRollToleranceMax			=  10;
+			nRollToleranceMin			= -10;
+			AP.Heading				= 130;
+			VHFNAV1.OBS 				= 161;
+			nSpeedTarget			= 200;
+			nSpeedToleranceMax		=  30;
+			nSpeedToleranceMin		= -20;
+			bDoOnce = TRUE;
+			fnSQ_ToleranceFlag(TF_SPEED,35);
+			fnSQ_ToleranceFlag(TF_ROLL,10);
+			bDoOnce = TRUE;
+			fnSQ_ChangeState(CaseTurn1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_1:
+			Writeln ("CaseTurn1_1");
+			if (abs(diff360(nYaw, 130)) < 15 ) and (bDoOnce) then
+				bRollCheck = FALSE;
+				bDoOnce = FALSE;
+			endif;
+			if (abs(nLocalizer) <= 3 ) and (not bDoOnce) then
+				bHeadingCheck	= FALSE;
+				bRollCheck	= FALSE; // just in case it never happened
+				fnSQ_NormalMsg(s55,0);
+//				fnSQ_Play("a2-57a"); // continue on your rollout to a heading of 161
+				bHeadingCheck			= FALSE;
+				AP.Heading			= 161;
+				nHeadingTarget			= 161;
+				//fnSQ_ToleranceFlag(TF_HEADING,35); // not sure if we really want to check for heading and localizer
+				fnSQ_ToleranceFlag(TF_LOCALIZER,35);
+				fnSQ_Play("a2-59"); // the skills you learned in the previous ATP lesson will serve you well here
+				fnSQ_Play("a2-60"); // I'll let you do the flying with only minimal instructions, your job now is to get us on the ground safly
+				fnSQ_Play("a2-62"); // decend and maintain 5000 until established on the aproach. maintain 200 knots airspeed
+				fnSQ_NormalMsg(s56,0); //Decend and maintain 5000 feet until established on the aproach.
+				nVertSpeedToleranceMax	=  800;
+				nVertSpeedToleranceMin	= -800;
+				fnSQ_ToleranceFlag(TF_VERTSPEED,5);
+				bAltitudeCheck = FALSE;
+				bDoOnce = TRUE;
+				fnSQ_ChangeState(CaseDesc4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc4:
+			Writeln ("CaseDesc4");
+			if ( nAltitude <= 5050 ) and (bDoOnce) then
+				fnSQ_Play("a2-61"); // your cleared for the seatac runway 16L ILS aproach
+				fnSQ_Play("a2-63"); // as soon as you see the CDI move start your turn to 16L inbound coarse to the runway.
+				fnTolerance(TF_VERTSPEED,OFF,0);
+				nAltitudeTarget = 5000;
+				bAltitudeCheck  = TRUE;
+				bDoOnce = FALSE;
+			endif;
+			if (nGlideSlope <> 0) or (nGlideSlope < 0) then
+				fnTolerance(TF_VERTSPEED,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_FLAPS737,OFF,0);
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				nFlaps737Target 		= 7;
+				nSpeedTarget 			= 150;
+				bLandingGear737Target 		= ON;
+				nGlideSlopeTolerance		= 0.3;
+				fnSQ_Play("a2-64"); // theres the glideslope comming in. capture and fly the glideslope descion height
+				fnSQ_Play("a2-65"); // be sure to configure the aircraft for landing. The quick checklist for landing is...
+				fnSQ_Play("a2-66"); // gear down
+				fnSQ_NormalMsg(s57,0);
+				fnSQ_Play("a2-67"); // flaps to 30
+				fnSQ_Play("a2-68"); // slow to vRaph or 150 knts
+				fnSQ_Play("a2-69"); // set autobrakes to 3
+				fnSQ_Play("a2-70"); // arm the spoilers
+				fnSQ_ToleranceFlag(TF_LANDINGGEAR737,5);
+				fnSQ_ToleranceFlag(TF_FLAPS737,15);
+				fnSQ_ToleranceFlag(TF_SPEED,30);
+				fnSQ_ToleranceFlag(TF_GLIDESLOPE,40);
+				fnSQ_ChangeState(CaseLanding);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding:
+			Writeln ("CaseLanding");
+			if (vorSelect.ToFrom == 1) and (nAltAGL <= 50 ) then
+				fnTolerance(TF_GLIDESLOPE,OFF,0);
+				fnTolerance(TF_LOCALIZER,OFF,0);
+				// prompt to reduce power to idle
+				// prompt to flare to 3 deg nose up
+				// prompt to press and hold thrust reverser
+				fnSQ_Play("a1-82"); // as we cross the treshold here smothly reduce power to idle
+				fnSQ_Play("a1-83"); // now flare to a 3 degrees nose up pitch.
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+			if (vorSelect.ToFrom <> 1) then
+				nState = CaseFail;
+				// the student has somehow passed the airport... oops
+			endif;
+		endcase;
+
+		case CaseLanding_1:
+			Writeln ("CaseLanding_1");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+			if (bWOW) then
+				bDoOnce = TRUE;
+				bLandedOffRunway = TRUE;
+				bTaxiedOffRunway = FALSE;
+				bStoppedOffRunway = TRUE;
+				fnSQ_Play("a2-71"); // activate those thrust reverses by pressing the f2 key
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_4: //Track the student on the runway while we wait for him to stop
+			writeln("CaseLanding_4");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnTolerance(TF_SPEED,ON,25);
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 10;
+				nSpeedToleranceMin 	= 0;
+				bDoOnce = FALSE;
+				fnSQ_Play("a2-72"); // press f1 to disengage the trust reversers and let the autobrakes bring you to a stop
+			endif;
+			if (not bTaxiedOffRunway) then bTaxiedOffRunway = bWarnRunway;	endif;
+			if (IsStopped)then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_5: //Eval the landing
+			writeln("CaseLanding_5");
+			if (bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway) then
+				fnSQ_Play("CommonGoodEffort");	// That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				//todo: should not call sound files from other lessons
+				fnSQ_Play("solo22"); //Well, you got the plane on the ground, but I think you might need to practice a bit more.
+				fnSQ_Pause(3);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_Play("a2-73"); // good job! your ready to move on to the next lesson.
+				fnSQ_Play("a2-74");
+				fnSQ_Pause(3);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

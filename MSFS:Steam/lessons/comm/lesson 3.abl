@@ -1,0 +1,420 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 3.abl
+ *
+ *    DESC:			Commercial Lesson 3: Engine Failure in FLight
+ *
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson demonstrates what happens when the
+ *						wings no longer generate lift, otherwise known as a
+ *						stall. You'll learn how to recognize a stall, and,
+ *						most importantly, how to recover from a stall.
+ *						Please read Ground School Class 8 before starting
+ *						this lesson.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson3;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\comm\lesson 3.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	bGearUp;
+	static	number	bEngineFailure;
+				number	nDTA; //Distance to Airport
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		nEngineCount=2;
+		fnNormalMsg(sThrottleSet);
+		fnThrottle_Hold(1.0);
+		bEngineFailure = FALSE;
+		fnResetToleranceFlags;
+		nHeadingToleranceMax = 30;
+		nHeadingToleranceMin = -30;
+		bRPMProp = TRUE; //Play prop wav for RPM tolerance
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	nHeadingTarget	= round((posHere.BearingTo (47.91437,-122.2796)) - (posHere.MagneticVariation));
+	if (nHeadingTarget < 1) then nHeadingTarget = 360 + nHeadingTarget; endif;
+	if (bEngineFailure) then  //make sure the engines stay off
+		if not (fnAtRPM) then
+			writeln(fn1str1num("RPM: ",eMotors[0].RPM));
+			fnThrottle_Shutdown;
+		endif;
+	endif;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			fnSQ_Play("C3-1"); //In this lesson you’ll learn how
+			fnSQ_ChangeState(CaseCruise1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1:
+			Writeln ("CaseCruise1");
+			fnThrottle_Shutdown;
+			bEngineFailure = TRUE;
+			nRPMTarget					= 0;
+			nSpeedTarget 				= 115;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+     		bTextWarnings           = TRUE;
+     		bAudioWarnings          = TRUE;
+     		bToleranceTimeCheck     = FALSE;
+     		AP.Master = OFF;
+     		fnSQ_NormalMsg(s2,0);
+			fnSQ_Play("C3-2"); // Ok, you’ve just had a double engine failure
+			fnSQ_ChangeState(CaseCruise1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1_1:
+			Writeln ("CaseCruise1_1");
+			fnSQ_NormalMsg(s4,0);
+			fnSQ_Play("C3-4"); //Let’s go through the engine failure checklist
+			fnSQ_Play("C3-9"); //Be sure to maintain 115 knots while you do all this
+			fnSQ_ToleranceFlag(TF_SPEED,8);
+			fnSQ_Play("C3-5"); //Both engine’s magnetos on both.
+			fnSQ_Play("C3-6"); //Boost pumps on.
+			fnSQ_Play("C3-7"); //Mixtures full rich.
+			fnSQ_Play("C3-8"); //Fuel selectors each set to ON.
+			fnSQ_Play("C3-10"); //No luck, amigo. You may have
+			fnSQ_NormalMsg(s11,0);
+			fnSQ_Play("C3-11"); //It looks like we can’t find
+			fnSQ_Pause(5);
+			fnSQ_Play("C3-23"); //Since we started with a 20 NM
+			fnSQ_ChangeState(CaseCruise1_2);
+			fnSQ_ResetTimer;   // start timer and give student 10 sec to turn on GPS
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1_2:
+			Writeln ("CaseCruise1_2");
+// this test is not working if (cpoffice.NavGPSSwitch ==1), so I am going to pause for 10 s and keep going
+//  don't know how to tell if they have brought up GPS
+			if (ntimer > 10) then
+				fnSQ_NormalMsg(s12,0);
+				fnSQ_Play("C3-12"); //It looks like Paine Field,
+				fnSQ_Play("C3-13"); // That’s where we’ll make our emergency landing.
+				fnSQ_ChangeState(CaseCruise1_3);
+				fnSQ_ToleranceFlag(TF_HEADING,25);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise1_3:
+			Writeln ("CaseCruise1_3");
+			if (not bHeadingCheck) then if (fnAtHeading) then fnTolerance(TF_HEADING,ON,0); endif; endif;
+			if (bWithinTolerance and bHeadingCheck) then // student is heading toward Paine Field
+				fnTolerance(TF_HEADING,OFF,0);
+				fnSQ_NormalMsg(s14,0);
+				fnSQ_Play("C3-14"); //A successful emergency landing
+				fnSQ_Play("C3-15"); // So I want you to remain
+				fnSQ_Play("C3-16"); // Since you can’t easily look out
+				fnSQ_Play("C3-17"); // When you’re over the center
+				fnSQ_Play("C3-18"); // Remember, you may not have
+				fnSQ_Play("C3-19"); // You may need to guess at the 20
+				fnSQ_Play("C3-20"); // Because you’re sitting on the left
+				fnSQ_Play("C3-21"); // Keep the runways in sight
+				fnSQ_Play("C3-22"); // And, you can use your GPS moving map.
+				VHFNAV1.Frequency = 110.6;  // set frequency to Paine VOR
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1: //Circling left over Paine
+			Writeln ("CaseDesc1");
+			nDTA = (posHere.DistanceTo(47.91437,-122.2796));
+writeln(fn1Str1Num("Dist2Center: ",nDTA));
+			if (nDTA <= 2.0) then //stay within 2 miles
+				if ((fnMsgCurrent) == s2Miles) then fnMsgRestoreNormal; endif;
+				nRollTarget			= -20;
+				nRollToleranceMax	=  10;
+				nRollToleranceMin	= -20;
+				fnSQ_NormalMsg(s23a,0);
+				fnTolerance(TF_ROLL,ON,30);
+				fnSQ_ChangeState(CaseDesc1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_1: //Continue decent while circling
+			Writeln ("CaseDesc1_1");
+			if (not bRollCheck) then if (fnAtRoll) then fnTolerance(TF_ROLL,ON,0); endif; endif;
+			nDTA = (posHere.DistanceTo(47.91437,-122.2796));
+writeln(fn1Str1Num("Dist2Center: ",nDTA));
+			if (nDTA <= 2.0) then
+				if ((fnMsgCurrent) == s2Miles) then fnMsgRestoreNormal; endif;
+				if (bWithinTolerance) and (bRollCheck) then //stay within 2 miles
+					fnSQ_NormalMsg(s23b,0);
+					fnSQ_ChangeState(CaseDesc1_2);
+					fnsQ_Pause(10);  // sit around for 10 sec and hope student changes scale
+					fnSQ_Synchronize;
+				endif;
+			else
+				fnMsg(WARNING,s2miles);
+			endif;
+		endcase;
+
+		case CaseDesc1_2: // we can't tell if student has changed map scale, but if we could...it'd go here
+			Writeln ("CaseDesc1_2");
+			fnSQ_Play("C3-24"); // I want you to keep turning around
+			fnSQ_Play("C3-25"); // At this point you’ll decide which
+			fnSQ_Play("C3-26"); // Do this right and you’ll feel
+			fnSQ_ChangeState(CaseDesc1_3);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseDesc1_3: //@ 2600' begin approach
+			Writeln ("CaseDesc1_3");
+			if (nAltitude < 2600) then
+				bRollCheck = FALSE;
+				bSpeedCheck = FALSE;
+				fnSQ_NormalMsg(s27,0);
+				fnSQ_Play("C3-27"); // There’s 2,600 feet on the altimeter
+				fnSQ_Play("C3-28"); // Look at the moving map
+				fnSQ_Play("C3-29"); // Then turn so as to fly
+				fnSQ_Play("C3-30"); // Maneuver to remain
+				fnSQ_Play("C3-31"); // Use your moving map scale
+				fnSQ_Play("C3-32"); // Our target is to be between ¼ and ½
+				fnSQ_Play("C3-33"); // From here you should have no
+				fnSQ_Play("C3-34"); // If you’re too high or too low
+				fnSQ_Play("C3-35"); // If you use your hat switch or
+				fnSQ_Play("C3-36"); // When the runway threshold is 45
+				fnSQ_Play("C3-37"); // You can use your GPS
+				fnSQ_Pause(1);
+				fnSQ_ChangeState(CaseDesc1_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseDesc1_4:  //turn base
+			Writeln ("CaseDesc1_4");
+			//We don't know which runway they are trying for, so we can't tell when it is 45º behind us
+			//fnSQ_Play("C3-38"); // There’s the 45 degree turn point so let’s turn base now.
+			fnSQ_NormalMsg(s39,0);
+			fnSQ_Play("C3-39"); // Now I want you to look at the runway threshold.
+			fnSQ_Play("C3-40"); // If it looks like you’re going to
+			fnSQ_Play("C3-41"); // Don’t wait.
+//			fnSQ_Play("C3-42"); // If it looks like you’re going to be high,
+			fnSQ_Play("C3-43"); // You can always use flaps if you need them, too.
+			fnSQ_ChangeState(CaseLanding);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+		case CaseLanding: //talk about the landing
+			writeln("CaseLanding");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (bWow) then
+				//KPAE 16R-34L
+				nPoint[0,LAT] 				= 47.92015;
+				nPoint[0,LON] 				= -122.2862;
+				nPoint[1,LAT] 				= 47.92015;
+				nPoint[1,LON] 				= -122.2855;
+				nPoint[2,LAT] 				= 47.89543;
+				nPoint[2,LON] 				= -122.2850;
+				nPoint[3,LAT] 				= 47.89543;
+				nPoint[3,Lon] 				= -122.2856;
+				if (fnAtRunway) then
+					writeln("Runway: 16R/34L");
+				else
+					//KPAE 11-29
+					nPoint[0,LAT] 				= 47.91034;
+					nPoint[0,LON] 				= -122.2869;
+					nPoint[1,LAT] 				= 47.91049;
+					nPoint[1,LON] 				= -122.2867;
+					nPoint[2,LAT] 				= 47.90187;
+					nPoint[2,LON] 				= -122.2735;
+					nPoint[3,LAT] 				= 47.90172;
+					nPoint[3,LON] 				= -122.2737;
+					if (fnAtRunway) then
+						writeln("Runway: 29/11");
+					else
+						//KPAE 16L-34R
+						nPoint[0,LAT] 				= 47.90642;
+						nPoint[0,LON] 				= -122.2719;
+						nPoint[1,LAT] 				= 47.90642;
+						nPoint[1,LON] 				= -122.2715;
+						nPoint[2,LAT] 				= 47.89820;
+						nPoint[2,LON] 				= -122.2714;
+						nPoint[3,LAT] 				= 47.89820;
+						nPoint[3,Lon] 				= -122.2718;
+						if (fnAtRunway) then
+							writeln("Runway: 34R/16L");
+						else
+							writeln("Runway: NONE!");
+						endif;
+					endif;
+				endif;
+				bGearUp = (cpOffice.LandingGearHandlePos == 0);
+				fnSQ_NormalMsg(s43,0);
+				fnTolerance(TF_RUNWAY,ON,0);
+				bDoOnce				= TRUE;
+				bLandedOffRunway	= TRUE;
+				bTaxiedOffRunway	= FALSE;
+				bStoppedOffRunway	= TRUE;
+				nState = CaseLanding_4;
+			endif;
+		endcase;
+
+		case CaseLanding_4: //Track the student on the runway while we wait for him to stop
+			writeln("CaseLanding_4");
+			if (bWow) then
+				bRunwayCheck = TRUE;
+				nPoint[0,LAT] 				= 47.92249;
+				nPoint[0,LON] 				= -122.2862;
+				nPoint[1,LAT] 				= 47.92250;
+				nPoint[1,LON] 				= -122.2856;
+				nPoint[2,LAT] 				= 47.89778;
+				nPoint[2,LON] 				= -122.2850;
+				nPoint[3,LAT] 				= 47.89778;
+				nPoint[3,LON] 				= -122.2856;
+				if (fnAtRunway) then
+					writeln("Runway: 16R/34L");
+				else
+					nPoint[0,LAT] 				= 47.91035;
+					nPoint[0,LON] 				= -122.2868;
+					nPoint[1,LAT] 				= 47.91045;
+					nPoint[1,LON] 				= -122.2867;
+					nPoint[2,LAT] 				= 47.90186;
+					nPoint[2,LON] 				= -122.2735;
+					nPoint[3,LAT] 				= 47.90175;
+					nPoint[3,LON] 				= -122.2737;
+					if (fnAtRunway) then
+						writeln("Runway: 29/11");
+					else
+						nPoint[0,LAT] 				= 47.90640;
+						nPoint[0,LON] 				= -122.2718;
+						nPoint[1,LAT] 				= 47.90640;
+						nPoint[1,LON] 				= -122.2716;
+						nPoint[2,LAT] 				= 47.89822;
+						nPoint[2,LON] 				= -122.2715;
+						nPoint[3,LAT] 				= 47.89821;
+						nPoint[3,LON] 				= -122.2717;
+						if (fnAtRunway) then
+							writeln("Runway: 34R/16L");
+						else
+							writeln("Runway: NONE!");
+						endif;
+					endif;
+				endif;
+				if (bDoOnce) then
+					fnTolerance(TF_SPEED,ON,25);
+					bLandedOffRunway = bWarnRunway;
+					nSpeedTarget			= 0;
+					nSpeedToleranceMax	= 5;
+					nSpeedToleranceMin	= 0;
+					bDoOnce = FALSE;
+				endif;
+			endif;
+			if (not bTaxiedOffRunway) then bTaxiedOffRunway = bWarnRunway;	endif;
+			if (IsStopped)then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_5:  //Eval the landing
+			writeln("CaseLanding_5");
+			fnSQ_NormalMsg(s47,0);
+			if (bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway or bGearUp) then
+				fnSQ_Play("C3-47");  //  Well, you got us on the ground, which is commendable.
+				fnSQ_Play("C3-48");  //  However, the purpose of this lesson is
+				fnSQ_Play("C3-49");  //  I’d like to ask you to retake
+				fnSQ_Play("C3-50");  //  It’s a really important skill
+			else
+				fnSQ_Play("C3-44");  //  Excellent, you made it
+				fnSQ_Play("C3-45");  //  Space Shuttle pilots would be
+				fnSQ_Play("C3-46");  //  I guess you could say that
+			endif;
+			fnSQ_Pause(3);
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

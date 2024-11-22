@@ -1,0 +1,386 @@
+[Main]
+Title=lesson 3
+Description=
+AppVersion=9.0.30207
+FlightVersion=1
+ABLScript =  lesson 3
+
+[Tower]
+Latitude=N047° 54' 28.5841"
+Longitude=W122° 16' 46.7918"
+Altitude=+000659.00
+
+[Track]
+Latitude=N041° 51' 38.5897"
+Longitude=W087° 42' 43.5498"
+Altitude=+000131.00
+
+[Options]
+Titles=False
+Sound=True
+Pause=False
+AxisIndicator=Off
+ATC=False
+Moonlight=True
+SimSpeed=001.00
+ShowStars=True
+ApproachLights=True
+FlightDisplay=Off
+SlewDisplay=Coordinates
+VirtualCopilot=0
+
+[EFIS]
+Active=False
+Mode=VOR
+Type=Rectangles
+Density=Thin
+Range=Short
+NavAid=VOR 1
+Altitude=0
+Flags=0
+
+[Avionics]
+LocalizerSelect=Auto Select
+DMESelect=1
+
+[Kneeboard]
+Undocked=False
+Visible=False
+ScreenCoords=0, 0, 380, 420
+UndocCoords=0, 0, 0, 0
+PageId=0
+
+[Panels]
+Panel.On=True
+HUD.On=False
+
+[Window.1]
+Order=0
+Active=True
+Undocked=False
+Maximized=False
+ScreenUniCoords=0, 0, 8192, 2500
+UndocCoords=0, 0, 0, 0
+ViewMode=Cockpit
+ViewDir=Forward
+CockpitZoom=001.00
+VirtualZoom=001.00
+TowerZoom=008.00
+TrackZoom=004.00
+SpotZoom=001.00
+MapZoom=011.00
+SpotDirection=090.00
+SpotDistance=+000092
+SpotTransitionType=Roll
+SpotFastTransition=False
+SpotAltitude=+000003
+PanHeading=360.00
+PanPitch=360.00
+PanBank=360.00
+ChaseTarget=1
+SavedViewMode=Cockpit
+
+[ATC_AgentManager]
+NumberofAgents=0
+
+[ATC_Aircraft.0]
+ActiveFlightPlan=False
+RequestedFlightPlan=False
+AcState=ACSTATE_REQUEST_TAXI_CLEARANCE_OUT_VFR_ATIS
+NumberofWaypoints=0
+ClearanceFlags=80
+CtCur=CLEARANCE_NONE
+WaypointNext=0
+AltCleared=-1
+HdgAssigned=-1
+SquawkAssigned=1969623552
+LandingSequence=LANDING_NONE
+DepartureRequest=DEPARTURE_VFR_REQUEST_NONE
+ParkingRequest=PARKING_NAME_NONE
+PatternLeg=PATTERN_LEG_NONE
+ApproachIndex=-1
+ApproachTransitionIndex=-1
+ApproachRequestIndex=-1
+ApproachTransitionRequestIndex=-1
+RunwayIndex=-1
+RunwayRequestIndex=-1
+ParkingIndex=-1
+FlightFollowing=FLIGHT_FOLLOWING_NO
+AirspaceTransition=AIRSPACE_TRANSITION_NONE
+BVAirspaceTransition=BV_TYPE_NONE
+BVAirspaceTransitionReq=BV_TYPE_NONE
+TakeoffSequence=TAKEOFF_SEQUENCE_NONE
+LandingSequenceNumber=-1
+TaxiRouteCurrent=-1
+CruisingAltitude=-1
+RequestedCruisingAltitude=-1
+AircraftSignature=1,0
+
+[ATC_AircraftManager]
+NumberofAircraft=1
+
+[ATC_MessageSystem]
+FrequencyNodes=0
+
+[DateTimeSeason]
+Day=125
+Year=2003
+Hours=14
+Minutes=24
+Seconds=47
+Season=Spring
+
+[Panel.1]
+ScreenUniCoords=0, 1959, 8192, 4185
+UndocCoords=0, 0, 0, 0
+Visible=True
+Undocked=False
+HiddenOn=False
+ID=0
+ViewsOn=1
+
+[Panel.2]
+ScreenUniCoords=6196, 2204, 1996, 3940
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=50
+ViewsOn=0
+
+[Panel.3]
+ScreenUniCoords=4096, 3176, 4096, 2968
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=225
+ViewsOn=0
+
+[Panel.4]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=10
+ViewsOn=0
+
+[Panel.5]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=75
+ViewsOn=0
+
+[Panel.6]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=20000
+ViewsOn=1
+
+[SystemFailure0.0]
+ID=6415DB341282EE46A3B2CB3B3E95AC4E
+SubIndex=1
+Health=0
+Armed=False
+ArmedFailureFromTime=10
+ArmedFailureToTime=10
+
+[Gauges.0]
+KollsmanSetting=29.920000076293945
+PanelLights=False
+EngineHours=0.0000000000
+
+[Slew.0]
+Active=False
+
+[Plane.0]
+Aircraft=Beech Baron 58
+
+[SimVars.0]
+Latitude=N047° 53.31'
+Longitude=W122° 25.01'
+Altitude=+008100.00
+Pitch=-3.0
+Bank=-0.0090100529019486401
+Heading=105.00
+PVelBodyAxis=-0.0029349920976289509
+BVelBodyAxis=9.2710608674427726e-006
+HVelBodyAxis=6.0096298792465472e-006
+XVelBodyAxis=0.00098266313905119519
+YVelBodyAxis=-14.581979068267612
+ZVelBodyAxis=256.33803861490401
+DynPres=61.14118248158227
+AGL=8009.5419053360993
+SimOnGround=False
+PAccBodyAxis=-0.00021541707162278802
+BAccBodyAxis=5.0879012244027642e-005
+HAccBodyAxis=3.4865087629327604e-007
+XAccBodyAxis=-0.0017855403566965149
+YAccBodyAxis=-0.014787924093724314
+ZAccBodyAxis=0.42180672167806788
+PVelWorld=-0.002934991116294125
+BVelWorld=8.9929918242307785e-006
+HVelWorld=6.4771438639559332e-006
+XVelWorld=247.74900877075987
+YVelWorld=-3.5637349616581595
+ZVelWorld=-67.301949113943678
+IceAccum=0
+AutoFeatherSwitch=False
+MaximumGForce=2.9820118017665531
+MinimumGForce=-0.20340822511379958
+
+[Engine Parameters.1.0]
+ThrottleLeverPct=0.994140625
+PropellerLeverPct=0.65625
+MixtureLeverPct=1
+Pct Engine RPM=0.79630392325060928
+MaxReachedEngineRPM=2769.0183805185666
+LeftMagneto=True
+RightMagneto=True
+GeneratorSwitch=True
+CowlFlapPct=1
+FuelPumpSwitch=False
+CarbHeat/DeiceSwitch=False
+
+[Engine Parameters.2.0]
+ThrottleLeverPct=0.994140625
+PropellerLeverPct=0.65625
+MixtureLeverPct=1
+Pct Engine RPM=0.79630392325060928
+MaxReachedEngineRPM=2769.0183805185666
+LeftMagneto=True
+RightMagneto=True
+GeneratorSwitch=True
+CowlFlapPct=1
+FuelPumpSwitch=False
+CarbHeat/DeiceSwitch=False
+
+[Fuel.0]
+TankSelector=All
+TankSelector1=All
+Center=100
+LeftMain=97.92990210083731
+RightMain=97.92990210083731
+LeftAux=100
+RightAux=100
+LeftTip=100
+RightTip=100
+Center 2=100
+Center 3=100
+External 1=100
+External 2=100
+
+[Controls.0]
+SpoilersHandle=000.00
+LeftSpoiler=000.00
+RightSpoiler=000.00
+FlapsHandle=000.00
+LeftFlap=000.00
+RightFlap=000.00
+GearsHandle=0.00
+Gear1=0.00
+Gear2=0.00
+Gear3=0.00
+YokeY=039.11
+YokeX=050.00
+Rudder=050.00
+LeftBrake=000.00
+RightBrake=000.00
+ParkingBrake=000.00
+ElevatorTrim=061.19
+RudderTrim=0
+AileronTrim=0
+
+[Systems.0]
+BatterySwitch=True
+AvionicsSwitch=True
+StructuralDeiceSwitch=False
+PropDeiceSwitch=False
+Autobrakes=Off
+StandbyVacuum=False
+PropSync=False
+FlightDirector=False
+
+[Switches.0]
+PitotHeat=False
+BeaconLights=False
+LandingLights=False
+LogoLights=False
+NavLights=False
+PanelLights=False
+RecognitionLights=False
+StrobeLights=True
+TaxiLights=False
+WingLights=False
+CabinLights=False
+
+[Avionics.0]
+Comm1Active=120.750
+Comm1Standby=124.850
+Comm2Active=118.050
+Comm2Standby=124.850
+Nav1Active=110.60
+Nav1Standby=110.50
+OBS1=340
+Nav2Active=116.80
+Nav2Standby=113.90
+OBS2=276
+Transponder=1200
+ADFActive=414
+ADF2Active=414
+ComTransmit=1
+ComReceiveBoth=False
+AudioNav1Listen=False
+AudioNav2Listen=True
+AudioMarkerListen=False
+AudioDmeListen=False
+AudioAdfListen=False
+AudioAdf2Listen=False
+
+[AutoPilot.0]
+MasterSwitch=True
+WingLeveler=True
+Nav1Lock=False
+HeadingLock=True
+HeadingValue=90
+AltitudeLock=True
+AltitudeValue=8000
+AttitudeHold=False
+AirspeedHold=False
+AirspeedValue=150
+MachHold=False
+MachValue=0
+VerticalSpeedHold=False
+VerticalSpeedValue=0
+RPMHold=False
+RPMValue=0
+GlideslopeHold=False
+ApproachHold=False
+BackCourseHold=False
+YawDamper=False
+ToGa=False
+AutoThrottleArm=False
+GPSdrivesNAV1=False
+IsUsedForLesson=False
+
+[Payload.0]
+PayloadList=-1
+
+[SimScheduler]
+SimTime=912.74929044501607
+
+[Weather]
+DynamicWeatherOverride=0
+WeatherType=2
+
+[Flying Tip]
+Undocked=False
+ScreenUniCoords=500, 400, 7192, 650
+UndocCoords=0, 0, 0, 0

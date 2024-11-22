@@ -1,0 +1,1132 @@
+/*******************************************************************
+ *    FILENAME:	Commercial Checkride.abl
+ *
+ *    DESC:			Commercial Pilot Checkride
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson provides the student with an opportunity
+ * 					to demonstrate all that was learned on the previous
+ * 					three commercial lessons. A short-field takeoff is
+ * 					made from Bremerton airport in Washington to Harvey
+ * 					airport in Washington. The student is expected to
+ * 					operate the complex airplane systems properly using
+ * 					the techniques learned in the previous commercial
+ * 					lessons and the flying skills learned in both the
+ * 					private and instrument lessons.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Checkride;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\comm\commercial checkride.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	//specific konstants for this lesson
+	APInitAutoBrake = FALSE;        // Inital value for Autobrakes (if equipped)
+	nRwyHdg         = 101;          // Initial Runway Heading
+	kHarveyLat       = 47.9081531;      // Harvey  lat
+	kHarveyLon       = -122.1054072;   //  Harvey  lon
+	kPaineLat       = 47.9063417;      // Paine  lat
+	kPaineLon       = -122.2815639;   //  Paine  lon
+
+	kFlapsDownTakeoff	= 1;	// You did not raise your flaps before takeoff
+	kThrottleFull		= 2;	// You did not set full power for takeoff
+	kRotate				= 3;	// You did not rotate at around 90 knots
+	kSpeed105			= 4;	// You did not climb at around 105 knots
+	kGearUpTakeoff		= 5;	// You did not raise the gear after takeoff
+	kFlapsRaise			= 6;	// no longer used
+	kSpeed120			= 7;	// You did not climb at about 120 knots
+	kMP25					= 8;	// You did not set the manifold pressure to 25 inches for climb
+	kRPM2500				= 9;	// You did not set the propeller to 2500 RPM
+	kMP25Climb			= 10;	// You did not maintain 25 inches of manifold pressure during the climb
+	kSpeed170			= 11;	// You did not build your airspeed to about 170 knots on leveloff
+	kMP22					= 12;	// You did not set manifold pressure to 22 inches for cruise
+	kRPM2300				= 13;	// You did not set the propeller RPM to 2300 for cruise
+	kCowlClose			= 14;	// You did not close the cowl flaps after leveling off
+	kAltitude			= 15;	// You did not maintain your cruise altitude
+	kGearDown152		= 16;	// You lowered the gear above the gear extension speed of 152 knots
+	kGearDownDescent	= 17;	// You did not lower the gear for descent
+	kMP15					= 18;	// You did not reduce the manifold pressure to 15 inches for descent
+	kCowlOpenDescent	= 19;	// You descended wit the cowl flaps open
+	kAltitude3500		= 20;	// You did not maintain 3500 feet
+	kSpeed140			= 21;	// You did not maintain 140 knots at 3500 feet
+	kHeading				= 22;	// You did not maintain your assigned heading
+	kGearUpClimb		= 23;	// You did not raise the gear during the climb
+	kSpeed120b			= 24;	// You did not maintain a climb airspeed of 120 knots
+	kAltitude6500		= 25;	// You did not maintain 6500 feet
+	kHarvey				= 26;	// You did not navigate to Harvey Field
+	kSpeed200			= 27;	// You exceeded 200 knots
+	kAltitude1400		= 28;	// You did not maintain traffic pattern altitude of 1400 feet
+	kCowlOpen			= 29;	// You did not open the cowl flaps for the climb
+	kFlapsUpLanding	= 30;	// You did not lower the flaps for landing
+	kStop					= 31;	// You did not come to a full stop on the runway
+	defErrorFlag		= 37;	// number of errors +1 (did not want to use errorflag[0])
+
+var
+	static	number		bDoOnce;
+	static	number		bDoOnce2;
+	static	number		bDoOnce3;
+	static	number		bDoBad1;
+	static	number		bDoBad2;
+	static	number		bDoBad3;
+	static	number		bDoBadTotal;
+	static	number		bLandedOffRunway;
+	static	number		bTaxiedOffRunway;
+	static	number		bStoppedOffRunway;
+	static	number		nRadius;
+	static	number		nRadiusmi;
+	static	number		nLocDev;
+	static	number		bCheat;
+	static	number[37]	ErrorFlag;	// Remember each and every error
+	static	number[37]	ErrorSum;	// Remember testing each and every error condition
+	static	number[5]	SegmentErrors;		// Total Errors for each segment
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit.abl";
+		fnMsg(Normal,sIdle);
+		fnThrottle_Hold(0.05);
+		bDoOnce 	= FALSE;
+		bCheat	= FALSE;
+		bCrashCheck = FALSE;
+		bRPMProp = TRUE; //Play prop wav for RPM tolerance
+		nDoneFlag = 1; //set flag to indicate did not successfully complete lesson
+		Writeln ("Finished with Init");
+	endfunction;
+
+	function fnEval (number nSegment):number;
+	var
+	code
+		writeln("---------------------EVAL---------------------------");
+		SegmentErrors[nSegment] = 0;
+		for nLooper = 1 to (defErrorFlag-1) do   //Total & record errors
+				if (nLooper <> kCowlClose) and (nLooper <> kCowlOpenDescent) and (nLooper <> kCowlOpen) and (nLooper <> kGearDown152)  and (nLooper <> kGearDownDescent) then
+					//Don't count Cowl Flap (or descent) dings against the student
+					SegmentErrors[nSegment] = SegmentErrors[nSegment] + ErrorFlag[nLooper]
+				endif;
+		endfor;
+		writeln(fn1str1num("Errors: ", SegmentErrors[nSegment]));
+		if (SegmentErrors[nSegment] > 1) then
+			fnSQ_Play("FAIL1INTRO");  // You’ve exceed at least two tolerances listed in the briefing.
+			if (ErrorFlag[kFlapsDownTakeoff])then	fnSQ_NormalMsg(sDing1 ,0);	fnSQ_Play("COMMDING1" ); endif;  // You did not set flaps for takeoff
+			if (ErrorFlag[kThrottleFull])		then	fnSQ_NormalMsg(sDing2 ,0);	fnSQ_Play("COMMDING2" ); endif;  // You did not set full power for takeoff
+			if (ErrorFlag[kRotate])				then	fnSQ_NormalMsg(sDing3 ,0);	fnSQ_Play("COMMDING3" ); endif;  // You did not rotate at around 90 knots
+			if (ErrorFlag[kSpeed105])			then	fnSQ_NormalMsg(sDing4 ,0);	fnSQ_Play("COMMDING4" ); endif;  // You did not climb at around 105 knots
+			if (ErrorFlag[kGearUpTakeoff])	then	fnSQ_NormalMsg(sDing5 ,0);	fnSQ_Play("COMMDING5" ); endif;  // You did not raise the gear after takeoff
+			if (ErrorFlag[kFlapsRaise])		then	fnSQ_NormalMsg(sDing6 ,0);	fnSQ_Play("COMMDING6" ); endif;  // You did not raise the flaps after takeoff
+			if (ErrorFlag[kSpeed120])			then	fnSQ_NormalMsg(sDing7 ,0);	fnSQ_Play("COMMDING7" ); endif;  // You did not climb at about 120 knots
+			if (ErrorFlag[kMP25])				then	fnSQ_NormalMsg(sDing8 ,0);	fnSQ_Play("COMMDING8" ); endif;  // You did not set the manifold pressure to 25 inches for climb
+			if (ErrorFlag[kRPM2500])			then	fnSQ_NormalMsg(sDing9 ,0);	fnSQ_Play("COMMDING9" ); endif;  // You did not set the propeller to 2500 RPM
+			if (ErrorFlag[kMP25Climb])			then	fnSQ_NormalMsg(sDing10,0); fnSQ_Play("COMMDING10"); endif;  // You did not maintain 25 inches of manifold pressure during the climb
+			if (ErrorFlag[kSpeed170])			then	fnSQ_NormalMsg(sDing11,0); fnSQ_Play("COMMDING11"); endif;  // You did not build your airspeed to about 170 knots on leveloff
+			if (ErrorFlag[kMP22])				then	fnSQ_NormalMsg(sDing12,0); fnSQ_Play("COMMDING12"); endif;  // You did not set manifold pressure to 22 inches for cruise
+			if (ErrorFlag[kRPM2300])			then	fnSQ_NormalMsg(sDing13,0); fnSQ_Play("COMMDING13"); endif;  // You did not set the propeller RPM to 2300 for cruise
+			if (ErrorFlag[kCowlClose])			then	fnSQ_NormalMsg(sDing14,0); fnSQ_Play("COMMDING14"); endif;  // You did not close the cowl flaps after leveling off
+			if (ErrorFlag[kAltitude])			then	fnSQ_NormalMsg(sDing15,0); fnSQ_Play("COMMDING15"); endif;  // You did not maintain your cruise altitude
+//			if (ErrorFlag[kGearDown152])		then	fnSQ_NormalMsg(sDing16,0); fnSQ_Play("COMMDING16"); endif;  // You lowered the gear above the gear extension speed of 152 knots
+//			if (ErrorFlag[kGearDownDescent])	then	fnSQ_NormalMsg(sDing17,0); fnSQ_Play("COMMDING17"); endif;  // You did not lower the gear for descent
+			if (ErrorFlag[kMP15])				then	fnSQ_NormalMsg(sDing18,0); fnSQ_Play("COMMDING18"); endif;  // You did not reduce the manifold pressure to 15 inches for descent
+			if (ErrorFlag[kCowlOpenDescent])	then	fnSQ_NormalMsg(sDing19,0); fnSQ_Play("COMMDING19"); endif;  // You descended with the cowl flaps open
+			if (ErrorFlag[kAltitude3500])		then	fnSQ_NormalMsg(sDing20,0); fnSQ_Play("COMMDING20"); endif;  // You did not maintain 3500 feet
+			if (ErrorFlag[kSpeed140])			then	fnSQ_NormalMsg(sDing21,0); fnSQ_Play("COMMDING21"); endif;  // You did not maintain 140 knots at 3500 feet
+			if (ErrorFlag[kHeading])			then	fnSQ_NormalMsg(sDing22,0); fnSQ_Play("COMMDING22"); endif;  // You did not maintain your assigned heading
+			if (ErrorFlag[kGearUpClimb])		then	fnSQ_NormalMsg(sDing23,0); fnSQ_Play("COMMDING23"); endif;  // You did not raise the gear during the climb
+			if (ErrorFlag[kSpeed120b])			then	fnSQ_NormalMsg(sDing24,0); fnSQ_Play("COMMDING24"); endif;  // You did not maintain a climb airspeed of 120 knots
+			if (ErrorFlag[kAltitude6500])		then	fnSQ_NormalMsg(sDing25,0); fnSQ_Play("COMMDING25"); endif;  // You did not maintain 6500 feet
+			if (ErrorFlag[kHarvey])				then	fnSQ_NormalMsg(sDing26,0); fnSQ_Play("COMMDING26"); endif;  // You did not navigate to Harvey Field
+			if (ErrorFlag[kSpeed200])			then	fnSQ_NormalMsg(sDing27,0); fnSQ_Play("COMMDING27"); endif;  // You exceeded 200 knots
+			if (ErrorFlag[kAltitude1400])		then	fnSQ_NormalMsg(sDing28,0); fnSQ_Play("COMMDING28"); endif;  // You did not maintain traffic pattern altitude of 1400 feet
+			if (ErrorFlag[kCowlOpen])			then	fnSQ_NormalMsg(sDing29,0); fnSQ_Play("COMMDING29"); endif;  // You did not open the cowl flaps for the climb
+			if (ErrorFlag[kFlapsUpLanding])	then	fnSQ_NormalMsg(sDing30,0); fnSQ_Play("COMMDING30"); endif;  // You did not lower the flaps for landing
+			if (ErrorFlag[kStop])				then	fnSQ_NormalMsg(sDing31,0); fnSQ_Play("COMMDING31"); endif;  // You did not come to a full stop on the runway
+			fnSQ_Play("FAIL1END");  // You can either continue flying or end the flight.
+		else
+			fnSQ_Play("");  // You’re doing well, so let’s move on to the next segment.
+		endif;
+		for nLooper = 1 to (defErrorFlag-1) do if (ErrorFlag[nLooper]) then ErrorSum[nLooper] = ErrorFlag[nLooper]; ErrorFlag[nLooper] = 0; endif; endfor; //Reinit error array
+		fnResetToleranceFlags;
+		return (SegmentErrors[nSegment] <= 1);
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	nRadius = posHere.DistanceTo (kHarveyLat,kHarveyLon);
+	nRadiusmi = nRadius * 0.62;
+	nLocDev = posHere.BearingTo (kHarveyLat,kHarveyLon);
+	nLocDev = nLocDev - posHere.MagneticVariation;
+	writeln(fn1str1num("nlocDev ",nLocDev));
+	writeln(fn1str1num("nRadiusmi ",nRadiusmi));
+	switch (nState)
+	#include "script\lib\STDCases.abl";
+
+//Segment 1 - 2
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1: //Examiner introduces checkride
+			Writeln ("CaseTalk1");
+			nAltitudeToleranceMax	= 120;
+			nAltitudeToleranceMin	= -120;
+        	nCowlFlapsToleranceMax	=  0.1;
+        	nCowlFlapsToleranceMin	= -0.1;
+			nHeadingToleranceMax		= 10;
+			nHeadingToleranceMin		= -10;
+			nMPToleranceMax			= 2;
+			nMPToleranceMin			= -3;
+			nRPMToleranceMax			= 100;
+			nRPMToleranceMin			= -100;
+			nSpeedToleranceMax 		= 15;
+			nSpeedToleranceMin 		= -15;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			fnResetToleranceFlags;
+     		bTextWarnings           = FALSE;
+     		bAudioWarnings          = FALSE;
+     		bToleranceTimeCheck     = FALSE;
+			nThrottleTarget         = 1.0;
+			nSpeedTarget 				= 110;
+			nFlapsTarget 				= 0;
+       	nCowlFlapsTarget			= ON;
+			bLandingGear737Target	= OFF;
+			nHeadingTarget				= 193;
+			AP.Heading = nHeadingTarget;
+			IsStopped;  //init the function
+			fnSQ_NormalMsg(sNobodyFlying,0);
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("COMMCHECK1"); //OK, I see you’re ready to  demonstrate
+			fnSQ_Play("COMMCHECK3"); //After takeoff, climb to 5,500 feet and turn left to a heading of 030 degrees.
+			fnSQ_Play("COMMCHECK2"); //OK, takeoff as soon as you are ready.
+			fnSQ_ThrottleManual;	//Give the student control at this point
+			AP.Master = FALSE;
+			//Student executes a short-field takeoff from Bremerton’s Runway 19.
+			fnSQ_ChangeState(CaseTakeoff);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeoff: //Rolling
+			writeln ("CaseTakeoff");
+			nAltitudeTarget 			= 1400;
+			nThrottleTarget         = 1.0;
+			nSpeedTarget 				= 110;
+			nFlapsTarget 				= 0;
+       	nCowlFlapsTarget			= ON;
+			bLandingGear737Target	= OFF;
+			if (not IsStopped) then
+				fnTolerance(TF_COWLFLAPS,ON,0);
+				nState = CaseTakeoff_1;
+			endif;
+		endcase;
+
+    	case CaseTakeoff_1: //Rotate @ 90 knots
+			writeln ("CaseTakeoff_1");
+			if (fnAtSpeed) then
+				//Record the takeoff for the eval
+				ErrorFlag[kRotate] = bWow;
+				ErrorFlag[kThrottleFull] = not (fnAtThrottle);
+//				ErrorFlag[kFlapsDownTakeoff] = not (fnAtFlaps);
+				fnTolerance(TF_SPEED,OFF,0);
+				nSpeedTarget = 105;
+				fnTolerance(TF_SPEED,ON,45);
+				nState = CaseClimb1;
+				bDoOnce = TRUE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1:  //climb to 800'
+			Writeln ("CaseClimb1");
+			if not bWow then bCrashCheck = TRUE; endif;
+			if (nAltitude >= 900) then
+				fnSQ_NormalMsg(s3,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				ErrorFlag[kSpeed105] = (not (fnAtSpeed));
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				nSpeedTarget	= 120;
+				ErrorFlag[kGearUpTakeoff] = (not (fnAtLandingGear));
+				fnTolerance(TF_LANDINGGEAR737,ON,0);
+				fnTolerance(TF_Speed,ON,45);
+				nState = CaseClimb1_1;
+			endif;
+		endcase;
+
+		case CaseClimb1_1: //climb to 1600'
+			Writeln ("CaseClimb1_1");
+			if (nAltitude >= 1600) then
+				//Record the initial climb for the eval
+				bDoOnce = TRUE;
+				fnTolerance(TF_SPEED,OFF,0);
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				nMPTarget 			= 22;
+				nRPMTarget 			= 2300;
+				nSpeedTarget		= 120;
+				nAltitudeTarget	= 5500;
+				nHeadingTarget		= 30;
+				ap.Heading = nHeadingTarget;
+				fnTolerance(TF_MP,ON,15);
+				fnTolerance(TF_RPM,ON,15);
+				fnTolerance(TF_SPEED,ON,45);
+				fnSQ_Play("COMMCHECK4"); //For this examination, you have permission
+				fnSQ_ChangeState(CaseClimb1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseClimb1_2: //Check the MP after 5 secs
+			writeln ("CaseClimb1_2");
+			if (bMPCheck) then
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP25] 				= TRUE;	endif;
+				nMPMin			= 0;	nMPMax			= 0;
+				nState = CaseClimb1_3;
+			endif;
+		endcase;
+
+    	case CaseClimb1_3: //climb to 5,500
+    		writeln ("CaseClimb1_3");
+    		if (fnAtHeading) and (not bHeadingCheck) then fnSQ_NormalMsg(s3,0); bHeadingCheck = TRUE; endif;
+			if (bDoOnce) and (nAltitude >= (nAltitudeTarget - 500)) then
+				fnSQ_NormalMsg(s5,0);
+				fnSQ_Play("COMMCHECK5"); // When you reach a cruise altitude of 5,500 feet,
+				bDoOnce = FALSE;
+			endif;
+			if (fnAtAltitude) then
+				//Check & clear the tolerance recorders before reusing them.
+//				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpen]			= TRUE;	endif;
+//				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP25Climb]			= TRUE;	endif;
+//				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2500]			= TRUE;	endif;
+				if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed120]			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_COWLFLAPS,OFF,0);
+				fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+				nSpeedTarget		= 160;
+				nCowlFlapsTarget	= OFF;
+				nMPTarget 			= 22;
+				nRPMTarget 			= 2300;
+				if not (fnAtHeading) then ErrorFlag[kHeading] = TRUE;	endif;
+				fnTolerance(TF_HEADING,ON,0);
+				fnTolerance(TF_SPEED,ON,90);
+//				fnTolerance(TF_COWLFLAPS,ON,30);
+				fnTolerance(TF_MP,ON,30);
+				fnTolerance(TF_RPM,ON,30);
+				nState = CaseClimb1_4;
+			endif;
+		endcase;
+
+    	case CaseClimb1_4: //Level & speed up to 170 knots
+			writeln ("CaseClimb1_4");
+			if (bSpeedCheck) then
+				//Check & clear the tolerance recorders before reusing them.
+//				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpen]			= TRUE;	endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP22]				= TRUE;	endif;
+				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2300]			= TRUE;	endif;
+				if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed170]			= TRUE;	endif;
+				if (nAltitudeMin			<> 0) or (nAltitudeMax 			<> 0) then ErrorFlag[kAltitude]			= TRUE;	endif;
+				if (nHeadingMin			<> 0) or (nHeadingMax			<> 0) then ErrorFlag[kHeading] 			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				nAltitudeMin	= 0;	nAltitudeMax	= 0;
+				nHeadingMin		= 0;	nHeadingMax		= 0;
+				fnSQ_ChangeState(Case1stSeg);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case Case1stSeg: //Am I hot or not?
+			writeln ("Case1stSeg");
+			if (fnEval(3)) or (bCheat) then
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			else
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1: //Begin gear down Descent to 3500'
+			writeln ("CaseDesc1");
+			fnTolerance(TF_ALTITUDE,OFF,0);
+			fnTolerance(TF_SPEED,OFF,0);
+			fnTolerance(TF_MP,OFF,0);
+			fnTolerance(TF_LANDINGGEAR737,OFF,0);
+			nMPTarget = 15;
+			bLandingGear737Target = ON;
+			nAltitudeTarget = 3500;
+			fnSQ_NormalMsg(s5a,0);
+			fnSQ_Play("COMMCHECK5A"); //OK, now I'd like you to demonstrate a gear-down descent to 3500 feet.
+			fnSQ_ToleranceFlag(TF_MP,20);
+			fnSQ_ToleranceFlag(TF_RPM,20);
+			fnTolerance(TF_LANDINGGEAR737,ON,30);
+			fnSQ_ChangeState(CaseDesc1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseDesc1_1: //Continue gear down Descent to 3500'
+			writeln ("CaseDesc1_1");
+			if (not bLandingGear737Check) then
+				if (fnAtLandingGear) then if (nIASNow >= 152) then ErrorFlag[kGearDown152] = TRUE; endif; fnTolerance(TF_LANDINGGEAR737,ON,0);endif;
+			endif;
+			if (nAltitude <= 4000) then
+				fnSQ_NormalMsg(s6,0);
+				fnSQ_Play("COMMCHECK6"); //I want you to level the airplane out at 3,500
+				fnSQ_ChangeState(CaseDesc1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseDesc1_2: //level out @ 3500
+			writeln ("CaseDesc1_2");
+			if (fnAtAltitude) then
+				if (not bLandingGear737Check) then ErrorFlag[kGearDownDescent]	= TRUE; endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP15]				= TRUE;	endif;
+				nMPMin			= 0;	nMPMax			= 0;
+           	fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+        	 	fnTolerance(TF_SPEED,OFF,0);
+           	nMPTarget					= 22;
+				nRPMTarget 					= 2300;
+           	nSpeedTarget 				= 140;
+           	fnSQ_ToleranceFlag(TF_MP,60);
+				fnSQ_ToleranceFlag(TF_RPM,60);
+				fnSQ_ToleranceFlag(TF_SPEED,60);
+				fnSQ_ToleranceFlag(TF_Altitude,0);
+		  		fnSQ_ChangeState(CaseCruise1);
+		  		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseCruise1: //Give them time to settle down @ 3500'
+			writeln ("CaseCruise1");
+      	if (not bSpeedCheck) then if (fnAtSpeed) then fnTolerance(TF_SPEED,ON,0); endif; endif;
+      	if (not bMPCheck) then if (fnAtMP) then fnTolerance(TF_MP,ON,0); endif; endif;
+      	if (not bRPMCheck) then if (fnAtRPM) then fnTolerance(TF_RPM,ON,0); endif; endif;
+			if (bMPCheck and bSpeedCheck) then
+				//Check & clear the tolerance recorders before reusing them.
+				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpenDescent]	= TRUE;	endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP22]				= TRUE;	endif;
+				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2300]			= TRUE;	endif;
+				if (nHeadingMin			<> 0) or (nHeadingMax 			<> 0) then ErrorFlag[kHeading]			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nHeadingMin		= 0;	nHeadingMax		= 0;
+				fnSQ_ChangeState(CaseCruise1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseCruise1_1: //Turn to 210º
+			writeln ("CaseCruise1_1");
+			fnTolerance(TF_HEADING,OFF,0);
+			nHeadingTarget				= 210;
+			AP.Heading = nHeadingTarget;
+			fnSQ_NormalMsg(s7,0);
+			fnSQ_Play("COMMCHECK7");  // Now I want you to make a left turn to
+        	fnSQ_ToleranceFlag(TF_HEADING,180);
+	  		fnSQ_ChangeState(CaseCruise1_2);
+        	fnSQ_Synchronize;
+		endcase;
+
+    	case CaseCruise1_2: //Record the cruise & turn
+			writeln ("CaseCruise1_2");
+			if (not bHeadingCheck) then if (fnAtHeading) then fnTolerance(TF_HEADING,ON,0); endif; endif;
+			if (bHeadingCheck) then
+				//Check & clear the tolerance recorders before reusing them.
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP15]				= TRUE;	endif;
+				if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed120]			= TRUE;	endif;
+				if (nAltitudeMin			<> 0) or (nAltitudeMax 			<> 0) then ErrorFlag[kAltitude3500]		= TRUE;	endif;
+				nMPMin			= 0;	nMPMax			= 0;
+				nAltitudeMin	= 0;	nAltitudeMax	= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				fnSQ_Pause(10);
+		  		fnSQ_ChangeState(CaseClimb2);
+	        	fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseClimb2: //Climb to 6500'
+			writeln ("CaseClimb2");
+			if (fnAtHeading) then
+				bDoOnce = TRUE;
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_LANDINGGEAR737,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+				fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_COWLFLAPS,OFF,0);
+				nAltitudeTarget 			= 6500;
+           			nSpeedTarget 				= 120;
+				nRPMTarget 					= 2500;
+				nMPTarget					= 25;
+				bLandingGear737Target	= OFF;
+				nCowlFlapsTarget			= ON;
+				fnSQ_NormalMsg(s8,0);
+				fnSQ_Play("COMMCHECK8");  // Let’s raise the gear and begin
+		  		fnSQ_ToleranceFlag(TF_LANDINGGEAR737,15);
+		  		fnSQ_ToleranceFlag(TF_MP,20);
+		  		fnSQ_ToleranceFlag(TF_RPM,20);
+//		  		fnSQ_ToleranceFlag(TF_COWLFlaps,20);
+				fnSQ_ToleranceFlag(TF_SPEED,45);
+		  		fnSQ_ChangeState(CaseClimb2_1);
+        		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseClimb2_1: //Record the climb
+      	writeln ("CaseClimb2_1");
+			if (bDoOnce) and (nAltitude >= 4000) then
+				//Record the initial climb for the eval
+				ErrorFlag[kGearUpClimb] = not (fnAtLandingGear);
+				bDoOnce = FALSE;
+			endif;
+			if (nAltitude >= 5000) and (bMPCheck) then
+				fnTolerance(TF_MP,OFF,0); //can't keep 25 inches this high
+			endif;
+			if (fnAtAltitude) then
+				//Check & clear the tolerance recorders before reusing them.
+//				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpen]			= TRUE;	endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP25Climb]			= TRUE;	endif;
+				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2500]			= TRUE;	endif;
+				if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed120]			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_COWLFLAPS,OFF,0);
+				fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+				nSpeedTarget		= 160;
+				nCowlFlapsTarget	= OFF;
+				nMPTarget 			= 22;
+				nRPMTarget 			= 2300;
+				fnTolerance(TF_SPEED,ON,90);
+//				fnTolerance(TF_COWLFLAPS,ON,30);
+				fnTolerance(TF_MP,ON,60);
+				fnTolerance(TF_RPM,ON,60);
+				fnSQ_ToleranceFlag(TF_ALTITUDE,0);
+				nState = CaseClimb1_4;
+				fnSQ_ChangeState(CaseClimb2_2);
+				fnSQ_ResetTimer;
+      		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseClimb2_2: //Level off & 6500'
+			writeln ("CaseClimb2_2");
+			if (not bSpeedCheck) then if (fnAtSpeed) then fnTolerance(TF_SPEED,ON,0); endif; endif;
+			if (bSpeedCheck) then
+				//Check & clear the tolerance recorders before reusing them.
+//				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpen]			= TRUE;	endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP22]				= TRUE;	endif;
+				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2300]			= TRUE;	endif;
+				if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed170]			= TRUE;	endif;
+				if (nAltitudeMin			<> 0) or (nAltitudeMax 			<> 0) then ErrorFlag[kAltitude]			= TRUE;	endif;
+				if (nHeadingMin			<> 0) or (nHeadingMax			<> 0) then ErrorFlag[kHeading] 			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				nAltitudeMin	= 0;	nAltitudeMax	= 0;
+				nHeadingMin		= 0;	nHeadingMax		= 0;
+				bDoOnce = TRUE;
+				fnTolerance(TF_HEADING,OFF,0);
+				nHeadingTarget				= nLocDev;
+				AP.Heading = nHeadingTarget;
+				fnSQ_NormalMsg(s10,0);
+				fnSQ_Play("COMMCHECK10");  // When your airplane is configured for
+				fnSQ_ResetTimer;  // wait 25 min and see if they have made within 20 mi of Harvey
+				fnSQ_ChangeState(CaseCruise2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseCruise2: //Navigate to Harvey
+			if (bDoOnce) then if (fnAtHeading) then
+	         fnSQ_NormalMsg(s11,0);
+				fnSQ_Play("COMMCHECK11");  // When you are 20 miles from Harvey airport,
+				bDoOnce = FALSE;
+			endif; endif;
+			if (nTimer >= 1500) and (nRadiusmi > 20) then //fail
+				//play: you did not navigate to Harvey
+				fnSQ_NormalMsg(sDing26,0);
+				fnSQ_Play("COMMDING26");
+				fnSQ_ErrorMsg(sFail1End,0);
+				fnSQ_Play("Fail1End");
+				nState = CaseEnd;
+			endif;
+			if (nRadiusmi <= 20) then
+			  	fnSQ_ChangeState(CaseDesc3);
+   	   	fnSQ_Synchronize;
+  	  			bDoOnce = FALSE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc3: //Begin gear down Descent to 3500'
+			writeln ("CaseDesc3");
+			fnTolerance(TF_ALTITUDE,OFF,0);
+			fnTolerance(TF_SPEED,OFF,0);
+			fnTolerance(TF_MP,OFF,0);
+			fnTolerance(TF_LANDINGGEAR737,OFF,0);
+			nSpeedTarget = 142;
+			nMPTarget = 15;
+			bLandingGear737Target = ON;
+			nAltitudeTarget = 3500;
+			fnSQ_NormalMsg(s5a,0);
+			fnSQ_Play("COMMCHECK5A"); //OK, now I'd like you to demonstrate a gear-down descent to 3500 feet.
+			fnSQ_ToleranceFlag(TF_SPEED,15);
+//			fnSQ_ToleranceFlag(TF_COWLFLAPS,5);
+			fnSQ_ToleranceFlag(TF_MP,15);
+			fnSQ_ToleranceFlag(TF_RPM,15);
+			fnSQ_ChangeState(CaseDesc3_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseDesc3_1: //Continue gear down Descent to 3500'
+			writeln ("CaseDesc3_1");
+			if (not bLandingGear737Check) then
+				if (fnAtLandingGear) then if (nIASNow >= 152) then ErrorFlag[kGearDown152] = TRUE; endif; endif;
+				fnTolerance(TF_LANDINGGEAR737,ON,5);
+			endif;
+			if (nAltitude <= 4000) then
+				fnSQ_NormalMsg(s6,0);
+				fnSQ_Play("COMMCHECK6"); //I want you to level the airplane out at 3,500
+				fnSQ_ChangeState(CaseDesc3_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseDesc3_2: //level out @ 3500
+			writeln ("CaseDesc3_2");
+			if (fnAtAltitude) then
+				if (not bLandingGear737Check) then ErrorFlag[kGearDownDescent]	= TRUE; endif;
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP15]				= TRUE;	endif;
+				nMPMin			= 0;	nMPMax			= 0;
+           	fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+        	 	fnTolerance(TF_SPEED,OFF,0);
+           	nMPTarget					= 22;
+				nRPMTarget 					= 2300;
+           	nSpeedTarget 				= 140;
+           	fnSQ_ToleranceFlag(TF_MP,60);
+				fnSQ_ToleranceFlag(TF_RPM,60);
+				fnSQ_ToleranceFlag(TF_SPEED,60);
+				fnSQ_ToleranceFlag(TF_Altitude,0);
+		  		fnSQ_ChangeState(CaseCruise3);
+		  		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseCruise3: //Give them time to settle down @ 3500'
+      	writeln ("CaseCruise3");
+      	if (not bSpeedCheck) then if (fnAtSpeed) then fnTolerance(TF_SPEED,ON,0); endif; endif;
+			if (bWithinTolerance and bSpeedCheck) then
+				fnTolerance(TF_LANDINGGEAR737,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				//Check & clear the tolerance recorders before reusing them.
+//				if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax 		<> 0) then ErrorFlag[kCowlOpenDescent]	= TRUE;	endif;
+				if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2300]			= TRUE;	endif;
+				if (nHeadingMin			<> 0) or (nHeadingMax 			<> 0) then ErrorFlag[kHeading]			= TRUE;	endif;
+				nCowlFlapsMax	= 0;	nCowlFlapsMax	= 0;
+				nMPMin			= 0;	nMPMax			= 0;
+				nRPMMin			= 0;	nRPMMax			= 0;
+				nHeadingMin		= 0;	nHeadingMax		= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				nSpeedTarget = 190;
+				fnSQ_ChangeState(CaseDesc4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseDesc4: //High speed descent to 1500'
+			writeln ("CaseDesc4");
+			if (nRadiusmi <= 15.5) then
+				bDoOnce = TRUE;
+				bLandingGear737Target = OFF;
+				fnSQ_NormalMsg(s12,0);
+				fnSQ_Play("COMMCHECK12");  // Since you’ll be landing at Harvey,
+				fnSQ_Play("COMMCHECK13");  // Your objective is to
+				fnSQ_ToleranceFlag(TF_SPEED,0);
+				nAltitudeTarget 			= 1500;
+		  		fnSQ_ChangeState(CaseDesc4_1);
+        		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+    	case CaseDesc4_1: //Check gear state and wait for 1500'
+      	writeln ("CaseDesc4_1");
+      	if (nAltitude <= 3300) and (bDoOnce) then
+      		if not (fnAtLandingGear) then ErrorFlag[kGearDownDescent]	= TRUE; endif;
+      		bDoOnce = FALSE;
+      	endif;
+      	if (fnAtAltitude) then
+				bLandingGear737Target = ON;
+      		fnTolerance(TF_ALTITUDE,ON,0);
+				fnSQ_NormalMsg(s12b,0);
+				if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP15]				= TRUE;	endif;
+				if (nSpeedMax 				<> 0) then ErrorFlag[kSpeed200]			= TRUE;	endif;
+				nMPMin			= 0;	nMPMax			= 0;
+				nSpeedMin		= 0;	nSpeedMax		= 0;
+				fnTolerance(TF_SPEED,OFF,0);
+	  			fnSQ_ChangeState(CaseApp1);
+     			fnSQ_Synchronize;
+     		endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case CaseApp1: //Wait for the student to land
+      	writeln ("CaseApp1");
+			if (fnAtLandingGear) then if (nIASNow >= 152) then ErrorFlag[kGearDown152] = TRUE; endif; endif;
+			if (nRadiusmi <= 2) and (nAltitudeTarget == 1500) then
+				//Setup runway coords, set up for Runway 14 R at Harvey
+				//S43 harvey
+				nPoint[0,LAT]				= 47.907050;
+				nPoint[0,LON]				= -122.103228;
+				nPoint[1,LAT]				= 47.907074;
+				nPoint[1,LON]				= -122.103090;
+				nPoint[2,LAT]				= 47.901838;
+				nPoint[2,LON]				= -122.101014;
+				nPoint[3,LAT]				= 47.901813;
+				nPoint[3,LON]				= -122.101156;
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				nAltitudeTarget 			= 1016;
+				fnSQ_NormalMsg(s14,0);
+				fnSQ_Play("COMMCHECK14");  // Make left traffic
+	      	fnSQ_NormalMsg(s15,0);
+				fnSQ_Play("COMMCHECK15");  // When you have an
+			endif;
+			if (fnAtAltitude) and (nHeadingTarget <> 320) then
+				fnTolerance(TF_ALTITUDE,ON,0);
+				fnTolerance(TF_HEADING,OFF,0);
+				nHeadingTarget				= 320;
+			endif;
+			if (fnAtHeading) then
+				fnTolerance(TF_ALTITUDE,OFF,0);
+				fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				fnTolerance(TF_FLAPS,OFF,0);
+				fnTolerance(TF_HEADING,OFF,0);
+				nFlapsTarget			= 2;
+				nHeadingTarget			= 140;
+		  		fnSQ_ChangeState(CaseApp2);
+        		fnSQ_Synchronize;
+			endif;
+		endcase;
+
+   	case CaseApp2:  //wait for touchdown & check flaps
+        	writeln ("CaseApp2");
+			if (not bRunwayCheck) then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (bWoW) then
+				ErrorFlag[kFlapsUpLanding] = not (fnAtFlaps);
+				bLandedOffRunway = not (fnAtRunway);
+		  		fnSQ_ChangeState(CaseLanding_1);
+      	  	fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_1: //wait for stop on runway
+			writeln ("CaseLanding_1");
+			if (not bLandedOffRunway) then
+				bTaxiedOffRunway = bWarnRunway;
+			endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnTolerance(TF_RUNWAY,OFF,0);
+				bCrashCheck = FALSE;
+			  	fnSQ_ChangeState(CaseLanding_2);
+      	  	fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_2:
+			writeln("CaseLanding_2");
+			ErrorFlag[kStop] 		= bStoppedOffRunway; //or (bLandedOffRunway or bTaxiedOffRunway;
+		  	fnSQ_ChangeState(Case2ndSeg);
+   	  	fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    	case Case2ndSeg: //Am I hot or not?
+			writeln ("Case2ndSeg");
+			if (fnEval(3)) or (bCheat) then
+				fnSQ_ChangeState(CaseTalk2);
+				fnSQ_Synchronize;
+			else
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2:
+			Writeln ("CaseTalk2");
+			nAltitudeToleranceMax	= 120;
+			nAltitudeToleranceMin	= -120;
+        	nCowlFlapsToleranceMax	=  0.1;
+        	nCowlFlapsToleranceMin	= -0.1;
+			nHeadingToleranceMax		= 10;
+			nHeadingToleranceMin		= -10;
+			nMPToleranceMax			= 5;
+			nMPToleranceMin			= -5;
+			nRPMToleranceMax			= 300;
+			nRPMToleranceMin			= -300;
+			nSpeedToleranceMax 		= 15;
+			nSpeedToleranceMin 		= -15;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nMPMin			= 0;	nMPMax			= 0;
+			nRPMMin			= 0;	nRPMMax			= 0;
+			nSpeedMin		= 0;	nSpeedMax		= 0;
+			nCowlFlapsMin	= 0;	nCowlFlapsMax	= 0;
+			nHeadingMin		= 0;	nHeadingMAx		= 0;
+			nAltitudeMin	= 0;	nAltitudeMAx	= 0;
+			fnSQ_NormalMsg(s16,0);
+			fnSQ_Play("COMMCHECK16");  // Ok, now taxi to the end of the runway
+			fnSQ_ChangeState(CaseTakeoff_2);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeoff_2: //Rolling
+			Writeln ("CaseTakeoff_2");
+			nThrottleTarget         = 1.0;
+			nSpeedTarget 				= 110;
+			nFlapsTarget 				= 0;
+       			nCowlFlapsTarget			= 0;
+			bLandingGear737Target	= OFF;
+			nHeadingTarget				= 320;
+			AP.Heading = nHeadingTarget;
+			fnSQ_NormalMsg(s17,0);
+			fnSQ_Play("COMMCHECK17");  // When you are in position
+			fnSQ_ChangeState(CaseTakeoff_3);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTakeoff_3: //Rotate @ 90 knots
+			Writeln ("CaseTakeoff_3");
+			if (fnAtSpeed) then
+				ErrorFlag[kRotate] = (nPitch < 5);
+				ErrorFlag[kThrottleFull] = not (fnAtThrottle);
+				ErrorFlag[kFlapsDownTakeoff] = not (fnAtFlaps);
+				fnTolerance(TF_HEADING,ON,0);
+				nState = CaseClimb3;
+				bDoOnce = TRUE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb3:  //climb to 500'
+			if (not bCrashCheck) then if (nAltAGL > 100) then bCrashCheck = TRUE; endif; endif;
+			Writeln ("CaseClimb3");
+			if (nAltitude >= 500) then
+				fnTolerance(TF_HEADING,OFF,0);
+				nSpeedTarget	= 120;
+				nHeadingTarget	= 140;
+				AP.Heading = nHeadingTarget;
+				fnSQ_NormalMsg(s18a,0);
+				fnSQ_Play("COMMCHECK18");  // Your're cleared for a normal climb
+//				fnSQ_ToleranceFlag(TF_HEADING,90);
+				fnTolerance(TF_LANDINGGEAR737,ON,10);
+				fnTolerance(TF_Speed,ON,25);
+				nState = CaseClimb3_1;
+			endif;
+		endcase;
+
+		case CaseClimb3_1: //climb to 1100'
+			Writeln ("CaseClimb3_1");
+			if (nAltitude >= 1100) then
+				nMPTarget = 25;
+				nRPMTarget = 2500;
+				fnTolerance(TF_MP,ON,15);
+				fnTolerance(TF_RPM,ON,15);
+				fnSQ_ChangeState(CaseClimb3_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseClimb3_2: //climb to 6,500 then turn to 280
+			Writeln ("CaseClimb3_2");
+			if (nAltitude >= 3500) then
+				fnTolerance(TF_HEADING,OFF,0);
+				fnSQ_NormalMsg(s19,0);
+				fnSQ_Play("COMMCHECK19");  // Let's turn right to a
+				nAltitudeTarget = 6500;
+				nHeadingTarget	= 280;
+				AP.Heading = nHeadingTarget;
+//				fnSQ_ToleranceFlag(TF_HEADING,90);
+				fnSQ_ChangeState(CaseClimb3_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseClimb3_3: //climb to 6,500
+			Writeln ("CaseClimb3_3");
+			if (not bHeadingCheck) then if (fnAtHeading) then fnTolerance(TF_HEADING,ON,0); endif; endif;
+			if (not bAltitudeCheck) then if (fnAtAltitude) then fnTolerance(TF_ALTITUDE,ON,0); endif; endif;
+			if (nAltitude >= 5000) and (bMPCheck) then
+				fnTolerance(TF_MP,OFF,0); //can't keep 25 inches this high
+			endif;
+			if (nAltitude >= 6500) then
+//				if (nMPMin		<> 0) or (nMPMax		<> 0) then ErrorFlag[kMP25Climb]	= TRUE;	endif;
+//				if (nRPMMin		<> 0) or (nRPMMax		<> 0) then ErrorFlag[kRPM2500]	= TRUE;	endif;
+				if (nSpeedMin	<> 0) or (nSpeedMax 	<> 0) then ErrorFlag[kspeed120]	= TRUE;	endif;
+				nMPMin		= 0; nMPMax		= 0;
+				nRPMMin		= 0; nRPMMax		= 0;
+				nSpeedMin	= 0; nSpeedMax	= 0;
+				fnTolerance(TF_MP,OFF,0);
+				fnTolerance(TF_RPM,OFF,0);
+				fnTolerance(TF_SPEED,OFF,0);
+				nSpeedTarget	= 160;
+				nMPTarget		= 22;
+				nRPMTarget		= 2300;
+				fnTolerance(TF_MP,ON,60);
+				fnTolerance(TF_RPM,ON,60);
+				fnTolerance(TF_SPEED,ON,90);
+				fnSQ_ToleranceFlag(TF_HEADING,10);
+				fnTolerance(TF_ALTITUDE,ON,0);
+				nState = CaseClimb3_4;
+			endif;
+		endcase;
+
+		case CaseClimb3_4: //Level out
+			Writeln ("CaseClimb3_4");
+			if (not bSpeedCheck) then if (fnAtSpeed) then fnTolerance(TF_SPEED,ON,0); endif; endif;
+			if (bSpeedCheck) then nState = CaseTalk3; endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk3:  //eval the segment
+			Writeln ("CaseTalk3");
+			nTimer = 0;
+			if (nThrottleMin			<> 0) or (nThrottleMax 			<> 0) then ErrorFlag[kThrottleFull]		= TRUE;	endif;
+			if (nLandingGear737Min	<> 0) or (nLandingGear737Max 	<> 0) then ErrorFlag[kGearUpTakeOff]	= TRUE;	endif;
+//			if (nMPMin					<> 0) or (nMPMax					<> 0) then ErrorFlag[kMP22] 				= TRUE;	endif;
+//			if (nRPMMin					<> 0) or (nRPMMax					<> 0) then ErrorFlag[kRPM2300]			= TRUE;	endif;
+			if (nSpeedMin				<> 0) or (nSpeedMax 				<> 0) then ErrorFlag[kSpeed120]			= TRUE;	endif;
+//			if (nCowlFlapsMin			<> 0) or (nCowlFlapsMax			<> 0) then ErrorFlag[kCowlClose]			= TRUE;	endif;
+			if (nHeadingMin			<> 0) or (nHeadingMax			<> 0) then ErrorFlag[kHeading] 			= TRUE;	endif;
+			if (nAltitudeMin			<> 0) or (nAltitudeMax			<> 0) then ErrorFlag[kAltitude6500]		= TRUE;	endif;
+			nMPMin			= 0;	nMPMax			= 0;
+			nRPMMin			= 0;	nRPMMax			= 0;
+			nSpeedMin		= 0;	nSpeedMax		= 0;
+			nCowlFlapsMin	= 0;	nCowlFlapsMax	= 0;
+			nHeadingMin		= 0;	nHeadingMAx		= 0;
+			nAltitudeMin	= 0;	nAltitudeMAx	= 0;
+			if (fnEval(3)) or (bCheat) then
+				fnSQ_ChangeState(CaseDesc4_2);
+				fnSQ_Synchronize;
+			else
+				fnSQ_ChangeState(CaseFail);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc4_2:
+			Writeln ("CaseDesc4_2");
+			nRadius = posHere.DistanceTo (kPaineLat,kPaineLon);
+			nRadiusmi = nRadius * 0.62;
+			writeln(fn1Str1Num("Paine: ", nRadiusMi));
+			if (nRadiusmi <= 2.0) then
+				fnThrottle_Shutdown;
+				bDoOnce = TRUE;
+				nSpeedTarget = 105;
+				fnSQ_NormalMsg(s20,0);
+				fnSQ_Play("COMMCHECK20");  // You've just experienced a
+				fnSQ_ToleranceFlag(TF_SPEED,60);
+				fnSQ_ChangeState(CaseLanding_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_3:
+			Writeln ("CaseLanding_3");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (bDoOnce) and (nAltitude < 4000) then
+				fnSQ_NormalMsg(s21,0);
+				fnSQ_Play("COMMCHECK21");  // Paine field elevation is 606 ft
+				bDoOnce = FALSE;
+			endif;
+			if (bSpeedCheck) and (nAltitude < 3000) then fnTolerance(TF_SPEED,OFF,0); endif;
+			if (nAltitude < 690) then bCrashCheck = FALSE; endif;
+			if (bWow) then
+				//KPAE 16R-34L
+				nPoint[0,LAT] 				= 47.92015;
+				nPoint[0,LON] 				= -122.2862;
+				nPoint[1,LAT] 				= 47.92015;
+				nPoint[1,LON] 				= -122.2855;
+				nPoint[2,LAT] 				= 47.89543;
+				nPoint[2,LON] 				= -122.2850;
+				nPoint[3,LAT] 				= 47.89543;
+				nPoint[3,Lon] 				= -122.2856;
+				if (fnAtRunway) then
+					writeln("Runway: 16R/34L");
+				else
+					//KPAE 11-29
+					nPoint[0,LAT] 				= 47.91034;
+					nPoint[0,LON] 				= -122.2869;
+					nPoint[1,LAT] 				= 47.91049;
+					nPoint[1,LON] 				= -122.2867;
+					nPoint[2,LAT] 				= 47.90187;
+					nPoint[2,LON] 				= -122.2735;
+					nPoint[3,LAT] 				= 47.90172;
+					nPoint[3,LON] 				= -122.2737;
+					if (fnAtRunway) then
+						writeln("Runway: 29/11");
+					else
+						//KPAE 16L-34R
+						nPoint[0,LAT] 				= 47.90642;
+						nPoint[0,LON] 				= -122.2719;
+						nPoint[1,LAT] 				= 47.90642;
+						nPoint[1,LON] 				= -122.2715;
+						nPoint[2,LAT] 				= 47.89820;
+						nPoint[2,LON] 				= -122.2714;
+						nPoint[3,LAT] 				= 47.89820;
+						nPoint[3,Lon] 				= -122.2718;
+						if (fnAtRunway) then
+							writeln("Runway: 34R/16L");
+						else
+							writeln("Runway: NONE!");
+						endif;
+					endif;
+				endif;
+				bDoOnce = TRUE;
+				nState = CaseLanding_4;
+			endif;
+		endcase;
+
+		case CaseLanding_4:
+			Writeln ("CaseLanding_4");
+			if (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				bDoOnce = FALSE;
+			endif;
+			if (not bLandedOffRunway) then
+				bTaxiedOffRunway = bWarnRunway;
+			endif;
+			if (IsStopped)then
+				bStoppedOffRunway = bWarnRunway;
+				nState = CaseFinal1;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFinal1:
+			Writeln ("CaseFinal1");
+			ErrorFlag[kSpeed105] = ((nSpeedMin <> 0) or (nSpeedMax	<> 0));
+			ErrorFlag[kStop] 		= bStoppedOffRunway;
+			fnEval(4);
+			bDoBadTotal = SegmentErrors[1] + SegmentErrors[2] + SegmentErrors[3];
+			if (bDoBadTotal >=3) or (bCheat) then // Announce failed Checkride and allow student to terminate lesson or fly on their own
+				fnSQ_Play("COMMCHECK23");  // Well, you didn't do
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			else // Give student a certificate
+				fnSQ_Play("COMMCHECK22");  // Now that was
+				nDoneFlag = 5;
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFail:
+			Writeln ("CaseFail");
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.
