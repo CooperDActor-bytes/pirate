@@ -1,0 +1,538 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 5.abl
+ *
+ *    DESC:			Private Lesson 5: Air Traffic Control
+ *
+ *    COMMENTS:	As per Spec
+ * 					In this lesson, you will learn how to fly within
+ *						the Air Traffic Control system.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+
+module Lesson5;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\priv\lesson 5.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	//Comm radio freqs for comparison
+	KRNTLat         = 47.4931389;                   // Renton lat
+	KRNTLon         = -122.2157500;                 // Renton lon
+	KPAELat         = 47.8978;                      // Paine 16L rollout end
+	KPAELon         = -122.28528;                   // Paine 16L rollout end
+	kRwy16RLat      = 47.9225;      // KPAE 16L TDZ Latitude
+	kRwy16RLon      = -122.28589;   // KPAE 16L TDZ Longitude
+	KRNTATIS        = 126.950;
+	KRNTGround      = 121.600;
+	KRNTTower       = 124.700;
+	KSEAApp1        = 120.100;
+	KPAEATIS        = 128.650;
+	KPAETower       = 120.200;
+
+var
+	static	number	bAPKeepOn;     // Do we allow the player to use the autopilot?
+	static	number	nStartLat;
+	static	number	nStartLon;
+	static	number	bDoneATIS;
+	static	number	bDoOnce;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	nTemp1;
+	static	number	nLat;
+	static	number	nLon;
+	Transponder	ATCRadio;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		nStartLat = acMe.Position.Latitude;
+		nStartLon = acMe.Position.Longitude;
+		fnThrottle_Hold(0.05);
+		fnSQ_NormalMsg(s0,0);
+		bAPKeepOn = FALSE;
+		bCrashCheck = FALSE;
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	Comm1 = acMe.ComRadio(1);
+	if ((not AP.Master) and (bAPKeepOn)) then
+		AP.Master = TRUE;
+		AP.HeadingHold = TRUE;
+		AP.AltitudeHold = TRUE;
+	endif;
+
+	switch (nState)
+		#include "script\lib\STDcases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTalk1:
+			Writeln ("caseTalk1");
+			fnResetToleranceFlags;
+			fnToleranceChecking(TRUE);
+			nToleranceTimeWarn		= 30;
+			nToleranceTimeErr		= 30;
+			bHeadingCheck 		= FALSE;
+			bAltitudeCheck 		= FALSE;
+			fnThrottle_Hold(0.2);
+			if (Diff (Comm1.Frequency,KRNTATIS) < 0.001) then
+				bDoneATIS = TRUE;
+			endif;
+			fnSQ_NormalMsg(s1a,0);
+			fnSQ_Play("P5-1");	// "If you're comfortable flying the planes... "
+			fnSQ_Play("P5-2");	// "Now you've done your homework, right?"
+			fnSQ_NormalMsg(s7,0);
+			fnSQ_Play("P5-3");	// "Press the accent key or the scroll key... "
+			fnSQ_Play("P5-4");	// "The air traffic control window appears with a menu of messages... "
+			fnSQ_Play("P5-5");	// "We know how to display the ATC window, so if its hidden..."
+			fnSQ_NormalMsg(s1a,0);
+			fnSQ_Play("P5-6");	// "Note that the first line in the ATC window reads... "
+			fnSQ_Play("P5-7");	// "A great tool in FS2002 that will help you... "
+			fnSQ_Play("P5-8");	// "...in a moment I want you to tune and listen to ATIS..."
+			fnSQ_NormalMsg(s8,0);
+			fnSQ_Play("P5-8a");
+			fnSQ_ChangeState(caseTalk1_2);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTalk1_2:
+			Writeln ("caseTalk1_2");
+			Writeln (fn2StrBuild (fn1Str1Num("Comm1 freq = ",Comm1.Frequency),fn1Str1Num(", KRNTGround = ",KRNTGround)));
+			Writeln (fn1Str1Num("Diff = ",Diff (Comm1.Frequency,KRNTGround)));
+			Writeln (fn2StrBuild (fn1Str1Num("Comm1 freq = ",Comm1.Frequency),fn1Str1Num(", KRNTATIS = ",KRNTATIS)));
+			Writeln (fn1Str1Num("Diff = ",Diff (Comm1.Frequency,KRNTATIS)));
+			if (Diff (Comm1.Frequency,KRNTATIS) < 0.001) then
+			     fnSQ_NormalMsg(s8a,0);
+			endif;
+			if (Diff (Comm1.Frequency,KRNTGround) < 0.001) then
+				fnSQ_NormalMsg(s9,0);
+				fnSQ_Play("P5-9");		// Ok, now that you've tuned to the
+//				fnSQ_Play("P5-ACK");	//Press User Key 2 when you've heard the controller's response
+				fnSQ_ChangeState(caseWaitForUserKey2);
+				fnSQ_ChangeState(caseTalk1_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTalk1_3:
+			Writeln ("caseTalk1_3");
+			fnSQ_NormalMsg(s10,0);
+			fnSQ_Play("P5-10");	// When they talk to you, they expect a response
+//			fnSQ_Play("P5-10a");	// so go ahead and press 2 now...
+			fnSQ_ChangeState(caseWaitForUserKey2);
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(caseTalk1_4);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTalk1_4:
+			writeln("caseTalk1_4");
+			fnSQ_NormalMsg(s11,0);
+			fnSQ_Play("P5-11");		// You've got the okay - now taxi
+			fnSQ_ChangeState(caseTalk1_5);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTalk1_5:
+			Writeln ("caseTalk1_5");
+			Writeln (fn1Str1Num("nIASNow = ",nIASNow));
+			nTemp = posHere.DistanceTo(nStartLat,nStartLon);
+			Writeln (fn1Str1Num("dist = ",nTemp));
+			if ( nTemp > 0.006 ) then	// wait until we start moving
+				fnSQ_Play("P5-12");	// When you get to the runway
+				fnSQ_NormalMsg(s12,0);  // Stop short of the runway. Request takeoff VFR, Press Ctrl+] after receiving clearance
+//				fnSQ_Play("P5-ACK");	//Press User Key 2 when you've heard the controller's response
+				fnSQ_ChangeState(caseWaitForUserKey2);
+				fnSQ_ChangeState(caseTakeoff_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_1:
+			Writeln ("caseTakeoff_1");
+			fnSQ_NormalMsg(s12a,0); // Go ahead and takeoff!
+			fnSQ_Play("P5-13"); // You probably noticed that after getting
+			fnSQ_Play("P5-14"); 	// "after you acknowledge... "
+			fnSQ_ChangeState(caseTakeoff_2);
+			fnSQ_Synchronize;
+			bDoOnce = FALSE;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_2:
+			Writeln ("caseTakeoff_2");
+			if not bWow then bCrashCheck = TRUE; endif;
+			if (nIASNow > 20) and (not bDoOnce) then //rmc bWow removed
+				bDoOnce = TRUE;
+				fnSQ_Play("P5-15"); // "The menu now reads currently no... "
+			endif;
+			if (nAltitude > 100) and (bDoOnce) then
+				AP.Master = TRUE;
+				bAPKeepOn = TRUE;
+				AP.Altitude = 2000;
+				AP.VerticalSpeed = 700;
+				AP.HeadingHold = TRUE;
+				AP.Heading = 150;
+				AP.AltitudeHold = TRUE;
+				cpOffice.ElevatorTrim = 0.65;
+				bDoOnce = FALSE;
+			if (not bDoOnce) then
+				fnSQ_Play("P5-16"); // "... I'm gonna take control while you drink your coffee."
+				bDoOnce = TRUE;
+			endif;
+				fnSQ_NormalMsg(sRod,0);
+				fnSQ_ChangeState(caseTakeoff_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_3:
+			Writeln ("caseTakeoff_3");
+			nTemp = posHere.DistanceTo(KRNTLat,KRNTLon);
+			Writeln (fn1Str1Num("nTemp = ",nTemp));
+			Writeln (fn1Str1Num("Distance = ",nTemp));
+			if (nAltitude < 600) then
+				if (nAltitude < 500) then
+					AP.Heading = 150;
+				else
+					AP.Heading = 060;
+				endif;
+			else
+				AP.Heading = 335;
+				nTimer = 0;
+			endif;
+//			if (not bDoOnce) then
+//				fnSQ_Play("P5-16"); // "... I'm gonna take control while you drink your coffee."
+//				bDoOnce = TRUE;
+//			endif;
+			if ( (AP.Heading == 335) and (nAltitude > 1500) and (Diff (nYaw,335) < 20) ) then
+				bDoOnce = FALSE;
+				fnSQ_Play("P5-17"); // you should see Mercer Is. ahead of you now and the city of Bellevue to the right.
+//				fnSQ_Play("P5-17a"); // at that point tune Seattle Aproach on 120
+				fnSQ_NormalMsg(s12b,0); // When airspace changes tune Seattle Aproach on 120
+				fnSQ_ChangeState(caseTakeoff_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_5:
+			Writeln ("caseTakeoff_5");
+			Writeln (fn1Str1Num("nTemp = ",diff(Comm1.Frequency,KRNTTower)));
+			if (diff(Comm1.Frequency,KRNTTower) > 0.01) then
+				// request Class B Airspace Transition
+//				fnSQ_Play("P5-19a");	// "Two new menu items appear. #1 ..."
+//				fnSQ_Play("P5-ACK");
+				fnSQ_NormalMsg(s13,0);
+				fnSQ_ChangeState(caseWaitForUserKey2);
+				fnSQ_ChangeState(caseTakeoff_6);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_6:
+			Writeln ("caseTakeoff_6");
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("P5-24");	// "The controler told you to Squak... "
+			fnSQ_ChangeState(caseTakeoff_7);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_7:
+			Writeln ("caseTakeoff_7");
+			ATCRadio = acMe.Transponder(1);
+			Writeln (fn1Str1Num("Xpndr = ",ATCRadio.TransponderCode));
+			if (ATCRadio.Transpondercode <> 1200) then
+				Writeln ("Code changed!");
+				nTimer = 0;
+				nState = caseTakeoff_8;
+			else
+				Writeln (fn1Str1Num("Diff = ",Diff(ATCRadio.TransponderCode,1200)));
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_8:
+			Writeln ("caseTakeoff_8");
+			if (nTimer > 10) then
+				fnSQ_Play("P5-25");                     // Approach told us they can see us
+				fnSQ_NormalMsg(s14,0);		// Press 1 to acknowledge radar contact.
+//				fnSQ_Play("P5-ACK2");
+				fnSQ_ChangeState(caseWaitForUserKey2);
+				fnSQ_ChangeState(caseTakeoff_9);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseTakeoff_9:
+			Writeln ("caseTakeoff_9");
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("P5-26");	// If there was other air traffic
+			fnSQ_Play("P5-27");	// you're starting to get the idea, right?
+			fnSQ_Pause(3);
+			fnSQ_Play("P5-28");	// yano what? let's just close the window
+			fnSQ_Play("P5-29");	// press the accent key or scroll lock
+			nTimer = 0;
+			fnSQ_ChangeState(caseApp1);
+			fnSQ_Synchronize;
+		endcase;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp1:
+			Writeln ("caseApp1");
+			if (nTemp1 <= 16.0) then
+				//fnSQ_Play("P5-31");	// Let's cancel flight following.
+				nTimer = 0;
+				fnSQ_ChangeState(caseApp2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp2:
+			Writeln ("caseApp2");
+			if (nTimer > 20) then
+				fnSQ_NormalMsg(s32,0);
+				fnSQ_Play("P5-32");	// Press 1, select landing airport
+//				fnSQ_Play("P5-ACK2");
+				fnSQ_ChangeState(caseWaitForUserKey2);
+				fnSQ_ChangeState(caseApp3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp3:
+			Writeln ("caseApp3");
+			fnSQ_NormalMsg(s33,0);
+			fnSQ_Play("P5-33");	// Now the menu displays quite a few options
+			fnSQ_ChangeState(caseApp4);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp4:
+			Writeln ("caseApp4");
+			Writeln (fn2StrBuild (fn1Str1Num("Comm1 freq = ",Comm1.Frequency),fn1Str1Num(", KPAETower = ",KPAETower)));
+			Writeln (fn1Str1Num("Diff = ",Diff (Comm1.Frequency,KPAETower)));
+			if (Diff (Comm1.Frequency,KPAETower) < 0.001) then
+				fnSQ_Play("P5-34");	// Before you make a choice from the tower menu
+				fnSQ_Play("P5-35");	// Select 'request full stop landing
+				fnSQ_Play("P5-36");	// Be sure you acknowledge the controller's instructions
+				fnSQ_ChangeState(caseApp5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp5:
+			Writeln ("caseApp5");
+			fnSQ_NormalMsg(s39,0);
+			fnSQ_Play("P5-39");	// I'm going to give you control
+			fnSQ_ChangeState(caseApp6);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp6:
+			writeln("caseApp6");
+			bAPKeepOn = FALSE;
+			AP.Master = FALSE;
+			fnSQ_Play("P5-37");	// Runway 16 is the long runway
+			fnSQ_ChangeState(caseApp7);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case caseApp7:
+			Writeln ("caseApp7");
+			nTemp = posHere.BearingTo(KPAELat,KPAELon);
+			Writeln (fn1Str1Num("Bearing = ",nTemp));
+			if ((nTemp < 230) and (Diff (nYaw,159) < 10)) then
+				//KPAE 16L-34R
+				nPoint[0,LAT] 				= 47.90642;
+				nPoint[0,LON] 				= -122.2719;
+				nPoint[1,LAT] 				= 47.90642;
+				nPoint[1,LON] 				= -122.2715;
+				nPoint[2,LAT] 				= 47.89820;
+				nPoint[2,LON] 				= -122.2714;
+				nPoint[3,LAT] 				= 47.89820;
+				nPoint[3,Lon] 				= -122.2718;
+				fnSQ_Play("P5-38");  // as you turn onto final
+				nTimer = 0;
+				fnSQ_ChangeState(caseLanding);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  		case caseLanding:
+			writeln("caseLanding");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (nTimer > 1800) then	nState = caseTimeOut; endif;
+			if (bWow) then
+				fnResetToleranceFlags;
+				bDoOnce 						= TRUE;
+				bRunwayCheck 				= TRUE;
+				bLandedOffRunway			= TRUE;
+				bTaxiedOffRunway			= FALSE;
+				bStoppedOffRunway			= TRUE;
+				fnToleranceChecking(TRUE);
+				nState = caseLanding_1;
+			endif;
+		endcase;
+
+		case caseLanding_1:
+			writeln("caseLanding_1");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				nTimer 						= 0;
+				nSpeedTarget 				= 0;
+				nSpeedToleranceMax 		= 5;
+				nSpeedToleranceMin 		= 0;
+				bDoOnce = FALSE;
+			endif;
+			if not bTaxiedOffRunway then bTaxiedOffRunway = bWarnRunway; endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case caseLanding_2:
+			writeln("caseLanding_2");
+			if (bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway) then
+				fnSQ_NormalMsg(sGoodEffort,0);
+				fnSQ_Play("CommonGoodEffort");	// That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_NormalMsg(sGreatJob,0);
+				fnSQ_Play("P5-40");
+				//todo: should not call audio from other lessons
+				fnSQ_Play("I1-39"); // great job welcome to paine field
+				fnSQ_ChangeState(casePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case casePostFlight:
+			Writeln ("casePostFlight");
+			//todo: should not call audio from other lessons
+			fnSQ_Play("I2-37");  // why dont you check out flight analisis while I park
+			fnSQ_ChangeState(casePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case casePostFlight_1:
+			Writeln ("casePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

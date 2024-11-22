@@ -1,0 +1,541 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 4.abl
+ *
+ *    DESC:			Private Lesson 4: The Traffic Pattern
+ *
+ *    COMMENTS:	As per Spec
+ * 					In this lesson, you'll learn about flight in the
+ *						vicinity of an airport. It may look like a
+ *						free-for-all, but there's actually a method to
+ *						flying around an airport, and you'll practice it
+ *						here. Please read Ground School Class 10 before
+ *						starting this lesson.
+ *******************************************************************/
+//#debug_on
+//#print_on
+
+module Lesson4;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\priv\lesson 4.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1400;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 190;          // First heading...upwind
+	kHdg2           = 090;          // Crosswind
+	kHdg3           = 010;          // Downwind
+	kHdg4           = 000;          // Base
+	kHdg5           = 190;          // Final
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+	static	number	bReminder1;
+	static	number	bReminder2;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	nLat;
+	static	number	nLon;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnMsg(normal,sIdle);
+		fnThrottle_Hold(0.05);
+//bTextWarnings           = TRUE;
+//bAudioWarnings          = FALSE;
+//bToleranceTimeCheck     = FALSE;
+		//Setup runway coords
+		nPoint[0,LAT] 				= 47.49979;
+		nPoint[0,LON] 				= -122.7554;
+		nPoint[1,LAT] 				= 47.5;
+		nPoint[1,LON] 				= -122.7559;
+		nPoint[2,LAT] 				= 47.48573;
+		nPoint[2,LON] 				= -122.7695;
+		nPoint[3,LAT] 				= 47.48552;
+		nPoint[3,LON] 				= -122.7690;
+		bCrashCheck = FALSE;
+		Writeln ("Finished with Init");
+	endfunction;
+code
+	#include "script\lib\STDHousekeeping.abl";
+	nLat = posHere.Latitude;
+	nLon = posHere.Longitude;
+//writeln(fn1str1num("Lat: ",nLat));
+//writeln(fn1str1num("Lon: ",nLon));
+//if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+//nState = casewait;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:  //Lotsa Rodio
+			Writeln ("CaseTalk1");
+			fnResetToleranceFlags;
+			nAltitudeTarget 			= 1500;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nHeadingTarget				= 190;
+			nHeadingToleranceMax		= 15;
+			nHeadingToleranceMin		= -15;
+			nSpeedTarget 				= 100;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 0;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 2400;
+			nRPMToleranceMax			= 150;
+			nRPMToleranceMin			= -150;
+			nRollTarget					= 0;
+			nRollToleranceMax			= 5;
+			nRollToleranceMin			= -5;
+			nLocalizerTolerance		= 0.5;
+			nGlideSlopeTolerance		= 0.4;
+			nVORSelect 					= 1;
+			bParkingBrakeTarget		= FALSE;
+			nMoveOnTo					= CaseTimeOut; //if they time out - quit the lesson
+			bHeadingCheck				= TRUE;
+			bThrottleCheck 			= TRUE;
+			bRollCheck					= TRUE;
+			bPitchCheck					= FALSE;
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("P4-1"); // In this lesson
+			fnSQ_Play("P4-2"); // There's method to the madness
+			fnSQ_Play("P4-3"); // It has 5 major components
+			fnSQ_Play("P4-4"); // Let's get flying so you can see what I mean
+			fnSQ_Play("P4-5"); // We're on the departure end
+			fnSQ_Play("P4-6"); // Your mission is to takeoff
+			fnSQ_Play("P4-7"); // your mission is to take off, eh
+			fnSQ_Play("P4-8"); // okay, you've got the airplane
+			fnSQ_Play("P4-9");
+			fnSQ_ChangeState(CaseTakeOff);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeOff: //get ready for launch
+			writeln("CaseTakeOff");
+			bReminder1 = TRUE;
+			bReminder2 = TRUE;
+			fnThrottle_Manual;
+			fnSQ_NormalMsg(s10a,0);
+			fnSQ_Play("common5");
+			fnSQ_ToleranceFlag(TF_PARKINGBRAKE,5);
+			fnSQ_ToleranceFlag(TF_THROTTLE,10);
+			fnSQ_ToleranceFlag(TF_ROLL,20);
+			fnSQ_ToleranceFlag(TF_HEADING,20);
+			fnSQ_ChangeState(CaseTakeOff_1);
+			fnSQ_Play("P4-10"); // apply full power and release the brakes
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTakeOff_1: //takeoff, climb & ready for turn
+			Writeln ("CaseTakeOff_1");
+			writeln(fn1Str1Num("nTimer = ",nTimer));
+			writeln(fn1Str1Num("nIASNow = ",nIASNow));
+			writeln(fn1Str1Num("nPitch = ",nPitch));
+			writeln(fn1Str1Num("bPitchCheck = ",bPitchCheck));
+			if (nIASNow > 5) and (bReminder1) then
+				bReminder1 = FALSE;
+				nTimer = 0;
+				fnSQ_NormalMsg(s10b,0); //pull back @ 55 knots
+			endif;
+			if ((nIASNow >= 55) and (nPitch >= 5) and (not bPitchCheck)) or ((nTimer > 15) and (not bReminder1)) then
+				nPitchTarget 		= 10;
+				nPitchToleranceMax 	= 15;
+				nPitchToleranceMin 	= -5;
+				bPitchCheck = TRUE;
+			endif;
+			if (not bWOW) and (nPitch > 5) and (bPitchCheck) then
+				fnSQ_NormalMSg(s10c,0); //climb to 1500'
+				fnSQ_ChangeState(CaseClimb1);
+				fnSQ_Play("P4-11");
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1:
+			writeln("CaseClimb1");
+			writeln(fn1Str1Num("Latitude = ", nLat));
+			if (nAltAGL > 100) and not bCrashCheck then bCrashCheck = TRUE; endif;
+//			if (nLat < 47.4830) then
+			if (nAltitude >= 900) or (nLat < 47.4830) then
+				bPitchCheck = FALSE;
+				bRollCheck = FALSE;
+				nState = CaseTurn1;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1:
+			writeln("CaseTurn1");
+			nHeadingTarget = 100;
+			AP.Heading = 100;
+			bThrottleCheck = FALSE;
+			bHeadingCheck = FALSE;
+			fnSQ_NormalMsg(s12,0);
+			fnSQ_Play("P4-12"); // When we reach 1,100 feet, turn left to a heading of 100
+			fnSQ_ChangeState(CaseTurn1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_1:
+			Writeln ("CaseTurn1_1");
+			nTimer = 0;
+			fnSQ_ChangeState(CaseTurn1_2);
+			fnSQ_Play("P4-14"); // When we reach 1500 feet
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_2:
+			Writeln ("CaseTurn1_2");
+			if (nTimer > 20) and (not bHeadingCheck) then
+				bHeadingCheck = TRUE;
+				bWithinTolerance = FALSE;
+			endif;
+			if (bWithinTolerance) and (bHeadingCheck) then
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseClimb2);
+				fnSQ_NormalMsg(s13,0);
+				fnSQ_Play("P4-13"); // Now we're on the crosswind leg
+				fnSQ_Play("P4-16"); // We'll fly this for about 30 seconds
+				fnSQ_Pause(2);
+				fnSQ_NormalMsg(s15,0);
+				fnSQ_Play("P4-15"); // When we have reached 100 kts
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb2: //Crosswind
+			Writeln ("CaseClimb2");
+			if not bAltitudeCheck then if (fnAtAltitude) or (nLon > -122.7580) then fnTolerance(TF_ALTITUDE,ON,0); endif; endif;
+			if not bSpeedCheck then if (fnAtSpeed) or (nLon > -122.7580) then fnTolerance(TF_SPEED,ON,0); endif; endif;
+			if (nLon > -122.7580) then
+				nState = CaseTurn2;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2: //turn to downwind segment
+			writeln("CaseTurn2");
+			bDoOnce = TRUE;
+			bHeadingCheck = FALSE;
+			nHeadingTarget = 010;
+			AP.Heading = 010;
+			fnSQ_NormalMsg(s17,0);
+			fnSQ_Play("P4-17"); // Start a left turn to the downwind leg
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTurn2_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn2_1: //Downwind
+			Writeln ("CaseTurn2_1");
+			if (nTimer > 20) and (not bHeadingCHeck) then
+				bHeadingCheck = TRUE;
+				bWithinTolerance = FALSE;
+			endif;
+			if (bWithinTolerance) and (bHeadingCheck) then
+				nState = CaseCruise1;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseCruise1: //downwind segment
+			Writeln ("CaseCruise1");
+			fnSQ_NormalMsg(s18,0);
+			fnSQ_Play("P4-18"); // This is the downwind leg
+			fnSQ_ChangeState(CaseCruise1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1_1:
+			Writeln ("CaseCruise1_1");
+			if (nLat >= 47.4850) then
+				fnSQ_Play("P4-18a"); // If you look out the left window
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise1_2:
+			writeln("CaseCruise1_2");
+			if (nTimer >= 5) then
+				nRPMTarget = 1850;
+				nFlapsTarget = 1;
+				bRPMCheck = TRUE;
+				bFlapsCheck = TRUE;
+				nState = CaseTurn3;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn3: //prepare to turn to base segment
+			Writeln ("CaseTurn3");
+			writeln(fn1Str1Num("Latitude = ", nLat));
+			writeln(fn1Str1Num("ADF1.Bearing = ", ADF1.Bearing));
+			if (nLat >= 47.5020) then
+				bWithinTolerance = FALSE;
+				bHeadingCheck = FALSE;
+				nHeadingTarget = 280;
+				AP.Heading = 280;
+				fnSQ_Play("P4-19"); // If you look out the left window
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn3_1);
+				fnSQ_NormalMsg(s21,0);
+				fnSQ_Play("P4-21"); // Turn left heading 280
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn3_1: //turn to base segment
+			writeln("CaseTurn3_1");
+			if (nTimer > 20) and (not bHeadingCheck) then
+				bHeadingcheck = TRUE;
+				bWithinTolerance = FALSE;
+			endif;
+			if (bWithinTolerance) and (bHeadingCheck) then
+				//fnSQ_NormalMsg(s22,0);
+				fnSQ_Play("P4-22"); // Fly this heading until we're almost even
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn4: //base segment & turn to final
+			Writeln ("CaseTurn4");
+			if (VHFNav1.CourseDeviation < 10) and bSpeedCheck then
+				bSpeedCheck		= FALSE;
+				bAltitudeCheck = FALSE;
+				bRPMCheck		= FALSE;
+				bFlapsCheck		= FALSE;
+				nFlapsTarget		= 1;
+				nRPMTarget			= 1500;
+				nRPMToleranceMax	=  100;
+				nRPMToleranceMin	= -100;
+				fnSQ_NormalMsg(s20,0);
+				fnSQ_Play("P4-20"); // Reduce power to 1500 RPM and set flaps 10
+				fnSQ_ToleranceFlag(TF_RPM,10);
+				fnSQ_ToleranceFlag(TF_FLAPS,10);
+			endif;
+			if (VHFNav1.CourseDeviation < 8) then
+				bWithinTolerance = FALSE;
+				bHeadingCheck = FALSE;
+				nHeadingTarget = 190;
+				AP.Heading = 190;
+				fnSQ_NormalMsg(s24,0);
+				fnSQ_Play("P4-24"); // Turn left to line up with the runway
+				fnSQ_ToleranceFlag(TF_HEADING,60);
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseTurn4_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn4_1:
+			writeln("CaseTurn4_1");
+			if not bHeadingCheck then if (fnAtHeading) then fnTolerance(TF_HEADING,ON,0); endif; endif;
+			if (bWithinTolerance) and (bHeadingCheck) then
+				bRPMCheck		= FALSE;
+				bFlapsCheck		= FALSE;
+				nFlapsTarget	= 2;
+				fnSQ_Play("S6B-5"); // 20 degrees flaps
+				fnSQ_ToleranceFlag(TF_FLAPS,10);
+				fnSQ_Pause(5);
+				fnSQ_ChangeState(CaseFinal1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFinal1:
+			writeln("CaseFinal1");
+			bGlideSlopeCheck	= TRUE;
+			bLocalizerCheck	= TRUE;
+			bFlapsCheck			= FALSE;
+			nFlapsTarget		= 3;
+			fnSQ_Play("P4-25"); // This is the final approach leg
+			fnSQ_NormalMsg(s26,0);
+			fnSQ_Play("P4-26"); // Don't forget to set the flaps
+			fnSQ_ToleranceFlag(TF_FLAPS,10);
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseLanding);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding: //prep for landing
+			writeln("CaseLanding");
+			if (nAltAGL <= 350) then
+				// set flags to turn off localizer and glide slope checks
+				bRPMCheck			= FALSE;
+				bSpeedCheck			= FALSE;
+				bLocalizerCheck	= FALSE;
+				bGlideSlopeCheck	= FALSE;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_1: //wait for 100 AGL
+			Writeln ("CaseLanding_1");
+			if (nAltAGL <= 100) then
+				bCrashCheck = FALSE;
+				fnSQ_ClearAll;
+				fnSQ_Play("P4-27"); // We're almost there.
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_2: //flare
+			Writeln ("CaseLanding_2");
+			if (nTimer >= 5) and (not bThrottleCheck) then
+				bCrashCheck = FALSE;
+				nThrottleTarget = 0.0;
+				bThrottleCheck = TRUE;
+				bWithinTolerance = FALSE;
+			endif;
+			if (bWithinTolerance) and (bThrottleCheck) then
+				fnSQ_ChangeState(CaseLanding_3);
+			endif;
+		endcase;
+
+		case CaseLanding_3: //wait for the student to touch down
+			Writeln ("CaseLanding_3");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (bWOW) then
+				bRunwayCheck = TRUE;
+				bDoOnce = TRUE;
+				bLandedOffRunway = TRUE;
+				bTaxiedOffRunway = FALSE;
+				bStoppedOffRunway = TRUE;
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Play("P4-28"); // Nice job.
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_4: //track the student on the runway while we wait for him to stop
+			writeln("CaseLanding_4");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				nTimer 					= 0;
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 5;
+				nSpeedToleranceMin	= 0;
+				bDoOnce = FALSE;
+			endif;
+			if not bTaxiedOffRunway then bTaxiedOffRunway = bWarnRunway; endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_5: //eval the landing
+			writeln("CaseLanding_5");
+			if bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway then
+				fnSQ_NormalMsg(sGoodEffort,0);
+				fnSQ_Play("CommonGoodEffort"); // That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_NormalMsg(sGreatJob,0);
+				fnSQ_Play("P4-29");
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

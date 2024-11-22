@@ -1,0 +1,318 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 1.abl
+ *
+ *    DESC:			Private Lesson 1: Stalls
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson demonstrates what happens when the
+ *						wings no longer generate lift, otherwise known as a
+ *						stall. You'll learn how to recognize a stall, and,
+ *						most importantly, how to recover from a stall.
+ *						Please read Ground School Class 8 before starting
+ *						this lesson.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson1;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\priv\lesson 1.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+	static	number	bStallFlag;
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnNormalMsg(sThrottleSet);
+		fnThrottle_Hold(0.8);
+		AP.Master = TRUE;
+		bStallFlag = FALSE;
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+	function OnStall;
+	code
+		Writeln ("onstall");
+		bStallFlag = TRUE;
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln ("CaseTalk1");
+			nAltitudeTarget 			= 4500;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget 				= 100;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 0;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 1200;
+			nRPMToleranceMax			= 300;
+			nRPMToleranceMin			= -300;
+			nRollTarget					= 0;
+			nRollToleranceMax			= 5;
+			nRollToleranceMin			= -5;
+			fnResetToleranceFlags;
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("P1-1"); // A stall in an airplane
+			fnSQ_Play("P1-2"); // When we talk about stalls in an airplane
+			fnSQ_Play("P1-3"); // In this lesson, we’re going to stop flying,
+			fnSQ_Play("P1-4"); // Thats right STOP FLYING.. Stall
+			fnSQ_Play("P1-5"); // As you recall from ground school
+			fnSQ_Play("P1-6"); // As the wing approaches this critical angle of attack,
+			fnSQ_Play("P1-7"); // Manufacturers put devices on airplanes
+			fnSQ_Play("P1-8"); // In this airplane, there's a horn that sounds
+			fnSQ_Play("P1-9"); // When the wing reaches critical angle of attack
+			fnSQ_Play("P1-10"); // Remember that a stall is a function of angle of attack
+			fnSQ_Play("P1-11"); // When we practice the stall, we purposely
+			fnSQ_Play("P1-12"); // There are only three things to remember
+			fnSQ_Play("P1-13"); // Second, get or keep the wings level.
+			fnSQ_Play("P1-14"); // Third, set full power
+			fnSQ_Play("P1-15"); // The goal of a stall recovery is
+			fnSQ_Play("P1-16"); // It is important to not raise the nose back up too much,
+			fnSQ_ToleranceFlag(TF_ALTITUDE,30);
+			fnSQ_ToleranceFlag(TF_RPM,30);
+			fnSQ_ToleranceFlag(TF_ROLL,30);
+			fnSQ_ChangeState(CaseCruise1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseCruise1:
+			writeln("CaseCruise1");
+			nMoveOnTo	= CaseCruise1_4;   //if they time out - move on to the next segment
+			bStallFlag	= FALSE;
+			fnSQ_ChangeState(CaseCruise1_1);
+			fnSQ_ThrottleManual;
+			fnSQ_NormalMsg(s17,0);
+			fnSQ_Play("P1-17");  // I want you to slow the airplane and stall it
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1_1: //start stall
+			Writeln ("CaseCruise1_1");
+			AP.Master = FALSE;
+			fnSQ_NormalMsg(s18,0);
+			fnSQ_Play("P1-18"); // Slowly allow the airspeed to decay by increasing the pitch
+			fnSQ_Play("P1-19"); // Slowly increase the plane's pitch by pulling back
+			fnSQ_Play("P1-20"); // As soon as the stall warning sounds begin the recovery
+			nState = CaseCruise1_2;
+		endcase;
+
+		case CaseCruise1_2: //wait for stall
+			Writeln("CaseCruise1_2");
+			if (bStallFlag) then
+				fnTolerance(TF_RPM,OFF,0);
+				bDoOnce			= TRUE;
+				bStallFlag		= FALSE;
+				bAltitudeCheck	= FALSE;
+				fnSQ_ClearAll;
+				fnSQ_NormalMsg(s21,0);
+				fnSQ_Play("P1-21"); // There is the Stall Warning so let the nose down and apply full power
+				fnSQ_ToleranceFlag(TF_PITCH,15);
+				fnSQ_ToleranceFlag(TF_THROTTLE,15);
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				nState = CaseCruise1_3;
+			endif;
+		endcase;
+
+		case CaseCruise1_3: //wait for airspeed to return
+			Writeln("CaseCruise1_3");
+			if ((ecEngines[0].Throttle - nThrottleTarget) < nThrottleToleranceMax) and (bDoOnce) then
+				fnSQ_NormalMsg(s22,0);
+				fnSQ_Play("P1-22"); // Is the nose above the horizon just enough? <<DW Audio>>
+				bDoOnce = FALSE;
+			endif;
+			if (bWithinTolerance) and (nIASNow >= 100) then
+				bPitchCheck = FALSE;
+				fnSQ_ChangeState(CaseTalk2);
+				fnSQ_NormalMsg(sFlySAL,0);
+				fnSQ_Play("P1-23"); // Congratulations you did your first stall recovery
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise1_4: //Movin' on jumps to here.
+			Writeln("CaseCruise1_4 - Movin' On");
+			fnResetToleranceFlags;
+			fnSQ_NormalMsg(sFlySAL,0);
+			fnSQ_ChangeState(CaseTalk2);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2:
+			writeln("CaseTalk2");
+			nMoveOnTo = CaseTimeOut; //if they time out - end the lesson
+			fnSQ_Play("P1-24"); // What happens if you stall with full power already applied?
+			fnSQ_Play("P1-25"); // You are distracted and forget to fly the airplane
+			fnSQ_Play("P1-26"); // What do you do? Simple, reduce the wings angle of attack
+			fnSQ_Play("P1-27"); // Once the airplane is no longer stalled,
+			fnSQ_ChangeState(CaseClimb1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1:
+			Writeln("CaseClimb1");
+			bDoOnce = TRUE;
+			nSpeedTarget 			= 75;
+			nSpeedToleranceMax	= 5;
+			fnResetToleranceFlags;
+			fnSQ_NormalMsg(s28,0);
+			fnSQ_Play("P1-28"); // Establish a climb at 75 knots with full power.. Trim
+			fnSQ_ToleranceFlag(TF_THROTTLE,20);
+			fnSQ_ToleranceFlag(TF_SPEED,20);
+			fnSQ_ToleranceFlag(TF_ROLL,20);
+			fnSQ_ChangeState(CaseClimb1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb1_1:
+			Writeln("CaseClimb1_1");
+			if (bWithinTolerance) and (bSpeedCheck) then
+				bSpeedCheck = FALSE;
+				fnSQ_ChangeState(CaseClimb1_2);
+				fnSQ_NormalMsg(s29,0);
+				fnSQ_Play("P1-29"); // Now, gently raise the nose high enough
+	  			fnSQ_Play("P1-30"); // You’ll know when the airplane stalls
+				fnSQ_Synchronize;
+			endif;
+			if (bStallFlag) then
+				nState = CaseClimb1_2;
+			endif;
+		endcase;
+
+		case CaseClimb1_2:
+			Writeln("CaseClimb1_2");
+			if (bStallFlag) then
+				bStallFlag	=FALSE;
+				bSpeedCheck	= FALSE;
+				fnSQ_ClearAll;
+				fnSQ_NormalMsg(s31,0);
+				fnSQ_Play("P1-31"); // Recover from the stall by lowering the nose
+				fnSQ_Play("P1-32"); // Be sure to avoid a secondary stall
+				fnSQ_ChangeState(CaseClimb1_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseClimb1_3:
+			Writeln("CaseClimb1_3");
+			if (nPitch > 3) then
+				fnSQ_ChangeState(CaseTalk3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk3:
+			Writeln("CaseTalk3");
+			fnSQ_NormalMsg(sFlySAL,0);
+			fnSQ_Play("P1-33"); // There you have it .. recover from departure stall
+			fnSQ_Play("P1-34"); // This means they must fight the instinctive response
+			fnSQ_Play("P1-35"); // You must actually go against your natural inclination
+			fnSQ_Play("P1-36"); // Simultaneously adding power also help assist
+			fnSQ_Play("P1-37"); // Then and only then will the airplane recover
+			fnSQ_Play("P1-38"); // One of the key things to remember about stalls is
+			fnSQ_Play("P1-39"); // This is just common sense if you hear the stall horn
+			fnSQ_Play("P1-40"); // If you understand this point you understand
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+			bDoOnce = TRUE;
+		endcase;
+
+/************************************************************************************************/
+
+		case CasePostFlight:
+			Writeln("CasePostFlight");
+			if (bDoOnce) then
+				bPitchCheck			= TRUE;
+				bWithinTolerance	= FALSE;
+				bDoOnce 				= FALSE;
+			endif;
+			if (bWithinTolerance) and (bPitchCheck) then
+				fnToleranceChecking(FALSE);
+				fnSQ_ChangeState(CasePostFlight_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CasePostFlight_1:
+			writeln("CasePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

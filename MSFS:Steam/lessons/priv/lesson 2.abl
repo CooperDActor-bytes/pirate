@@ -1,0 +1,433 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 2.abl
+ *
+ *    DESC:			Private Lesson 2: Steep Turns
+ *
+ *    COMMENTS:	As per Spec
+ * 					In this lesson, you'll learn how to manage pitch,
+ *						bank angle, and power to better control the
+ *						airplane as you make a series of turns at 45
+ *						degrees of bank. Please read Ground School Class 9
+ *						before starting this lesson.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson2;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\priv\lesson 2.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 030;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+	APInitHdg       = 030;
+	APInitAlt       = 5000;
+
+var
+	static	number	bPassed0;	// did we start turning left past 0/360?
+	static	number	nTimeout;	// press escape within n seconds to end
+	static	number	bBored;		// Have we waited long enough for action?
+	static	number	nMaxAlt;    // Maximum altitude
+   static	number	nMinAlt;		// Minimum altitude
+	static	number	nFinalHeading;  // Where were we pointed when we rolled out?
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnThrottle_HoldRPM(2400);
+		fnMsg(normal, sSetThrottle);
+		AP.Master = TRUE;
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:
+			Writeln("CaseTalk1");
+			fnSQ_NormalMsg(sIFly,10);	//"Rod is flying."
+			fnSQ_Play("P2-1");	// In this lesson we'll experience a turn...
+			fnSQ_Play("P2-2");	// If you are unable to maintain a bank angle...
+			fnSQ_Play("P2-3");	// Remember that each lesson builds...
+			fnSQ_Play("P2-4");	// Steep turns are typically done...
+			fnSQ_Play("P2-5");	// Therefore, we practice ...
+			fnSQ_Play("P2-6");	// Making too steep a turn may result in a stall...
+			fnSQ_Play("P2-7");	// The actual maneuver is rather simple...
+			fnSQ_Play("P2-8");	// Remeber as the airplane's bank angle increases...
+			fnSQ_Play("P2-9");	// Steep turns are performed at 110 knots...
+			fnSQ_Play("P2-10");	  // Because the turn rate in a steep turn is greater...
+			fnSQ_ChangeState(CaseTalk1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTalk1_1:
+		Writeln("CaseTalk1_1");
+			AP.HeadingHold		= FALSE;
+			AP.WingLeveler		= FALSE;
+			AP.AltitudeHold	= TRUE;
+			fnSQ_Pause(1);
+			fnSQ_NormalMsg(sYouFly,6);	// You are flying.
+			fnSQ_Play("S3-60");		// I'm giving you control of the airplane. Ready?
+			fnSQ_ChangeState(CaseTurn1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1: // init turn
+			Writeln("CaseTurn1");
+			bPassed0 = FALSE;
+			bBored = FALSE;
+			nTimer = 0;
+			fnMsg(normal, sBeginTurn);  // "Do a 45 degree steep turn to the left. Maintain 3000 feet."
+			fnSQ_Play("P2-Start");	// I want you to make a left turn now.
+			fnSQ_Play("P2-StartB");	// I'll help you out with altitude...
+			fnSQ_Play("P2-16");		// be cautious not to increase the bank...
+			fnSQ_ChangeState(CaseTurn1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_1: // detect turn start
+			Writeln("CaseTurn1_1");
+			if (nRoll < -30) then	// start of turn defined by 30 deg left bank
+				nTimer = 0;
+				fnThrottle_HoldRPM(2500);
+				fnSQ_Play("P2-11");	  // Keep scanning the instruments...
+				fnSQ_Play("P2-14");	  // When your safety pilot calls 30 degrees...
+				fnResetToleranceFlags;
+				nRollTarget = -45;
+				nRollToleranceMax = 15;
+				nRollToleranceMin = -10;
+				bRollCheck = TRUE;
+				fnToleranceChecking(TRUE);
+				fnSQ_ChangeState(CaseTurn1_2);  // next loop must start checking limits
+				fnSQ_Synchronize;
+			endif;
+			if (nTimer > 30) and (not bBored) then
+				// re-prompt
+				bBored = TRUE;
+				fnMsg(warning, sBeginTurn);  // "Do a 45 degree steep turn to the left. Maintain 3000 feet."
+				fnSQ_Play("P2-Start");           // I want you to make a left turn now.
+			endif;
+			if (nTimer > 60) then
+				// end flight
+				fnSQ_ChangeState(CaseTimeOut);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn1_2: // monitor turn and prompt for rollout
+			Writeln("CaseTurn1_2");
+			if (not bPassed0) then
+				Writeln("Not bPassed0");
+				if (nYaw > 200) then
+					Writeln (fn1Str1Num("nYaw > 200, nYaw = ",nYaw));
+					bPassed0 = TRUE;
+				endif;
+			endif;
+			if (bPassed0 and (nYaw <= (APInitHdg + nTurnRate + 45))) then
+				nTimer = 0;
+				fnToleranceChecking(FALSE);
+				fnSQ_NormalMsg(sBeginRollout,0); // "Begin rollout from the turn."
+				fnSQ_Play("P2-17");               // tell 'em to roll out
+				nState = CaseTurn1_3;             // change state immediately (next loop)
+			endif;
+			if (nTimer > 60) then
+				fnThrottle_HoldRPM(2400);
+				fnSQ_ChangeState(CaseTimeOut);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn1_3: // detect end of turn
+			Writeln("CaseTurn1_3");
+			if (( (abs(nRoll) < 3) AND (abs(nTurnRate) < 0.3) ) OR (nTimer > 30)) then
+				fnThrottle_HoldRPM(2400);
+				fnSQ_ChangeState(CaseTurn1_4);
+				fnSQ_Synchronize;
+				nFinalHeading = nYaw;
+			endif;
+		endcase;
+
+		case CaseTurn1_4: // analyze
+			Writeln("CaseTurn1_4");
+			strAString = "";
+			if (nRollMax <> 0) then concat(strAString,sBankSteep); endif;
+			if (nRollMin <> 0) then concat(strAString,sBankShallow); endif;
+			if (Diff360(APInitHdg,nFinalHeading) >= 20) then concat(strAString,sHeadingOff); endif;
+			if (strAString <> "") then
+				fnMsg(normal, strAString);
+				fnSQ_Play("P2-18");		// not bad, but you can do better
+			else
+				fnSQ_Play("common17");	// that was very well done.
+			endif;
+			AP.Master 			= TRUE;
+			AP.WingLeveler 	= TRUE;
+			AP.Heading 			= apInitHdg;
+			AP.HeadingHold 	= TRUE;
+			AP.Altitude 		= apInitAlt;
+			AP.AltitudeHold	= TRUE;
+			bPassed0 	= FALSE;
+			fnThrottle_HoldRPM(2400);
+			fnSQ_ChangeState(CaseTurn1_5);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_5: // reposition airplane for next turn
+			Writeln("CaseTurn1_5");
+			if ( (nAltitude < 5100) and (nAltitude> 4900) and (Diff360(APInitHdg,nYaw)<10) and (abs(nTurnRate) < 0.30) and (abs(nRoll) < 3) ) then
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			else
+				Writeln(fn2StrBuild(
+				fn1Str1Num("Altitude: ",nAltitude),
+				fn1Str1Num("Heading: ",nYaw)));
+				if (bPassed0 == FALSE) then
+					fnSQ_Play("warn2");
+					fnMsg(normal, sPleaseWait);
+					bPassed0 = TRUE;
+				endif;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2: // the second turn which has no altitude hold and also checks airspeed
+			Writeln("CaseTurn2");
+			fnThrottle_Manual;	// turn over throttle
+			AP.Master = FALSE;
+			bPassed0 = FALSE;
+			nTimer = 0;
+			bBored = FALSE;
+			fnSQ_Play("P2-StartC");	// This time I want you to control everything...
+			//fnSQ_Play("P2-13a");	// Watch your altitude closely
+			fnSQ_Play("P2-12");	// If you have the auto rudder off...
+			fnSQ_Play("P2-11"); // Keep scanning the instruments...
+			fnSQ_NormalMsg(sBeginTurn,0);  //"Do a 45 degree steep turn to the left. Maintain 3000 feet."
+			fnSQ_Play("P2-Start");	// I want you to make a left turn now.
+			//fnSQ_Play("P2-13"); // keep backpressure to maintain 3000 feet
+			fnSQ_ChangeState(CaseTurn2_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn2_1: // detect turn start
+			Writeln("CaseTurn2_1");
+			if (nRoll < -30) then                // start of turn defined by 30 deg left bank
+				nMaxAlt 				= nAltitude;
+				nMinAlt 				= nAltitude;
+				fnResetToleranceFlags;
+				nRollTarget 				= -45;
+				nRollToleranceMax			= 15;
+				nRollToleranceMin			= -10;
+				bRollCheck 					= TRUE;
+				nAltitudeTarget 			= 5000;
+				nAltitudeToleranceMax	= 100;
+				nAltitudeToleranceMin	= -300;
+				bAltitudeCheck				= TRUE;
+				nSpeedTarget				= 100;
+				nSpeedToleranceMax		= 10;
+				nSpeedToleranceMin		= -10;
+				bSpeedCheck					= TRUE;
+				fnToleranceChecking(TRUE);
+				nTimer = 0;
+				fnSQ_ChangeState(CaseTurn2_2);  // next loop must start checking limits
+				fnSQ_Play("P2-14"); // When your safety pilot calls 30 degrees...
+				fnSQ_Play("P2-15"); // You have to reduce power, reduce backpressure...
+				fnSQ_Synchronize;
+			endif;
+			if ((nTimer > 30) and (bBored == FALSE)) then
+				// re-prompt
+				bBored = TRUE;
+				fnMsg(warning, sBeginTurn);
+				fnSQ_Play("P2-Start"); // I want you to make a left turn now.
+			endif;
+			if (nTimer > 60) then
+				// end flight
+				fnSQ_ChangeState(CaseTimeOut);
+			endif;
+		endcase;
+
+		case CaseTurn2_2: // monitor turn and prompt for rollout
+			Writeln("CaseTurn2_2");
+			nMaxAlt = Max(nMaxAlt, nAltitude);
+			nMinAlt = Min(nMinAlt, nAltitude);
+			if (not bPassed0) then
+				Writeln("Not bPassed0");
+				if (nYaw > 200) then
+					Writeln (fn1Str1Num("nYaw > 200, nYaw = ",nYaw));
+					bPassed0 = TRUE;
+				endif;
+			endif;
+			if (bPassed0 and (nYaw <= (APInitHdg + nTurnRate + 45))) then
+				nTimer = 0;
+				fnToleranceChecking(FALSE);
+				fnMsg(normal, sBeginRollout);
+				fnSQ_Play("P2-17"); // tell 'em to roll out
+				nState = CaseTurn2_3;
+			endif;
+			if (nTimer > 60) then
+				fnThrottle_HoldRPM(2400);
+				fnSQ_ChangeState(CaseTimeOut);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn2_3: // detect end of turn
+			Writeln("CaseTurn2_3");
+			if (( (abs(nRoll) < 3) AND (abs(nTurnRate) < 0.3) ) OR (nTimer > 30)) then
+				fnSQ_ChangeState(CaseTurn2_4);
+				fnSQ_Synchronize;
+				nFinalHeading = nYaw;
+			endif;
+		endcase;
+
+		case CaseTurn2_4: // analyze
+			strAString = "";
+			if (nRollMax <> 0) then concat(strAString,sBankSteep); endif;
+			if (nRollMin <> 0) then concat(strAString,sBankShallow); endif;
+			if (nAltitudeMax <> 0) then concat(strAString,sAltHigh); endif;
+			if (nAltitudeMin <> 0) then concat(strAString,sAltLow); endif;
+			if (nSpeedMax <> 0) then concat(strAString,sIASHigh); endif;
+			if (nSpeedMin <> 0) then concat(strAString,sIASLow); endif;
+			if (Diff360(APInitHdg,nFinalHeading) >= 20) then concat(strAString,sHeadingOff); endif;
+			if (strAString <> "") then
+				fnMsg(normal, strAString);
+				fnSQ_Play("P2-18");     // not bad, but you can do better
+			else
+				fnSQ_Play("common17");  // that was very well done.
+			endif;
+			AP.Master = TRUE;
+			AP.WingLeveler = TRUE;
+			AP.Heading = apInitHdg;
+			AP.HeadingHold = TRUE;
+			AP.Altitude = 3000;
+			AP.AltitudeHold = TRUE;
+			fnThrottle_HoldRPM(2400);
+			if ( (nMinAlt > 2950) and (nMaxAlt < 3050) ) then
+				fnSQ_Play("P2-23");  // withen 50 feet
+			else
+				if ( (nMinAlt > 2900) and (nMaxAlt < 3100) ) then
+					fnSQ_Play("P2-22"); // withen 100 feet
+				else
+					if ( (nMinAlt > 2800) and (nMaxAlt < 3200) ) then
+						fnSQ_Play("P2-21"); // withen 200 feet
+					else
+						if ( (nMinAlt > 2700) and (nMaxAlt < 3300) ) then
+						fnSQ_Play("P2-20"); // withen 300 feet
+						endif;
+					endif;
+				endif;
+			endif;
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			Writeln("CasePostFlight");
+			nTimeout = 20;
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Play("P2-25");
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostFlight_1:
+			Writeln("CasePostFlight_1");
+			if(nTimeout <= 1) then
+				Writeln(fn2StrBuild("preretry1 ",sPreRetry));
+				Writeln(fn1Str1Num("timeout ",nTimeout));
+				Writeln(fn2StrBuild("postretry1 ",sPostRetry));
+				strAString = sPreRetry1;
+				concat(strAString,nTimeout);
+				concat(strAString,sPostRetry1);
+				Writeln(strAString);
+			else
+				Writeln(fn2StrBuild("preretry ",sPreRetry));
+				Writeln(fn1Str1Num("timeout ",nTimeout));
+				Writeln(fn2StrBuild("postretry ",sPostRetry));
+				strAString = sPreRetry;
+				concat(strAString,nTimeout);
+				concat(strAString,sPostRetry);
+				Writeln(strAString);
+			endif;
+			fnMsg(normal, strAString);
+			nTimeout = nTimeout - 1;
+			if (bUserKey1 == TRUE) then
+				bUserKey1 = FALSE;
+				nState = CasePostFlight_2;
+			endif;
+			if(nTimeout < 0) then
+				bPassed0 = FALSE;
+				nState = CaseEnd;
+			endif;
+		endcase;
+
+		case CasePostFlight_2:
+			Writeln("CasePostFlight_2");
+			if ( (nAltitude < 5100) and (nAltitude> 4900) and (Diff360(APInitHdg,nYaw)<10) and (abs(nTurnRate) < 0.30) and (abs(nRoll) < 3) ) then
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			else
+				writeln(fn1Str1Num("Altitude = ",nAltitude));
+				writeln(fn1Str1Num("Heading = ",nYaw));
+				if (bPassed0 == FALSE) then
+					fnSQ_Play("warn2"); // Give me a minute to get this airplane under control
+					fnMsg(normal, sPleaseWait);
+					bPassed0 = TRUE;
+				endif;
+			endif;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.
