@@ -1,0 +1,384 @@
+
+[Main]
+Title=Cargo Run
+Description=Take command of a Douglas DC-3 as you approach Dutch Harbor, Alaska in winter.
+AppVersion=9.0.30309
+FlightVersion=1
+Screenshot=akcargo.bmp
+
+[Tower]
+Latitude=N053° 57' 57.6142"
+Longitude=W166° 52' 57.1639"
+Altitude=+000219.81
+
+[Track]
+Latitude=N041° 51' 38.5897"
+Longitude=W087° 42' 43.5498"
+Altitude=+000131.00
+
+[Options]
+Titles=False
+Sound=True
+Pause=False
+AxisIndicator=Off
+ATC=False
+Moonlight=True
+SimSpeed=001.00
+ShowStars=True
+ApproachLights=True
+FlightDisplay=Off
+SlewDisplay=Coordinates
+
+[EFIS]
+Active=False
+Mode=VOR
+Type=Rectangles
+Density=Thin
+Range=Short
+NavAid=VOR 1
+Altitude=0
+Flags=0
+
+[Avionics]
+LocalizerSelect=Auto Select
+DMESelect=1
+
+[Kneeboard]
+PageId=0
+Visible=False
+
+[Panels]
+Panel.On=True
+HUD.On=False
+
+[Window.1]
+Order=0
+Active=True
+Undocked=False
+Maximized=False
+ScreenUniCoords=0, 0, 8192, 2898
+UndocCoords=0, 0, 0, 0
+ViewMode=Cockpit
+ViewDir=Forward
+CockpitZoom=001.00
+VirtualZoom=001.00
+TowerZoom=008.00
+TrackZoom=004.00
+SpotZoom=001.00
+MapZoom=019.00
+SpotDirection=090.00
+SpotDistance=+000197
+SpotTransitionType=Roll
+SpotFastTransition=False
+SpotAltitude=+000000
+PanHeading=360.00
+PanPitch=360.00
+PanBank=360.00
+ChaseTarget=1
+SavedViewMode=Map
+
+[ATC_AgentManager]
+NumberofAgents=0
+
+[ATC_Aircraft.0]
+ActiveFlightPlan=False
+RequestedFlightPlan=False
+AcState=ACSTATE_REQUEST_TAXI_CLEARANCE_OUT_VFR_ATIS
+NumberofWaypoints=0
+ClearanceFlags=80
+CtCur=CLEARANCE_NONE
+WaypointNext=0
+AltCleared=-1
+HdgAssigned=-1
+SquawkAssigned=4608
+LandingSequence=LANDING_NONE
+DepartureRequest=DEPARTURE_VFR_REQUEST_NONE
+ParkingRequest=PARKING_NAME_NONE
+PatternLeg=PATTERN_LEG_NONE
+ApproachIndex=-1
+ApproachTransitionIndex=-1
+ApproachRequestIndex=-1
+ApproachTransitionRequestIndex=-1
+RunwayIndex=-1
+RunwayRequestIndex=-1
+ParkingIndex=-1
+FlightFollowing=FLIGHT_FOLLOWING_NO
+AirspaceTransition=AIRSPACE_TRANSITION_NONE
+BVAirspaceTransition=BV_TYPE_NONE
+BVAirspaceTransitionReq=BV_TYPE_NONE
+TakeoffSequence=TAKEOFF_SEQUENCE_NONE
+LandingSequenceNumber=-1
+TaxiRouteCurrent=-1
+CruisingAltitude=-1
+RequestedCruisingAltitude=-1
+AircraftSignature=1,0
+
+[ATC_AircraftManager]
+NumberofAircraft=1
+
+[ATC_MessageSystem]
+FrequencyNodes=0
+
+[DateTimeSeason]
+Day=32
+Year=2003
+Hours=9
+Minutes=30
+Seconds=7
+Season=Winter
+
+[Panel.1]
+ScreenUniCoords=0, 0, 8192, 6144
+UndocCoords=0, 0, 0, 0
+Visible=True
+Undocked=False
+HiddenOn=False
+ID=0
+ViewsOn=1
+
+[Panel.2]
+ScreenUniCoords=2752, 3301, 5440, 2843
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=50
+ViewsOn=0
+
+[Panel.3]
+ScreenUniCoords=4096, 0, 4096, 2227
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=225
+ViewsOn=0
+
+[Panel.4]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=10
+ViewsOn=0
+
+[Panel.5]
+ScreenUniCoords=5088, 2896, 3104, 3248
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=150
+ViewsOn=0
+
+[Panel.6]
+ScreenUniCoords=3408, 0, 4784, 1360
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=125
+ViewsOn=0
+
+[Panel.7]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=20000
+ViewsOn=1
+
+[Gauges.0]
+KollsmanSetting=29.550878524780273
+PanelLights=True
+
+[Slew.0]
+Active=False
+
+[Plane.0]
+Aircraft=Douglas DC-3 Paint2
+
+[SimVars.0]
+Latitude=N053° 53' 00.3073"
+Longitude=W166° 36' 20.1332"
+Altitude=+000876.46
+Pitch=0.85784516597762539
+Bank=-1.1132795744201538
+Heading=75.538075758063215
+PVelBodyAxis=-0.0017690440711694141
+BVelBodyAxis=0.0015098900344822381
+HVelBodyAxis=0.002443833591552869
+XVelBodyAxis=0.28456006752162422
+YVelBodyAxis=0.10265606684164631
+ZVelBodyAxis=229.80636945974206
+DynPres=57.624386812461601
+AGL=876.65179358113505
+SimOnGround=False
+PAccBodyAxis=-0.00012119809371530696
+BAccBodyAxis=1.1512046548568473e-005
+HAccBodyAxis=-0.00017526512795903372
+XAccBodyAxis=-0.13531154565336267
+YAccBodyAxis=0.0052199903501062295
+ZAccBodyAxis=0.19462815012634216
+PVelWorld=-0.0017212284771525774
+BVelWorld=0.0015469901316721788
+HVelWorld=0.0024780210845738123
+XVelWorld=222.57269625828775
+YVelWorld=-3.3434864848445609
+ZVelWorld=57.10756208104624
+IceAccum=0
+AutoFeatherSwitch=False
+MaximumGForce=1.7058938612313579
+MinimumGForce=-0.30888201685235894
+
+[Engine Parameters.1.0]
+ThrottleLeverPct=0.787109375
+PropellerLeverPct=1
+MixtureLeverPct=1
+Pct Engine RPM=1.0000052138818973
+MaxReachedEngineRPM=2762.7829499981058
+LeftMagneto=True
+RightMagneto=True
+GeneratorSwitch=True
+CowlFlapPct=1
+FuelPumpSwitch=True
+CarbHeat/DeiceSwitch=False
+
+[Engine Parameters.2.0]
+ThrottleLeverPct=0.787109375
+PropellerLeverPct=1
+MixtureLeverPct=1
+Pct Engine RPM=1.0000052138818973
+MaxReachedEngineRPM=2762.7829499981058
+LeftMagneto=True
+RightMagneto=True
+GeneratorSwitch=True
+CowlFlapPct=1
+FuelPumpSwitch=True
+CarbHeat/DeiceSwitch=False
+
+[Fuel.0]
+TankSelector=All
+TankSelector1=All
+Center=100
+LeftMain=99.969999999999999
+RightMain=96.737235388815009
+LeftAux=95.384790848918584
+RightAux=100
+LeftTip=100
+RightTip=100
+Center 2=100
+Center 3=100
+External 1=100
+External 2=100
+
+[Controls.0]
+SpoilersHandle=000.00
+LeftSpoiler=000.00
+RightSpoiler=000.00
+FlapsHandle=000.00
+LeftFlap=000.00
+RightFlap=000.00
+GearsHandle=000.00
+Gear1=100.00
+Gear2=000.00
+Gear3=000.00
+YokeY=050.00
+YokeX=050.00
+Rudder=050.00
+LeftBrake=000.00
+RightBrake=000.00
+ParkingBrake=000.00
+ElevatorTrim=039.02
+RudderTrim=0
+AileronTrim=0
+
+[Systems.0]
+BatterySwitch=True
+AvionicsSwitch=True
+StructuralDeiceSwitch=False
+PropDeiceSwitch=False
+Autobrakes=Off
+StandbyVacuum=False
+PropSync=False
+FlightDirector=False
+
+[Switches.0]
+PitotHeat=False
+BeaconLights=True
+LandingLights=True
+LogoLights=True
+NavLights=True
+PanelLights=True
+RecognitionLights=True
+StrobeLights=True
+TaxiLights=True
+WingLights=True
+CabinLights=True
+
+[Avionics.0]
+Comm1Active=127.300
+Comm1Standby=124.850
+Comm2Active=124.850
+Comm2Standby=124.850
+Nav1Active=110.50
+Nav1Standby=113.90
+OBS1=360
+Nav2Active=113.90
+Nav2Standby=113.90
+OBS2=360
+Transponder=1200
+ADFActive=414
+ADF2Active=414
+ComTransmit=1
+ComReceiveBoth=False
+AudioNav1Listen=False
+AudioNav2Listen=False
+AudioMarkerListen=False
+AudioDmeListen=False
+AudioAdfListen=False
+AudioAdf2Listen=False
+
+[AutoPilot.0]
+MasterSwitch=False
+WingLeveler=False
+Nav1Lock=False
+HeadingLock=False
+HeadingValue=360
+AltitudeLock=False
+AltitudeValue=0
+AttitudeHold=False
+AirspeedHold=False
+AirspeedValue=0
+MachHold=False
+MachValue=0
+VerticalSpeedHold=False
+VerticalSpeedValue=0
+RPMHold=False
+RPMValue=0
+GlideslopeHold=False
+ApproachHold=False
+BackCourseHold=False
+YawDamper=False
+ToGa=False
+AutoThrottleArm=False
+GPSdrivesNAV1=False
+IsUsedForLesson=False
+
+[Payload.0]
+PayloadList=-1
+
+[SimScheduler]
+SimTime=1097.2486953339101
+
+[Weather]
+WeatherType=0
+ThemeName=weather\themes\grayrain.WTB
+ThemeTime=3
+
+[Flying Tip]
+Undocked=False
+ScreenUniCoords=500, 400, 7192, 650
+UndocCoords=0, 0, 0, 0
