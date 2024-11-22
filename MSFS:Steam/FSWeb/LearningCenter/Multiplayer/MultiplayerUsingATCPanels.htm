@@ -1,0 +1,784 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 12 April 2005), see www.w3.org">
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=iso-8859-1">
+
+  <title>Acting as a Tower Controller</title>
+  <link href="../../common/style.css" rel="stylesheet" type=
+  "text/css">
+</head>
+
+<body class="stdcolor" >
+  
+    <a name="top"></a>
+
+    <table width="100%" cellpadding="0" cellspacing="10" summary="SummaryTBD">
+      <tr>
+        <td>
+          <table width="100%" border="0" cellspacing="0"
+          cellpadding="0" summary="SummaryTBD">
+            <tr>
+              <td class="GSTable"><span class="GSH1">Acting as a Tower Controller</span></td>
+            </tr>
+
+            <tr>
+              <td bgcolor="#000000"><img src=
+              "../../Common/images/1ptrans.gif" width="1" height=
+              "1" alt="" border="0"></td>
+            </tr>
+          </table>
+
+          <div class="articleDeck">
+            Tools of the trade for multiplayer ATC
+          </div>
+
+          <table border="0" cellspacing="10" cellpadding="0"
+            align="right" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <span class="TOCsubhead">Contents</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                     <tr class="article-bodycopy">
+					<td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#Introduction">Introduction</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+					<td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#Work">Getting to Work</a></td>
+                    </tr>
+
+					<tr class="article-bodycopy">
+					<td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#LookingAround">Looking Around</a></td>
+                    </tr>
+
+					<tr class="article-bodycopy">
+					<td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#ControllerPanels">Controller Panels</a></td>
+                    </tr>
+
+  					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#PanelOptions">Panel Options</a></td>
+                    </tr>
+					
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                   "#RadarScreen">Radar Screen</a></td>
+                    </tr>
+					
+					  					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#Information">Airport Information</a></td>
+                    </tr>
+
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#Communications">Communications</a></td>
+                    </tr>
+
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#RadarOptions">Radar Options</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#SessionInfo">Session Information</a></td>
+                    </tr>
+                
+
+	  				<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                   "#AllTogether">Putting It All Together</a></td>
+                    </tr>
+	
+	              </table>		  
+
+	            <span class="TOCsubhead">Related Links</span>
+
+                <table border="0" cellspacing="5" cellpadding="0"
+                class="RelatedLinkTableThin" summary="SummaryTBD">
+                  <tr class="article-bodycopy">
+                    <td valign="top"><img src=
+                    "../../Common/images/RelatedBullet.gif" width=
+                    "6" height="12" alt="" border="0"></td>
+
+                    <td><a href=
+                    "../AirTrafficControl/ATCDefined.htm">ATC Defined</a></td>
+                  </tr>
+				  
+				  <tr class="article-bodycopy">
+                    <td valign="top"><img src=
+                    "../../Common/images/RelatedBullet.gif" width=
+                    "6" height="12" alt="" border="0"></td>
+
+                    <td><a href=
+                    "MultiplayerATC.htm">Multiplayer ATC</a></td>
+                  </tr>
+
+                  <tr class="article-bodycopy">
+                    <td valign="top"><img src=
+                    "../../Common/images/RelatedBullet.gif" width=
+                    "6" height="12" alt="" border="0"></td>
+
+                    <td><a href=
+                    "MultiplayerConnect.htm">Multiplayer
+                    Connect</a></td>
+                  </tr>
+
+                  <tr class="article-bodycopy">
+                    <td valign="top"><img src=
+                    "../../Common/images/RelatedBullet.gif" width=
+                    "6" height="12" alt="" border="0"></td>
+
+                    <td><a href=
+                    "../TroubleShooting/TroubleShootingMultiplayer.htm">
+                    Troubleshooting Multiplayer Issues</a></td>
+                  </tr>
+
+                  <tr>
+                    <td colspan="2" align="center"><img src=
+                    "../../Common/images/1ptrans.gif" width="1"
+                    height="1" alt="" border="0"></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <div class="article-bodycopy">
+
+            <p>The Flight Simulator Tower feature (Deluxe version only) lets you host or join a multiplayer session as an air traffic controller. The Tower panels are based on the tools that real controllers use every day. This article explains how to use the Tower panels to monitor and direct aircraft flying in a multiplayer session.</p>
+
+<p>You don't have to conduct your Tower sessions by the rules (that's the beauty of a simulator). But if you want to know more about how air traffic control is conducted in the real world, start by reading <a href="../AirTrafficControl/ATCDefined.htm">ATC Defined</a> in the Learning Center. You'll find help to get you started and information about Air Traffic Control resources outside of Flight Simulator.</p>
+		
+			<p><img src="images/MPUsingATCPanels01.jpg" 
+			alt="" border="0" width="320" height="239"></p>
+
+            <br><a name="Introduction"></a><br>
+
+			<p class="SubHead">Introduction</p>			
+
+<P>Real-world air traffic controllers work in one of three specialties: Tower, Approach, or Enroute. While the radar features of the multiplayer Tower can be used to simulate Approach and Enroute controller roles, this article will focus on the Tower controller role. Tower controllers work in the room at the top of a control tower (the cab), and are responsible for directing aircraft on the ground and in the air within 5 miles of the airport, up to an altitude of 3,000 above the ground. They have many of the tools of Approach and Enroute controllers, but instead of sitting at a radar scope they get to look out the window. If you like looking at airplanes&#8212;real or simulated&#8212;this is the job for you!</P>
+
+			<a name="Work"></a><br>
+
+			<p class="SubHead">Getting to Work</p>
+			
+            <p>Your session will begin in the control tower at your chosen airport. There are two tower cab variations to choose from on the multiplayer <strong>Select Aircraft</strong> screen. The default variation has a 3-D virtual tower cab, and the other has no cab, which provides a more unobstructed view of the outside world. (To see and select the no-cab variation, you must have the "Show all variations" check box selected.)</p>
+			
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set up a control tower</strong></p>
+
+                  <ol>
+                    <li>On the left side of the main screen, click
+                    <strong>Multiplayer</strong>.</li>
+
+                    <li>Join or host a multiplayer session.<br>
+
+                    <li>On the 
+					<a href="MultiplayerHostingAMultiplayerSession.htm#SessionConditions"><strong>
+					Session Conditions</strong></a> screen, select <strong>Air traffic 
+					controller</strong> in the <strong>Select role</strong> list.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+			
+			<p>You can move to any one of four controller stations within the tower cab. You'll probably want to move to the station that gives you the best view of the active runway (the runway that is most closely aligned with the wind). At a large airport with multiple runways, you might need to move around quite a bit to see everything.</p>
+
+		<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change stations</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Panel Options</strong> panel, press the <strong>Next Station</strong> button.</li>
+					<br>
+					
+                    -or-
+
+                    <li>Press <strong>A</strong> to cycle the views with the Cockpit view mode.</li>
+                  </ul>
+				  
+				  <p><strong>Note:</strong> When you change stations or views all open Controller panels will close.</p>
+                </td>
+              </tr>
+			  </table>
+			  
+			  <a name="LookingAround"></a><br>
+
+			<p class="SubHead">Looking Around</p>
+			
+			<p>Just like in a Flight Simulator aircraft, in the tower you can cycle view categories by pressing <strong>S</strong>, and cycle views within a view category by pressing <strong>A</strong>. Generally, when acting as a Tower controller you'll want to use Virtual Cockpit view, so you can see the 3-D cab interior and easilly pan your view to look around. The equipment you'll use to do your job is found on the pop-up panels explained below.</p>
+
+<p>You can look around the tower cab using your mouse. Press and hold the <strong>SPACEBAR</strong> and move the mouse. You can also look around by moving the hat switch on your joystick, by pressing keys on the numeric keypad, or by using the thumbstick on an Xbox 360 controller for Windows. You can zoom in and out for a better view.</p>
+
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To zoom in and out</strong></p>
+
+                  <ul>
+                    <li>Press the <strong>EQUAL SIGN (=)</strong> to zoom
+                    in.<br>
+                    -or-</li>
+
+                    <li>Press <strong>HYPHEN (-)</strong> to zoom out.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <p>Having trouble seeing the runway? In
+            a real tower you'd just lean forward a bit or stand up. In Flight Simulator you can move the
+            eyepoint, the point from which your virtual eyes look out.</p>
+
+			<p>To move the eyepoint:</p>
+			
+            <table width="70%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="40%"><strong>Action</strong><br><a href="#CockpitViews">*3-D 
+				virtual cockpit only</a></td>
+
+                <td><strong>Key command</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint back*</strong></td>
+
+                <td><strong>CTRL</strong>+<strong>ENTER</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint up</strong></td>
+				
+				<td><strong>SHIFT</strong>+<strong>ENTER</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint down</strong></td>
+
+                <td><strong>SHIFT</strong>+<strong>BACKSPACE</strong></td>
+              </tr>
+			
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint forward*</strong></td>
+				
+				<td><strong>CTRL</strong>+<strong>BACKSPACE</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint left*</strong></td>
+				
+				<td><strong>CTRL</strong>+<strong>SHIFT</strong>+<strong>BACKSPACE</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Move eyepoint right*</strong></td>
+				
+				<td><strong>CTRL</strong>+<strong>SHIFT</strong>+<strong>ENTER</strong></td>
+              </tr>
+			  
+			  		  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Reset eyepoint</strong></td>
+				
+				<td><strong>CTRL</strong>+<strong>SPACEBAR</strong></td>
+              </tr>
+			  			  
+			</table><br><a name="ControllerPanels"></a><br>
+			
+			<p>To learn more about views, see <a href="../IntheCockpit/UsingViewsAndWindows.htm">Using Views and Windows</a>.</p>
+			
+<br>
+			<p class="SubHead">Controller Panels</p>
+			
+			<p><strong>Controller panels</strong> based on existing real-world technology provide you with all the information you need to get the job done as a multiplayer Tower controller. There are six pop-up panels that you can display one at a time, or all at once (press <strong>SHIFT</strong>+<strong>1</strong> through <strong>SHIFT</strong>+<strong>6</strong>):
+			
+<ul>
+<li>Panel Options</li>
+<li>Radar Screen</li>
+<li>Airport Information</li>
+<li>Communications</li>
+<li>Radar Options</li>
+<li>Session Information</li>
+</ul>
+						
+<p>Each panel can be dragged and resized. If you use <a href="../flightsimextreme/multimonitorsetups.htm">multiple monitors</a>, you can move controller panels between monitors to avoid blocking your view out the tower windows. Additionally, you can adjust the transparency of all the panels so that you can see through them.</p>
+					
+				<p>Each panel is explained below.</p>
+				
+				
+			<a name="PanelOptions"></a><br>
+			
+			<p class="SubHead">Panel Options</p>
+				
+<p>The <strong>Panel Options</strong> panel gives you easy access to all of the other pop-up panels. Just click a button to display that panel. Additionally, you can use the <strong>Fade Out</strong> and <strong>Fade In</strong> buttons to change the transparency of all the panels.</p>
+
+			<p><img src="images/MPUsingATCPanels10.jpg" 
+			alt="" border="0" width="228" height="97"></p>
+				
+				<br>
+				<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To display the Panel Options panel</strong></p>
+
+                  <ul>
+					<li>Press <strong>SHIFT+2</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+				
+				<a name="RadarScreen"></a><br>
+			
+			<p class="SubHead">Radar Screen</p>
+
+			<p>While Approach and Enroute control facilities use radar as the primary means to separate aircraft, many small control towers don't have radar. In fact, some of the most fun you can have as a Tower controller is trying to keep track of all the aircraft you're controlling using only the view out the window and what you hear on the radio! That said, radar provides additional situational awareness. Instead of having to keep the big picture in your head, you can just look at the radar and see exactly where each aircraft is.</p>
+
+
+			<p><img src="images/MPUsingATCPanels02.jpg" 
+			alt="" border="0" width="300" height="285"></p>
+
+			<br>
+			
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p>To display the <strong>Radar Screen</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Panel Options</strong> panel, click the <strong>Radar Screen</strong> button.</li>
+					<br>-or-
+					<li>Press <strong>SHIFT+1</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+
+			<p>The <strong>Radar Screen</strong> displays a map, a compass, range rings, airports, navigational aids, fixes, airways, and aircraft symbols with associated datatags. Each screen element can be displayed or hidden using buttons on the <a href="#RadarOptions"><strong>Radar Options</strong> panel</a>.</p>
+
+   <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>Which direction am I looking?</strong></p>
+
+                  <p>The <strong>Radar Screen</strong> is presented with magnetic north at the top. When you look out the window of the tower cab, you must be aware of what direction you are looking (relative to the runways) to see the aircraft that appear on the radar.</p>
+                </td>
+              </tr>
+            </table>
+
+
+            <p class="SubHead2">Targets and History Trails</p>
+<p>Because radar does nothing more than show the location of an aircraft, a &quot;history trail&quot; provides a visual indication of the aircraft's position over time, as well as its speed and relative direction of flight.</p>
+
+			<p><img src="images/MPUsingATCPanels09.jpg" 
+				alt="" border="0" width="114" height="104"></p>
+
+            <p class="SubHead2">Datatags</p>
+			
+			<p>Datatags provide you with important information about each aircraft shown on the radar screen. The datatag is connected to the aircraft symbol with a &quot;leader line.&quot; There are two types of datatags: <strong>Realistic</strong> and <strong>Detailed</strong>. The tags can be toggled between Off, Realistic, and Detailed by pressing the <strong>TAG</strong> button on the <strong>Radar Options</strong> panel.</p>
+
+<p>The <strong>Realistic</strong> datatags are based on the radar displays in U.S. Tower and Approach Control facilities.</p>
+				
+			<table class="article-bodycopy" width="80%" bgcolor="#000000"
+			 border="0" cellspacing="1" cellpadding="1">
+				<tr bgcolor="#FFFFFF">
+					<td bgcolor="#000000" align="center" valign="top" width="10%" rowspan="4">
+					<img src="images/MPUsingATCPanels07.jpg" alt="" border="0"></td>
+					<td>Aircraft callsign</td>
+					<tr bgcolor="#FFFFFF" cellpadding="3"><td>[Three-digit <strong>altitude</strong> 
+					in hundreds of feet]&nbsp;&nbsp;[<strong>Groundspeed</strong> in 
+					knots divided by 10]</td></tr>
+				<tr bgcolor="#FFFFFF"><td colspan="2">Note: The second line cycles every few 
+				seconds between [altitude/groundspeed] and [destination 
+				(if a flight plan was created)/aircraft type].</td></tr>
+			</table>
+
+<p>The <strong>Detailed</strong> datatags provide information in a more easily-understood format.</p>
+
+			<table class="article-bodycopy" width="60%" bgcolor="#000000"
+			 border="0" cellspacing="1" cellpadding="1">
+				<tr bgcolor="#FFFFFF">
+					<td bgcolor="#000000"  width="98" rowspan="7">
+					<img src="images/MPUsingATCPanels08.jpg" alt="" border="0"></td>
+					<td>Aircraft callsign</td>
+					<tr bgcolor="#FFFFFF"><td><strong>ACFT:</strong> (Aircraft type)</td></tr>
+					<tr bgcolor="#FFFFFF"><td><strong>DEST:</strong> (Destination ID if a 
+					flight plan was created)</td></tr>
+					<tr bgcolor="#FFFFFF"><td><strong>ALT:</strong> (Altitude in feet above 
+					mean sea level)</td></tr>
+					<tr bgcolor="#FFFFFF"><td><strong>SPD:</strong> (Groundspeed in knots)</td></tr>
+				</tr>
+			</table>
+
+<p>By default, datatags are positioned up and to the right of the aircraft symbol with which they're associated. To avoid overlapping datatags, reposition them.</p>
+<br>
+			<table border="0" cellspacing="0" cellpadding="0"
+            	class="SideBarTable" summary="SummaryTBD">
+              	<tr>
+                	<td>
+                  		<p><strong>To reposition a datatag</strong></p>
+
+                  <ol>
+                    <li>Select the desired aircraft in the <strong>Session Info</strong> panel.</li>
+					
+	                <li>Click the <strong>REPO TAG</strong> button on the <strong>Radar 
+					Options</strong> panel to move the datatag clockwise around the aircraft symbol.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+				
+				<br>
+				
+				<a name="Information"></a><br>
+			
+			<p class="SubHead">Airport Information</p>
+
+<p>The <strong>Airport Information</strong> panel provides you with three key pieces of information:</p>
+
+<ul>
+<li>The current local time of day (24-hour clock)</li>
+<li>The current local altimeter setting</li>
+<li>The wind direction, wind speed, and a visual wind direction indicator</li>
+</ul> 
+
+		
+				<p><img src="images/MPUsingATCPanels04.jpg" 
+				alt="" border="0" width="210" height="75"></p>
+				
+			
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To display the Airport Information panel</strong></p>
+
+                  <ul>
+                   <li>On the <strong>Panel Options</strong> panel, click the <strong>Local Info</strong> button.</li>
+					<br>-or-
+					<li>Press <strong>SHIFT+3</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table><br><a name="Communications"></a><br>
+			
+			<p class="SubHead">Communications</p>
+
+			<p>The <strong>Communications</strong> panel features two communications radios, each with a frequency selection window, a <strong>Transmit (TX)</strong> button, and a <strong>Receive (RCV)</strong> button. You can receive on either or both radios. You can transmit on only one radio at a time.</p>
+<p>Below the radios is a list of frequencies for your airport. You can manually tune a frequency using the mouse (see <a href="../IntheCockpit/UsingTheRadios.htm">Using the Radios</a>), or use the scrollbar and click one of the frequencies in the list to quickly tune the radio you're set to transmit on.</p>
+		
+			<p><img src="images/MPUsingATCPanels03.jpg" 
+				alt="" border="0" width="196" height="254"></p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To display the Communications panel</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Panel Options</strong> panel, click the <strong>Comm Radios</strong> button.</li>
+					<br>-or-
+					<li>Press <strong>SHIFT+4</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+			
+<p>If you have a headset, you can communicate with other players in the session via voice if the host of the session has chosen to enable voice on the <strong>Host Option</strong> screen. How you communicate depends on the voice communication option that the host selected:</p>
+		   
+		   <table width="100%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="40%"><strong>Option</strong></td>
+
+                <td><strong>How to communicate</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Always activated for all players (default)</strong></td>
+
+                <td>All players in the session can hear all each other at all times. To talk, press and hold <strong>CAPS LOCK</strong>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Only activated using aircraft radios</strong></td>
+
+                <td>Players must be tuned to the same radio frequency to hear each other. To transmit, press and hold <strong>CAPS LOCK</strong>. To broadcast to all players, regardless of whether they're tuned to your radio frequency, press and hold <strong>SHIFT+CAPS LOCK</strong>.</td>
+              </tr>
+			</table>
+			
+
+<p>If you're in a session with a single Tower controller, the &quot;Always acivated for all players&quot; option makes it easy to communicate. But if you have muiltiple towers, or want a more realistic experience, the &quot;Only activated using aircraft radios&quot; option is a better choice, as it forces players to tune to your frequency to communicate with you. Before starting a session, it's helpful to tell other players what frequency you'll be operating on.</p>
+<p>To learn more about using voice and chat, see <a href="../Multiplayer/MultiplayerChat.htm">Talking to Other Players</a>.</p>
+
+
+<a name="RadarOptions"></a><br>
+			
+			<p class="SubHead">Radar Options</p>
+
+<p>The <strong>Radar Screen</strong> is configured and controlled via the <strong>Radar Options</strong> panel.
+
+			
+			<p><img src="images/MPUsingATCPanels05.jpg" 
+				alt="" border="0" width="198" height="178"></p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To display the <strong>Radar Options</strong> panel</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Panel Options</strong> panel, click the <strong>Radar Options</strong> button.</li>
+					<br>-or-
+					<li>Press <strong>SHIFT+5</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table><br>
+
+			<p>Each <strong>Radar Options</strong> button has multiple states. Click a button multiple times to cycle through the button states and observe the changes displayed on the <strong>Radar Screen</strong>.</p>
+
+			<table width="80%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="20%"><strong>Button</strong></td>
+
+                <td><strong>Function</strong></td>
+             </tr>
+			  
+			<tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>ZOOM OUT</strong></td>
+
+				<td>Zooms map out</td>
+              </tr>
+
+			<tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>ZOOM IN</strong></td>
+
+				<td>Zooms map in</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>CNTR</strong></td>
+
+				<td>Centers map on airport</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>ARROWS</strong></td>
+
+				<td>Pan map</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>TAG</strong></td>
+
+				<td>Toggles datatags (Off/Realistic/Detailed)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>REPO TAG</strong></td>
+
+				<td>Repositions datatag of aircraft selected on Session Information panel</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>COMP</strong></td>
+
+				<td>Toggles compass rose (Off/On)</td>
+              </tr>
+
+			  	<tr valign="top" bgcolor="#FFFFFF">
+					<td><strong>RINGS</strong></td>
+
+				<td>Toggles range rings (Off/2/5/10/20 miles)</td>
+              </tr>
+	
+			  <tr valign="top" bgcolor="#FFFFFF">
+				<td><strong>TERR</strong></td>
+
+				<td>Toggles terrain (Off/On)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>ARSPC</strong></td>
+				
+				<td>Toggles airspace boundaries (Off/On)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>APT</strong></td>
+				
+				<td>Toggles airports (Off/Symbols/Symbols and Labels)</td>
+              </tr>
+			
+			    <tr valign="top" bgcolor="#FFFFFF">
+                	<td><strong>VOR</strong></td>
+				
+				<td>Toggles VORs (Off/Symbols/Symbols and Labels)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>LOW AWY</strong></td>
+				
+				<td>Toggles low-altitude (victor) airways (Off/Lines/Lines and Labels)</td>
+              </tr>
+
+			  	<tr valign="top" bgcolor="#FFFFFF">
+                	<td><strong>HIGH AWY</strong></td>
+				
+					<td>Toggles high-altitude (jet) airways (Off/Lines/Lines and Labels)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>ILS</strong></td>
+				
+				<td>Toggles ILSs (Off/Symbols)</td>
+              </tr>
+	
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>NDB</strong></td>
+				
+				<td>Toggles NDBs (Off/Symbols, Symbols and Labels)</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>FIX</strong></td>
+				
+				<td>Toggles fixes (Off/Symbols/Symbols and Labels)</td>
+              </tr>
+
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>ALL</strong></td>
+				
+				<td>Toggles radar filter (All/Ground/Air)</td>
+              </tr>
+		</table><br><a name="SessionInfo"></a><br>
+			
+			<p class="SubHead">Session Information</p>
+
+			<p>The <strong>Session Information</strong> panel provides you with a list of 
+			all the aircraft in the multiplayer session, as well as details 
+			about each player and their aircraft.</p>
+
+			
+			<p><img src="images/MPUsingATCPanels06.jpg" 
+				alt="" border="0" width="196" height="240"></p>
+
+			     <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To display the Session Information panel</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Panel Options</strong> panel, click the <strong>Session Info</strong> button.</li>
+					<br>-or-
+					<li>Press <strong>SHIFT+6</strong>.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+						
+<p>At the top of the <strong>Session Information </strong>panel is a list of the players in the session. The list is sorted by distance from the airport, with the closest aircraft at the top of the list.</p>
+
+<p>Use the scrollbar and click an aircraft to see details about that aircraft in the details box below the list. When you click on an aircraft, that aircraft's target and datatag on the <strong>Radar Screen</strong> will turn red for ten seconds.</p>
+		
+<p>The lower half of the <strong>Session Information</strong> panel displays details about the aircraft and player selected in the list above. Details include:</p>
+
+<ul>
+<li>Aircraft callsign</li>
+<li><a href="MultiplayerConnect.htm">Steam</a> ID</li>
+<li>Transmit frequency tuned to</li>
+<li>Aircraft type</li>
+<li>Altitude</li>
+<li>Groundspeed</li>
+<li>Magnetic track (track over the ground, not heading)</li>
+<li>Squawk (transponder code)</li>
+<li>Flight plan (if one was created)</li>
+</ul>
+
+<a name="AllTogether"></a><br>
+			
+			<p class="SubHead">Putting It All Together</p>
+			
+<p>There are two main roles in most control towers: Local Control and Ground Control. The Local controller (more commonly known as the Tower controller) handles aircraft in the air and aircraft on the ground waiting for takeoff. The Ground controller handles aircraft on the ground moving on the taxiways. In some towers, one person handles both jobs. In Flight Simulator, it's up to you.</p>
+
+<p>With the tools described above you have everything you need to be a Ground or Tower controller at any airport in Flight Simulator. With a little creative thinking, you also have most of the tools you need to provide virtual pilots with fairly realistic Approach and Enroute services too. The feature was designed to appeal to a wide cross-section of Flight Simulator fans with a broad range of knowledge and skills. As you explore the world of flying and controlling online you'll quickly learn that there's something for everyone.</p>
+
+<p>If you need some help along the way, just ask. Most of the folks you'll encounter in the Flight Simulator community love this stuff as much as you do, and it's not difficult to find someone to help you get up to speed. For more ideas and resources, see <a href="MultiplayerATC.htm">Multiplayer ATC</a>, and be sure to check out <a href="http://www.fsinsider.com" target="_blank">FSInsider.com</a>.</p>
+
+    </div>
+       <div class="TopLink"><a href="#top" class="TopLink">- top -</a>
+    </div>
+  
+</body>
+</html>

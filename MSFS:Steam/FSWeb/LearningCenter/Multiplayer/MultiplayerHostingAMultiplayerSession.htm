@@ -1,0 +1,829 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 12 April 2005), see www.w3.org">
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=iso-8859-1">
+
+  <title>Hosting a Multiplayer Session</title>
+  <link href="../../common/style.css" rel="stylesheet" type=
+  "text/css">
+</head>
+
+<body class="stdcolor" >
+  
+    <a name="top"></a>
+
+    	<table width="100%" cellpadding="0" cellspacing="10" summary="SummaryTBD">
+      		<tr>
+        		<td>
+          			<table width="100%" border="0" cellspacing="0"
+          			cellpadding="0" summary="SummaryTBD">
+            <tr>
+              <td class="GSTable"><span class="GSH1">Hosting a 
+			  Multiplayer Session</span></td>
+            </tr>
+
+            <tr>
+              <td bgcolor="#000000"><img src=
+              "../../Common/images/1ptrans.gif" width="1" height=
+              "1" alt="" border="0"></td>
+            </tr>
+          </table>
+
+          <div class="articleDeck">
+            Setting up sessions for other pilots to join
+          </div>
+
+          <div class="article-bodycopy">
+				
+           <table border="0" cellspacing="10" cellpadding="0"
+            align="right" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <span class="TOCsubhead">Contents</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#SessionInfo">Session Information</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#SessionConditions">Session Conditions</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+					  
+                      <td><a href="#HostOptionsFF">Host
+                      Options (Free Flight)</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+					  
+                      <td><a href="#HostOptionsM">Host
+                      Options (Missions)</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#RemovingPlayers">
+                      Removing Players</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#JoinDirect">Join Direct to Host</a></td>
+                    </tr>
+					
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#Disconnecting">
+                      Disconnecting</a></td>
+                    </tr>
+                  </tr>
+                </table>
+
+                  <p><span class="TOCsubhead">Related
+                  Links</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "MultiplayerAdvHostOptions.htm">Advanced Host Options</a></td>
+                    </tr>
+					
+					<tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "MultiplayerJoiningAMultiplayerSession.htm">Joining
+					  a Multiplayer Session</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "../TroubleShooting/TroubleShootingMultiplayer.htm">
+                      Troubleshooting Multiplayer Issues</a></td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="2" align="center"><img src=
+                      "../../Common/images/1ptrans.gif" width="1"
+                      height="1" alt="" border="0"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <p>When you host a Multiplayer session, you set the location, weather,
+			and other options that all the other pilots will experience in flight.
+			You can host over the Internet using <strong>Steam</strong>, or host 
+			on a Local Area Network.</p>
+			
+			<p>To learn more about choosing <strong>Steam</strong> or a 
+			Local Area Network, see <a href="MultiplayerConnect.htm">
+			Choosing a Multiplayer connection</a>.</p>
+					  
+		  <img src="images/MPHost01.jpg" 
+				alt="" border="0" width="320" height="256">
+			
+			<p>As host, you can either fly as a pilot or act as an air traffic
+			controller for the other pilots who join your session. Other players
+			who join your session can also choose whether to fly or direct air
+			traffic.</p><br>
+			
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To host a Multiplayer session</strong></p>
+
+                  <ol>
+                    <li>On the main menu, click <strong>Multiplayer</strong>.</li>
+					
+					<li>Under <strong>Connection options</strong>, sign in 
+					using <a href="multiplayerconnect.htm"><strong>Steam</strong> 
+					or a LAN</a>.</li>
+
+                    <li>Select a lobby type from the <strong>Lobby</strong> 
+					list, and then click <strong>Host a Session</strong>.</li>
+					
+					<li>Fill in the <a href="#SessionInfo">session information</a> 
+					screen, and then click <strong>Next</strong>.</li>
+					 
+					 <li>Choose the <a href="#SessionConditions">session
+					 conditions</a>, then click <strong>Next</strong>.</li>
+					
+					<li>Set the <a href="#HostOptions">Host Options</a> and any
+					<a href="multiplayerconnect.htm"> Advanced Options</a>, 
+					(optional), and then click <strong>Next</strong>.</li>
+
+                    <li>Click <strong>Fly Now</strong> to start the session.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="SessionInfo"></a><br>
+			
+			<p class="SubHead">Session Information</p>
+
+			<p>As host, you can provide detailed information
+			about your	session. See the table below to understand the fields on the 
+			<strong>Session information</strong> screen.</p>
+			
+			<p><img src="images/MPHost02.jpg" 
+				alt="" border="0" width="320" height="231"></p>
+				
+			<table width="75%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="30%"><strong>Option</strong></td>
+
+                <td><strong>What It Does</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Session type</strong></td>
+
+                <td><strong>Free Flight</strong>: host a session flying anywhere 
+				in any aircraft.<br> 
+				<strong>Mission</strong>: host a structured experience in a 
+				specific location.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Session name</strong></td>
+
+                <td>Provides an easy way for friends who
+				want to join you to find your session in the lobby list.</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Session description</strong></td>
+				
+				<td>Provides any additional information you want to give 
+				about the session (optional).</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Session password</strong></td>
+				
+				<td>Protects your session so that only players
+				who know the password can join (optional).</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Confirm password</strong></td>
+				
+				<td>Provides additional security for a private session.</td>
+              </tr>
+			</table>
+			
+			<p class="SubHead2">Session visibility</p>
+			
+			<p>You can decide whether you want your session visible to everyone
+			who might be looking for a session to join. If you want a private 
+			session with only friends, you can make the session invisible to others.</p>
+			
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To make your session visible</strong></p>
+
+                  <ol>
+                    <li>Under <strong>Session availability</strong>,
+                    select <strong>Make this session visible to everyone</strong>.</li>
+
+                    <li>Select the <strong>On the Internet via Steam</strong> 
+					check box, <strong>On your Local Area Network</strong> 
+					check box, or both.</li>
+
+                    <li>Click <strong>Next</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><br>
+			
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To make your session invisible</strong></p>
+
+                  <ol>
+                    <li>Under <strong>Session availability</strong>,
+                    select <strong>Make this a private session</strong>.</li>
+
+                    <li>Click <strong>Next</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="SessionConditions"></a><br>
+
+            <p class="SubHead">Session Conditions</p>
+
+            <p>This Multiplayer screen looks like the 
+			<strong>Free Flight</strong> screen with 
+			a couple of extra options. It will already be familiar to you if you've
+			created flights in <strong>Free Flight</strong>.</p>
+			
+			<p><img src="images/MPHost03.jpg" 
+				alt="" border="0" width="320" height="231"></p>
+			
+			<p>This screen is where you set the flight conditions for yourself and 
+			the other players in your session. Choose your aircraft, the weather, 
+			starting location, and other options. See the table below for links to
+			articles about each feature on this screen.</p>
+						
+			<table width="80%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="35%"><strong>Feature</strong></td>
+
+                <td><strong>How It Works</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Select role</strong><br>Deluxe version only</td>
+
+                <td>Select whether you want to be a pilot or an 
+				<a href="MultiplayerATC.htm">air traffic controller</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>State intentions</strong></td>
+
+                <td>Type some notes to the other pilots in your session
+				about what you intend to do in the session (optional).</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>ATC Name</strong></td>
+				
+				<td>See the ATC Name section of the 
+				<a href="../aircraft/SelectingAnAircraft.htm">
+				Selecting an Aircraft</a> article.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Current Aircraft</strong></td>
+				
+				<td>See <a href="../aircraft/SelectingAnAircraft.htm">
+				Selecting an Aircraft</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Current Location</strong></td>
+				
+				<td>See <a href="../TheWorld/UsingtheGotoAirportdialogbox.htm">
+				Changing Your Aircraft's Location</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Current Weather</strong></td>
+				
+				<td>See <a href="../TheWorld/WeatherIndex.htm">
+				Weather</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Current Time and Season</strong></td>
+				
+				<td>See <a href="../TheWorld/ChangingDateTimeAndSeason.htm">
+				Changing Date, Time, and Season</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Fuel and Payload</strong></td>
+				
+				<td>See <a href="../aircraft/FuelingAndLoadingAircraft.htm">
+				Fueling and Loading an Aircraft</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Load Flight</strong></td>
+				
+				<td>See <a href="../Flights/AllAboutFlights.htm">
+				All About Flights</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Save Flight</strong></td>
+				
+				<td>See <a href="../Flights/AllAboutFlights.htm">
+				All About Flights</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Flight Planner</strong></td>
+				
+				<td>See <a href="../Navigation/UsingTheFlightPlanner.htm">
+				Using the Flight Planner</a>.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Failures</strong></td>
+				
+				<td>See <a href="../aircraft/SettingFailures.htm">
+				Setting Up Failures</a>.</td>
+              </tr>
+             </tr>
+			</table>
+			
+			<p class="SubHead2">Launch flight with Chat window open</p>
+			
+			<p>If you launch the session with the Chat window open, you can 
+			start communicating with other players immediately. Another 
+			option for communicating with 
+			players in sessions is <a href="#VoiceCommunication">voice
+			 communication</a>.</p>
+			 
+			 <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To start a session with the Chat window open</strong></p>
+
+                  <ul>
+                    <li>Select the <strong>Launch flight with Chat 
+					window open</strong> check box.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table><a name="HostOptionsFF"></a><br>
+
+            <p class="SubHead">Host Options (Free Flight)</p>
+
+            <p>As host you determine how many players can
+            join a session, whether to enable voice communication, and
+			whether to share your aircraft.</p>
+			
+			<p class="SubHead2">Player restrictions</p><br>
+			
+			<p>The more players that join your session, the more
+			network bandwidth is required. The maximum number of players 
+			in a session depends on the speed and capacity of your
+			Internet or LAN connection. Under optimal conditions (for example,
+			a high-bandwidth, single-subnet LAN) you might be able to host more
+			than 32 players. You can usually expect 16-32 players
+			to join a session and still have good performance. You can 
+			restrict the number of players in your session.</p>
+						
+			<p>You can also make the session available to anyone but
+			 reserve slots for friends. When you reserve slots, 
+			only players in your <strong>Friends</strong> list
+			can occupy them. Even if your friends don't fill all of the 
+			reserved slots, the number of other players who can join is limited
+			to the <strong>Maximum players</strong> minus the reserved slots.</p>
+			
+			<p>You can also set a time limit until the session starts.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set player restrictions</strong></p>
+
+                  <ol>
+                    <li>Type a number between <strong>2</strong> and
+                    <strong>32</strong> in the <strong>Maximum players</strong> box.</li>
+
+                    <li>Type a number in the <strong>Slots reserved 
+					for friends</strong> box (optional).</li>
+					
+					<li>Type a number in the <strong>Minutes until
+					session starts</strong> box (optional).</li>
+					
+					<li>Click <strong>Next</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="HostOptionsM"></a><br>
+
+            <p class="SubHead">Host Options (Missions)</p>
+
+            <p>When hosting a Mission, you have several choices to make
+			about your session and how other players participate.</p>
+			
+			<p class="SubHead2">Player roles</p><br>
+			
+			<p>For each Mission, there is a predetermined number of default roles available
+			to other players joining your session. As host, you can decide
+			whether all of these roles remain available and whether to limit them to 
+			friends.</p>
+			
+			<table width="75%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="30%"><strong>Option</strong></td>
+
+                <td><strong>What It Does</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Disabled</strong></td>
+
+                <td>Selecting this option makes the role unavailable to any players
+				joining the session.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Friend only</strong></td>
+
+                <td>Selecting this option limits the role to someone in 
+				the host's <strong>Friends</strong>
+				list.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Observers</strong></td>
+
+                <td>Allows the host to set the number of players who can 
+				observe the Mission without flying. The total number can equal
+				 99 minus the number of flying roles in the Mission.</td>
+              </tr>
+			</table>
+						
+			<p class="SubHead2">Mission rules</p><br>
+			
+			<p>As host, you can set certain rules for the current Mission.</p>
+			
+			<table width="75%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="30%"><strong>Option</strong></td>
+
+                <td><strong>What It Does</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Enable anti-cheat</strong></td>
+
+                <td>Limits allowable aircraft to those installed on both host and player
+				computers, and verifies Mission file compatibility.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Enforce host realism</strong></td>
+
+                <td>Settings in the host's 
+				<a href="../options/realism.htm">Realism</a> dialog box are enforced
+				for all players.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Allow racing aids</strong></td>
+				
+				<td>Allows players to display/hide the <a href="MultiplayerRacing.htm">
+				Race Map and Pointer</a> during a race.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Number of laps</strong></td>
+				
+				<td>Sets the total number of laps players must fly to win a race
+				in this Mission.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Max players</strong></td>
+				
+				<td>Sets the maximum number of players allowed 
+				to participate in this Mission.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Time until race start</strong></td>
+				
+				<td>Sets a time limit to wait until the session starts.</td>
+              </tr>			  
+			</table><a name="VoiceCommunication">
+			
+			<p class="SubHead2">Voice communication</p><br><br>
+			
+			<p>If you and your players have a Windows-compatible headset (or a microphone 
+			and speakers) and want to use voice 
+			communications, the host must enable that option on the <strong>Host 
+			Option</strong> screen. A broadband Internet connection is required for 
+			voice communication.</p>
+			
+			<p><strong>IMPORTANT:</strong> There are a couple of things 
+			to know if you're going to use
+			a headset. For the most realism, you want only voice 
+			communication coming through the headset.</p>
+			
+			<ul>
+				<li>If your headset is your only audio output, 
+				all sounds will come through the headset, including engine 
+				noise, wheels on pavement, and even e-mail notifications if 
+				you have your e-mail program running.</li>
+			
+			<li>You must have two or more audio devices
+			(sound cards) in your computer to enable voice-only audio through your
+			headset.</li>
+			</ul>
+			
+			<p>To learn more about voice-only audio through a headset,
+			see <a href="../Options/Sound.htm#EnableVoiceOnly">Changing Sound
+			Settings</a>.</p>
+			
+		<p>There are three voice communication options:</p>
+		   
+		   <table width="100%" border="0" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              
+			  <tr valign="top" bgcolor="#F5DEB3">
+                <td width="40%"><strong>Option</strong></td>
+
+                <td><strong>How it works</strong></td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Always activated for all players</strong></td>
+
+                <td>All players in the session can hear all other players. Players
+				must press and hold <strong>CAPS LOCK</strong> to talk.</td>
+              </tr>
+			  
+			  <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Only activated using aircraft radios</strong></td>
+
+                <td>Players wishing to talk to each other must tune to the 
+				same radio frequency, and
+				then press and hold <strong>CAPS LOCK</strong> 
+				to talk. Press and hold <strong>SHIFT+CAPS LOCK</strong> to broadcast
+				to all players, regardless of whether they're on the same radio
+				frequency.</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Enable shared voice communication</strong></td>
+				
+				<td>Only available when two players are 
+				<a href="MultiplayerSharingAircraft.htm">sharing an aircraft</a>.
+				With this option, players don't have to press a button to talk.</td>
+              </tr>
+			</table><br>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To enable voice communication</strong><br>
+				  (broadband Internet connection required)</p>
+
+                  <ol>
+                    <li>On the main menu, click <strong>Multiplayer</strong>.</li>
+					
+					<li>On the <strong>Multiplayer</strong> screen,
+                    sign in using <strong>Steam</strong> or a 
+                    Local Area Network.</li>
+				
+				<li>Click <strong>Host a Session</strong>.</li>
+				
+				<li>Select <strong>Session is visible to others</strong>
+				(Internet, LAN, or both).</li>
+				
+				<li>Click <strong>Next</strong>.</li>
+				
+				<li>Select a role, aircraft, location, weather, etc., and then
+				click <strong>Next</strong>.</li>
+				
+				<li>Under <strong>Voice communication</strong>, select the
+				 <strong>Enable voice communication</strong> check box.</li>
+				 
+				 <li>Select an option to activate for all players
+				 or to limit voice communication to players using a specific
+				 radio frequency.</li>
+				 
+				 <li>Click <strong>Next</strong>.</li>
+				 
+				 <li>When you're ready to start flying, click <strong>
+				 Fly Now</strong>.</li>
+                 </ol>
+                </td>
+              </tr>
+            </table><br>
+
+			<p class="SubHead2">Sharing aircraft</p><br>
+            
+            <p>A host can share control of an aircraft with another player. Whether
+			you're new to flying or a certified flight instructor, this is a
+			great feature to use for instruction. It's also a fun way
+			to share secrets about Flight Simulator with a friend,
+			or learn from them!</p>
+			
+			<p><strong>Note:</strong> The host can share his aircraft at any time
+			but the host cannot join another player's shared aircraft.</p>
+			
+			<p>To learn more about this feature, see 
+			<a href="MultiplayerSharingAircraft.htm">Sharing an Aircraft</a>.</p>
+			
+						
+			<table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To enable voice communication (sharing)</strong><br>
+				  (broadband Internet connection required)</p>
+
+                  <ol>
+                    <li>On the main menu, click <strong>Multiplayer</strong>.</li>
+					
+					<li>On the <strong>Multiplayer</strong> screen,
+                    sign in using <strong>Steam</strong> or a 
+                    Local Area Network.</li>
+				
+				<li>Host or join a session.</li>
+				
+				<li>Under <strong>Sharing</strong>, select the 
+				 <strong>Enable shared voice communication</strong> check box.</li>
+                 </ol>
+                </td>
+              </tr>
+            </table><a name="RemovingPlayers"><br>
+
+            <p class="SubHead">Removing Players from Multiplayer
+            Sessions</p>
+
+            <p>A multiplayer host can remove any player from the
+            session.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To remove a player from a multiplayer
+                  session</strong></p>
+
+                  <ol>
+                    <li>If you're in a session, exit to the
+                    <strong>Briefing Room</strong>.</li>
+					
+					<li>Click the <strong>X</strong> next to the player's 
+					name in the <strong>Players</strong> list.</li>
+					
+					<li>Click <strong>Fly Now</strong> to rejoin the
+					session.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="JoinDirect"></a><br>
+			
+            <p class="SubHead">Join Direct to Host</p>
+			
+			<p>If you're hosting a multiplayer session over a LAN, your session
+			is only visible on your subnet. There may be other players on your
+			LAN who are on a different subnet. They can
+            still join your session, but you must provide them with
+            your computer's internet protocol (IP) address
+            so they can use that to connect directly to your
+            session.</p><a name="DeterminingIPAddress"></a>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To determine your computer's IP address for
+                  WindowsXP and Vista systems</strong></p>
+
+                  <ol>
+                    <li>On the Windows taskbar, click <strong>Start</strong>,
+                    and then click <strong>Run</strong>.</li>
+
+                    <li>In the <strong>Run</strong> dialog box, type 
+					<strong>cmd</strong>, and then click <strong>OK</strong>.</li>
+
+                    <li>At the command prompt, type
+                    <strong>ipconfig</strong>, and then press <strong>ENTER</strong>
+                    .</li>
+
+                    <li>Make a note of the IP address.</li>
+
+                    <li>Give your IP address to the players joining your
+					session.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="Disconnecting"></a>
+
+            <p class="SubHead">Disconnecting from Multiplayer
+            Sessions</p>
+
+            <p>Whether you're hosting or joining, you can
+            disconnect from a multiplayer session at any time. If the host
+			ends the flight, the session is closed for all players and they exit
+			the flight.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To disconnect from a multiplayer
+                  session</strong></p>
+
+                  <ol>
+                    <li>Press <strong>ESC</strong>.</li> 
+					
+					<li>Click <strong>End Flight</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+          </div>
+
+          <div class="TopLink">
+            <a href="#top" class="TopLink">- top -</a>
+          </div>
+        </td>
+      </tr>
+    </table>
+  
+</body>
+</html>
