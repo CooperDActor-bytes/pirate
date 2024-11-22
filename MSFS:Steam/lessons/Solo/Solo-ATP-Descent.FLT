@@ -1,0 +1,390 @@
+
+[Main]
+Title=Solo-ATP-Descent
+Description=You're 45 DME, tracking inbound on the 100 degree course to the Paine VOR.  Cross the VOR at 2000 feet.
+AppVersion=9.0.30218
+FlightVersion=1
+
+[Tower]
+Latitude=N047° 54' 28.5841"
+Longitude=W122° 16' 46.7918"
+Altitude=+000659.00
+
+[Track]
+Latitude=N041° 51' 38.5897"
+Longitude=W087° 42' 43.5498"
+Altitude=+000131.00
+
+[Options]
+VirtualCopilot=0
+Titles=False
+Sound=True
+Pause=False
+AxisIndicator=Off
+ATC=False
+Moonlight=True
+SimSpeed=001.00
+ShowStars=True
+ApproachLights=True
+FlightDisplay=Off
+SlewDisplay=Coordinates
+
+[EFIS]
+Active=False
+Mode=VOR
+Type=Rectangles
+Density=Thin
+Range=Short
+NavAid=VOR 1
+Altitude=0
+Flags=0
+
+[Avionics]
+LocalizerSelect=Auto Select
+DMESelect=2
+
+[Kneeboard]
+Undocked=False
+Visible=False
+ScreenCoords=10, 0, 380, 420
+UndocCoords=0, 0, 0, 0
+PageId=0
+
+[Panels]
+Panel.On=True
+HUD.On=False
+
+[Window.1]
+Order=0
+Active=True
+Undocked=False
+Maximized=False
+ScreenUniCoords=0, 0, 8192, 3600
+UndocCoords=0, 0, 0, 0
+ViewMode=Cockpit
+ViewDir=Forward
+CockpitZoom=001.00
+VirtualZoom=001.00
+TowerZoom=008.00
+TrackZoom=004.00
+SpotZoom=001.00
+MapZoom=011.00
+SpotDirection=090.00
+SpotDistance=+000289
+SpotTransitionType=Roll
+SpotFastTransition=False
+SpotAltitude=+000003
+PanHeading=360.00
+PanPitch=360.00
+PanBank=360.00
+ChaseTarget=1
+SavedViewMode=Spot
+
+[ATC_AgentManager]
+NumberofAgents=0
+
+[ATC_Aircraft.0]
+ActiveFlightPlan=False
+RequestedFlightPlan=False
+AcState=ACSTATE_REQUEST_TAXI_CLEARANCE_OUT_VFR_ATIS
+NumberofWaypoints=0
+ClearanceFlags=80
+CtCur=CLEARANCE_NONE
+WaypointNext=0
+AltCleared=-1
+HdgAssigned=-1
+SquawkAssigned=1969623552
+LandingSequence=LANDING_NONE
+DepartureRequest=DEPARTURE_VFR_REQUEST_NONE
+ParkingRequest=PARKING_NAME_NONE
+PatternLeg=PATTERN_LEG_NONE
+ApproachIndex=-1
+ApproachTransitionIndex=-1
+ApproachRequestIndex=-1
+ApproachTransitionRequestIndex=-1
+RunwayIndex=-1
+RunwayRequestIndex=-1
+ParkingIndex=-1
+FlightFollowing=FLIGHT_FOLLOWING_NO
+AirspaceTransition=AIRSPACE_TRANSITION_NONE
+BVAirspaceTransition=BV_TYPE_NONE
+BVAirspaceTransitionReq=BV_TYPE_NONE
+TakeoffSequence=TAKEOFF_SEQUENCE_NONE
+LandingSequenceNumber=-1
+TaxiRouteCurrent=-1
+CruisingAltitude=-1
+RequestedCruisingAltitude=-1
+AircraftSignature=1,0
+
+[ATC_AircraftManager]
+NumberofAircraft=1
+
+[ATC_MessageSystem]
+FrequencyNodes=0
+
+[DateTimeSeason]
+Day=50
+Year=2003
+Hours=12
+Minutes=32
+Seconds=34
+Season=Winter
+
+[Panel.1]
+ScreenUniCoords=0, 0, 8192, 6144
+UndocCoords=0, 0, 0, 0
+Visible=True
+Undocked=False
+HiddenOn=False
+ID=0
+ViewsOn=1
+
+[Panel.2]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=50
+ViewsOn=0
+
+[Panel.3]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=225
+ViewsOn=0
+
+[Panel.4]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=10
+ViewsOn=0
+
+[Panel.5]
+ScreenUniCoords=4007, 0, 4185, 716
+UndocCoords=0, 0, 0, 0
+Visible=True
+Undocked=False
+HiddenOn=False
+ID=250
+ViewsOn=1
+
+[Panel.6]
+ScreenUniCoords=0, 0, 0, 0
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=75
+ViewsOn=0
+
+[Panel.7]
+ScreenUniCoords=570, 4212, 7052, 1932
+UndocCoords=0, 0, 0, 0
+Visible=False
+Undocked=False
+HiddenOn=False
+ID=20000
+ViewsOn=1
+
+[Gauges.0]
+PanelLights=False
+EngineHours=0.0000000000
+KollsmanSetting=29.920000076293945
+
+[Slew.0]
+Active=False
+
+[Plane.0]
+Aircraft=Boeing 737-800
+
+[SimVars.0]
+Latitude=N048° 17' 39.7812"
+Longitude=W123° 15' 05.2737"
+Altitude=+015061.03
+Pitch=-6.9179079281540385
+Bank=0.23372953497856594
+Heading=120.59785684916548
+PVelBodyAxis=-0.0033558253724273179
+BVelBodyAxis=-6.0053101858869669e-005
+HVelBodyAxis=-0.00022143670318869666
+XVelBodyAxis=-0.20537012130042362
+YVelBodyAxis=-39.807980474099246
+ZVelBodyAxis=480.7363896182033
+DynPres=172.68987064646859
+AGL=15060.419354316478
+SimOnGround=False
+PAccBodyAxis=0.0021462409634206529
+BAccBodyAxis=-9.7256874945469864e-006
+HAccBodyAxis=-4.2158015580301533e-005
+XAccBodyAxis=-0.012108039712602325
+YAccBodyAxis=-1.1409254651771086
+ZAccBodyAxis=1.3852495391233393
+PVelWorld=-0.0033548941348624933
+BVelWorld=-3.1525354316865378e-005
+HVelWorld=-0.00023684872807572669
+XVelWorld=414.9356840108378
+YVelWorld=18.384643380937206
+ZVelWorld=-245.32137921331372
+IceAccum=0
+AutoFeatherSwitch=False
+MaximumGForce=1.9874883494267426
+MinimumGForce=0.18781448013961652
+
+[Engine Parameters.1.0]
+ThrottleLeverPct=0.994140625
+PropellerLeverPct=1
+MixtureLeverPct=1
+Pct Engine RPM=0.84879550885770205
+MaxReachedEngineRPM=29058.701480165131
+LeftMagneto=True
+RightMagneto=True
+GeneratorSwitch=True
+CowlFlapPct=1
+FuelPumpSwitch=False
+CarbHeat/DeiceSwitch=False
+Afterburner=False
+
+[Engine Parameters.2.0]
+ThrottleLeverPct=0.994140625
+PropellerLeverPct=1
+MixtureLeverPct=1
+Pct Engine RPM=0.84879550885770205
+MaxReachedEngineRPM=29058.701480165131
+LeftMagneto=False
+RightMagneto=False
+GeneratorSwitch=True
+CowlFlapPct=0
+FuelPumpSwitch=False
+CarbHeat/DeiceSwitch=False
+Afterburner=False
+
+[Fuel.0]
+TankSelector=All
+TankSelector1=All
+Center=99.363075976783151
+LeftMain=96.638212764854487
+RightMain=96.638212764854487
+LeftAux=100
+RightAux=100
+LeftTip=100
+RightTip=100
+Center 2=100
+Center 3=100
+External 1=100
+External 2=100
+
+[Controls.0]
+SpoilersHandle=000.00
+LeftSpoiler=000.00
+RightSpoiler=000.00
+FlapsHandle=000.00
+LeftFlap=000.00
+RightFlap=000.00
+GearsHandle=000.00
+Gear1=000.00
+Gear2=000.00
+Gear3=000.00
+YokeY=050.00
+YokeX=050.00
+Rudder=050.00
+LeftBrake=000.00
+RightBrake=000.00
+ParkingBrake=000.00
+ElevatorTrim=058.98
+RudderTrim=0
+AileronTrim=0
+
+[Systems.0]
+BatterySwitch=True
+AvionicsSwitch=True
+StructuralDeiceSwitch=False
+PropDeiceSwitch=False
+Autobrakes=Off
+StandbyVacuum=False
+PropSync=False
+FlightDirector=False
+
+[Switches.0]
+PitotHeat=False
+BeaconLights=False
+LandingLights=False
+LogoLights=False
+NavLights=False
+PanelLights=False
+RecognitionLights=False
+StrobeLights=False
+TaxiLights=False
+WingLights=False
+CabinLights=False
+
+[Avionics.0]
+Comm1Active=127.300
+Comm1Standby=124.850
+Comm2Active=124.850
+Comm2Standby=125.850
+Nav1Active=110.60
+Nav1Standby=109.30
+OBS1=100
+Nav2Active=110.60
+Nav2Standby=113.90
+OBS2=100
+Transponder=1200
+ADFActive=414
+ADF2Active=414
+ComTransmit=1
+ComReceiveBoth=False
+AudioNav1Listen=True
+AudioNav2Listen=False
+AudioMarkerListen=False
+AudioDmeListen=False
+AudioAdfListen=False
+AudioAdf2Listen=False
+
+[AutoPilot.0]
+MasterSwitch=False
+WingLeveler=False
+Nav1Lock=False
+HeadingLock=False
+HeadingValue=10
+AltitudeLock=False
+AltitudeValue=15000
+AttitudeHold=False
+AirspeedHold=False
+AirspeedValue=225
+MachHold=False
+MachValue=0
+VerticalSpeedHold=False
+VerticalSpeedValue=0
+RPMHold=False
+RPMValue=0
+GlideslopeHold=False
+ApproachHold=False
+BackCourseHold=False
+YawDamper=False
+ToGa=False
+AutoThrottleArm=False
+GPSdrivesNAV1=False
+IsUsedForLesson=False
+
+[Payload.0]
+PayloadList=-1
+
+[SimScheduler]
+SimTime=2034.4859767471826
+
+[Weather]
+WeatherType=0
+ThemeName=
+ThemeTime=12
+
+[Flying Tip]
+Undocked=False
+ScreenUniCoords=500, 400, 7192, 650
+UndocCoords=0, 0, 0, 0
