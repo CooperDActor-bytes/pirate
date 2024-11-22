@@ -1,0 +1,451 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 1.abl
+ *
+ *    DESC:			Student Lesson 1: Straight and Level Flight
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches how to keep the airplane
+ *						flying straight and level. The lesson introduces
+ *						important instruments to reference (Attitude
+ *						Indicator, Altimeter, Airspeed indicator, VVI),
+ *						the effects of control inputs on pitch, and
+ *						trimming the aircraft. The student will practice
+ *						climbing and descending (pitch and power changes)
+ *						with proper trimming.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson1;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\student\lesson 1.msg";
+	#include "messages\lib\tolerances.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 45;           // Takeoff commit speed
+	nVr             = 55;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+				Engine	eTheMotor;
+	static	number	bBored;
+	static	number	bDoOnce;
+   static	number	nCurrentPTrim;
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";  				// Get the standard initializaton functions
+		fnMsg(Normal,sThrottleSet);					// Tell the user to set the joystick throttle
+		fnThrottle_HoldRPM(2400);						// Init throttle rpm at 2400
+		AP.Master			= TRUE;						// Init Auto Pilot
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1: //Lots of talkin'
+			Writeln ("CaseTalk1");
+			fnSQ_NormalMsg(sImFlying,12);
+			fnSQ_Play("S1-1"); // In the lesson...
+			fnSQ_Play("S1-2"); // Shall we proceed
+			fnSQ_Play("S1-5"); // I've got the airplane
+			fnSQ_Play("S1-4"); // We're in the Cessna 172
+			fnSQ_Play("S1-6"); // We're going to learn what it looks like...
+			fnSQ_NormalMsg(s7,0);
+			fnSQ_Play("S1-7"); // Right now I need you to check
+			fnSQ_NormalMsg(s8,0);
+			fnSQ_Play("S1-8"); // Press and hold the 4 key
+			fnSQ_Pause(2);
+			fnSQ_NormalMsg(s9,0);
+			fnSQ_Play("s1-9"); // Release the 4 key and press the 6 key
+			fnSQ_Pause(2);
+			fnSQ_NormalMsg(s10,0);
+			fnSQ_GaugeHilight("Attitude",8);
+			fnSQ_Play("s1-10"); // Release the 6 key.  Look at the Attitude Indicator
+			fnSQ_Play("s1-11"); // Explanation of AI Attitude Indicator
+			fnSQ_Play("S1-12"); // I'm going to keep the airplane flying straight
+			fnSQ_NormalMsg(s7a,0);
+			fnSQ_Play("S1-7a"); // Be sure to turn Num Lock off again
+			fnSQ_Pause(1);
+			fnSQ_Play("S1-13"); // See the little orange dot in the center
+			fnSQ_GaugeHilight("Altimeter",6);
+			fnSQ_Play("S1-14"); // You can tell our altitude...
+			fnSQ_GaugeHilight("Vertical_Speed",6);
+			fnSQ_Play("S1-14a"); // Nor is the needle in the VSI...
+			fnSQ_Pause(1);
+			fnSQ_ChangeState(CaseClimb1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1: //Instruct to pitch up
+			Writeln ("CaseClimb1");
+			nAltitudeTarget 			= 5000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget 				= 100;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 10;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 2400;
+			nRPMToleranceMax			= 100;
+			nRPMToleranceMin			= -100;
+			nRollTarget					= 0;
+			nRollToleranceMax			= 5;
+			nRollToleranceMin			= -5;
+			nMoveOnTo					= CaseDesc1;
+			AP.AltitudeHold 			= FALSE;
+			AP.AttitudeHold 			= FALSE;
+			fnMsg(Normal, s15);
+			fnSQ_Play("s1-15"); // Let's try an experiment.
+	      fnSQ_ChangeState(CaseClimb1_1);
+	      fnSQ_ToleranceFlag(TF_PITCH,10);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb1_1: //Pitch up
+			Writeln ("CaseClimb1_1");
+			if (bWithinTolerance) and (bPitchCheck) then
+				fnSQ_Play("S1-16"); // The nose of the airplane pitches up
+				fnSQ_Play("S1-17"); // Now, look at the altimeter
+				fnSQ_Pause(2);
+				fnSQ_ChangeState(CaseDesc1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1: //Instruct to pitch down
+			writeln("CaseDesc1");
+			nMoveOnTo 				= CaseCruise2;
+			bPitchCheck 			= FALSE;
+			nPitchTarget 			= -5;
+			nPitchToleranceMax 	= 3;
+			fnSQ_NormalMsg(s18,0);
+	      fnSQ_Play("s1-18"); // Now, pitch the airplane's nose down
+			fnSQ_ToleranceFlag(TF_PITCH,10);
+	      fnSQ_ChangeState(CaseDesc1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseDesc1_1:	//Pitch down
+			Writeln ("CaseDesc1_1");
+			if (bWithinTolerance) and (bPitchCheck) then
+				fnSQ_NormalMsg(s19,12);
+				fnSQ_Play("S1-19"); // The nose of the airplane pitches down
+				fnSQ_Play("S1-20"); // Notice that the altimeter
+				fnSQ_ChangeState(CaseCruise2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseCruise2:	//Resume straight and Level
+			Writeln  ("CaseCruise2");
+			nMoveOnTo				= CaseTalk2_2;
+			bPitchCheck 			= FALSE;
+			nPitchTarget 			= 0;
+			nPitchToleranceMax	= 5;
+			fnSQ_NormalMsg(s21,0);
+			fnSQ_Play("s1-21"); // Okay, let the joystick return to center
+			fnSQ_ToleranceFlag(TF_PITCH,20);
+			fnSQ_ChangeState(CaseCruise2_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise2_1:
+			writeln("CaseCruise2_1");
+			if ((bWithinTolerance) and (bPitchCheck)) then
+				fnSQ_ChangeState(CaseCruise2_2);
+				fnSQ_Synchronize;
+			endif;
+			if ( nAltAGL < 1200 ) then
+				fnSQ_ChangeState(CaseCruise2_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise2_2: //If everything is okay, we are here
+			writeln("CaseCruise2_2");
+			AP.Altitude 		= nAltitude;
+			AP.AltitudeHold 	= TRUE;
+			AP.Master 			= TRUE; // Let Otto get the plane back under control
+			fnSQ_NormalMsg(sImFlying,0);
+			fnSQ_Play("s1-5"); // I've got the airplane
+			fnSQ_ChangeState(CaseTalk4);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise2_3: //This is called only if the student got too low
+			writeln("CaseCruise2_3");
+			AP.Altitude 		= nAltitude;
+			AP.AltitudeHold 	= TRUE;
+			AP.Master 			= TRUE;	// Let Otto get the plane back under control
+			fnSQ_ErrorMsg(sDidntLevel,5);
+			fnSQ_Play("s1-5"); // I've got the airplane
+			fnSQ_Pause(2);
+			fnSQ_NormalMsg(sImFlying,0);
+			fnSQ_ChangeState(CaseTalk4);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk4: //Trim Wheel
+			writeln("CaseTalk4");
+			nMoveOnTo				= CaseClimb2;
+			bPitchCheck				= FALSE;
+			fnSQ_Play("S1-22"); // It's safe to say that if the altimeter hands
+			fnSQ_Play("S1-23"); // You can always determine how to return to straight and level flight
+			fnSQ_Play("S1-24"); // Airplanes are subject to many aerodynamic forces
+			fnSQ_NormalMsg(s25,0);
+			fnSQ_GaugeHilight("Pitch_Trim",10);
+			fnSQ_Play("S1-25"); // Use the trim indicator to keep the airplane in the attitude you want
+			fnSQ_Play("S1-26"); // This part takes a bit of patience
+			fnSQ_Pause(2);
+			fnSQ_ChangeState(CaseTalk4_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTalk4_1:
+			writeln("CaseTalk4");
+			if (nIASNow >= 100) then
+				fnSQ_GaugeHilight("Airspeed",8);
+				fnSQ_Play("S1-27"); // Right now, the airplane is trimmed to fly at 100 knots.
+				fnSQ_Play("S1-28"); // Even if we push or pull on the stick, we have to force it
+				fnSQ_ChangeState(CaseClimb2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb2: //Trim for 90 kts
+			writeln("CaseClimb");
+			nMoveOnTo			= CaseClimb3;
+			nSpeedTarget		= 90;
+			AP.AltitudeHold	= FALSE;
+			fnSQ_NormalMsg(s29,0);
+			fnSQ_Play("S1-29"); // pull back gently on the stick until 10s
+			fnSQ_ToleranceFlag(TF_SPEED,10);
+			fnSQ_ChangeState(CaseClimb2_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb2_1:
+			writeln("CaseClimb2_1");
+			if (bWithinTolerance) and (bSpeedCheck) then
+				fnSQ_Play("S1-30"); // you will notice that you have to make
+				fnSQ_Pause(1);
+				fnSQ_ChangeState(CaseClimb3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb3: //Instruct for nose up trim
+			Writeln ("CaseClimb3");
+			nMoveOnTo			= CaseClimb3_3;
+			nCurrentPTrim 		= cpOffice.ElevatorTrim;
+			nTimer 				= 0;
+			bBored 				= FALSE;
+			fnSQ_NormalMsg(s31,0);
+			fnSQ_Play("S1-31"); // What I need for you to do
+			fnSQ_ChangeState(CaseClimb3_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb3_1: // wait for student to change trim
+			writeln("CaseClimb3_1");
+			if ((Diff(cpOffice.ElevatorTrim,nCurrentPTrim) > 0.001) and ( nTimer < 50 )) then
+				cpOffice.ElevatorTrim = 0.40;
+				fnSQ_NormalMsg(sRelaxPressure,8);
+				fnSQ_Play("S1-32"); // Whoops - You notice that the airplane pitched up
+				fnSQ_ChangeState(CaseClimb3_2);
+				fnSQ_Synchronize;
+			endif;
+			if ((nTimer > 25) and (not bBored)) then
+				bBored = TRUE;
+				fnSQ_WarningMsg(s31,6);
+				fnSQ_Play("S1-31"); // What I need for you to do
+			endif;
+			if ( nTimer > 50 ) then
+				fnSQ_ErrorMsg(sMovingOn,6);
+				fnSQ_Play("movingon");
+				fnSQ_ChangeState(CaseClimb3_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseClimb3_2:
+			bSpeedCheck = FALSE;
+			cpOffice.ElevatorTrim = 0.35;
+			fnSQ_Play("s1-33"); // Whenever we make a change in the pitch
+			fnSQ_ChangeState(CaseClimb3_3);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb3_3:
+			writeln("CaseClimb3_3");
+			cpOffice.ElevatorTrim = 0.30;
+			AP.AltitudeHold = TRUE;
+			AP.Altitude = nAltitude;
+			fnSQ_NormalMsg(sImFlying,6);
+			fnSQ_Play("s1-5");  // I'm flying
+			fnSQ_Play("s1-34"); // Okay, here's a big secret about trim.
+			fnSQ_Play("S1-35"); // This means the nose will pitch down
+			fnSQ_Play("S1-36"); // So, if you want to change speed in level flight
+			fnSQ_ChangeState(CaseClimb4);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb4: //Instruct the student to reduce RPM & maintain level flight
+			Writeln ("CaseClimb4");
+			AP.AltitudeHold = FALSE;
+			nMoveOnTo		= CaseClimb5;
+			nRPMTarget 		= 2100;
+			nSpeedTarget	= 90;
+			fnThrottle_Manual;
+			fnSQ_NormalMsg(s37,0);
+			fnSQ_Play("S1-40"); // Nose drops, hold altitude constant
+			fnSQ_Play("S1-37"); // Pull Throttle back to 2100 RPM - copy Trunc wav to repeat
+			fnSQ_GaugeHilight("Tachometer",6);
+			fnSQ_Play("S1-38"); // The Tachometer is located
+			fnSQ_Play("S1-39"); // 2100 RPM will give us a speed of 90 knots
+			fnSQ_ToleranceFlag(TF_RPM,10);
+			fnSQ_ToleranceFlag(TF_SPEED,10);
+			fnSQ_ChangeState(CaseClimb4_2);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb4_2:
+			writeln("CaseClimb4_2");
+			if (bWithinTolerance) and (bSpeedCheck) then
+				fnSQ_Play("s1-41"); // Apply sufficient nose up trim
+				fnSQ_Pause(2);
+				fnSQ_Pause(2);
+				fnSQ_Pause(2);
+				fnSQ_Pause(2);
+				fnSQ_Pause(2);
+				fnSQ_ChangeState(CaseClimb5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb5: //Instruct to increase throttle and attain 100 kts
+			writeln("CaseClimb5");
+			nMoveOnTo				= CasePostFlight;
+			bSpeedCheck				= FALSE;
+			bRPMCheck				= FALSE;
+			nRPMTarget				= 2400;
+			nSpeedTarget			= 100;
+			nSpeedToleranceMin 	= 0;
+			fnSQ_NormalMsg(s42, 0);
+			fnSQ_Play("s1-42"); // Okay, let's try increasing
+			fnSQ_Play("s1-43"); // This time, the nose wants to rise
+			fnSQ_ToleranceFlag(TF_RPM,10);
+			fnSQ_ToleranceFlag(TF_SPEED,10);
+			fnSQ_ChangeState(CaseClimb5_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseClimb5_1:
+			writeln("CaseClimb5_1");
+			if (bWithinTolerance) and (bSpeedCheck) then
+				nSpeedToleranceMin 	= 10;
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			fnThrottle_Hold(0.85);
+			AP.Altitude = nAltitude;
+			AP.AltitudeHold = TRUE;
+			fnToleranceChecking(FALSE);
+			fnSQ_NormalMsg(sImFlying,8);
+			fnSQ_Play("s1-44"); // That's how you trim
+			fnSQ_Play("s1-45"); // Okay, just to review
+			fnSQ_Play("s1-46"); // Got that? I'm impressed with your performance
+			fnSQ_Play("s1-47"); // In our next lesson,
+			fnSQ_Play("s1-48"); // For now, take a break.
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostFlight_1:
+			writeln("CasePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

@@ -1,0 +1,334 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 2.abl
+ *
+ *    DESC:			Student Lesson 2: Turns
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches how to turn the aircraft. This
+ *						lesson introduces the DG, Turn Coordinator, and
+ *						Inclinometer.  The student will observe the effects
+ *						of banking the aircraft and the resulting indications
+ *						on the Attitude indicator and DG.  Then the student
+ *						will practice turns to the left and right with
+ *						different degrees of bank.  The student will also
+ *						learn how to adjust the heading bug.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson2;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\student\lesson 2.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 090;          // First heading...(demonstrated turn)
+	kHdg2           = 270;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 45;           // Takeoff commit speed
+	nVr             = 55;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bBored;					// This variable is used in turn "nudge" code.
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnMsg(Normal, sThrottleSet);
+		fnThrottle_Hold(0.8); // maintain ~110 kias
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	switch (nState)
+		#include "script\lib\STDCases.abl"
+
+		case CaseTalk1: //talk about the lesson
+			Writeln ("CaseTalk1");
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("S2-1"); // Now that you know what straight and level looks like
+			fnSQ_Play("S2-2"); // I hope you did your homework
+			fnSQ_Play("S2-3"); // We're back in the Cessna 172
+//			fnSQ_Play("S2-4"); // We're at 5000 feet
+			fnSQ_Play("S2-5"); // I've got the airplane
+//			fnSQ_Play("S2-6"); // If you want to read about
+			fnSQ_GaugeHilight("Attitude",5);
+			fnSQ_NormalMsg(s7,0);
+			fnSQ_Play("S2-7"); // Let's begin by looking at the artificial horizon
+			fnSQ_GaugeHilight("Heading_Indicator",7);
+			fnSQ_NormalMsg(s8,0);
+			fnSQ_Play("S2-8"); // Now, check the heading indicator
+			fnSQ_ChangeState(CaseTurn1);
+			fnSQ_Synchronize;
+		endcase;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn1: //Demo left turn
+			Writeln ("CaseTurn1");
+			fnSQ_NormalMsg(s9,0);
+			fnSQ_Play("S2-9"); // Watch me make a turn to the East
+			fnSQ_ChangeState(CaseTurn1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_1:
+			writeln("CaseTurn1_1");
+			AP.Heading = 91; // start the autopilot turning the proper direction
+			fnThrottle_Hold(0.85); // slight throttle increase in the bank
+			fnSQ_Play("S2-10"); //As the airplane banks, the wings of the airplane
+			fnSQ_ChangeState(CaseTurn1_2);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_2:
+			writeln("CaseTurn1_2");
+			AP.Heading = 090; // Set the autopilot's final heading now that the turn has already begun
+			fnSQ_Play("S2-11"); // Remember that some of the wing's lift
+			bBored = FALSE;
+			fnSQ_Play("S2-12"); // As we approach our desired heading
+			fnSQ_Play("S2-13"); // In your car, if you make small changes
+			fnSQ_ChangeState(CaseTurn1_3);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_3: // Go watch for the moment when the sound queue is empty
+			writeln("CaseTurn1_3");
+			if ((abs(nTurnRate) < 0.30) and (abs(nRoll) < 3)) then // If we're very near our heading...
+				if ( bBored == FALSE ) then
+					bBored = TRUE;
+					fnThrottle_Hold(0.8); // set throttle back to normal
+				endif;
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2: //Instruct a left turn
+			Writeln ("CaseTurn2");
+			nAltitudeTarget 			= 5000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget 				= 100;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 10;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 2400;
+			nRPMToleranceMax			= 50;
+			nRPMToleranceMin			= -50;
+			nRollTarget					= -20;
+			nRollToleranceMax			= 10;
+			nRollToleranceMin			= -10;
+			nMoveOnTo					= CaseTurn3;
+			AP.HeadingHold = FALSE; // Allow the student to control the bank
+			AP.Heading = kHdg2; // Turn to this heading
+			fnSQ_NormalMsg(s14,0);
+			fnSQ_Play("S2-14"); // I want you to make a left turn
+			fnSQ_ToleranceFlag(TF_ROLL,10);
+			fnSQ_ChangeState(CaseTurn2_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn2_1: //Start the turn
+			Writeln ("CaseTurn2_1");
+			if (bWithinTolerance) and (bRollCheck) then
+				nTimer = 0; // Reset; nTimer now means "time in turn"
+				fnThrottle_Hold(0.85); // Throttle up
+				nState = CaseTurn2_2;
+			endif;
+		endcase;
+
+		case CaseTurn2_2: // instructional wavs while turning
+			writeln("CaseTurn2_2");
+			fnSQ_Play("s2-15"); // While we are banked
+			fnSQ_Play("S2-16"); // Notice how the real horizon
+			fnSQ_ChangeState(CaseTurn2_3);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn2_3: // Detection of the time to roll out
+			writeln("CaseTurn2_3");
+			// If we're getting close to the heading or this has been going on too long,
+			// then see if we're banked.  If so, prompt for roll out.  If not banked, move on.
+			if ((abs(Diff360(nYaw,kHdg2)) <= 30) or (nTimer > 60))then
+				nTimer = 0;
+				bRollCheck = FALSE;
+				if (((abs(nRoll) > 3) or (abs(nTurnRate) > 0.30))) then
+					fnSQ_NormalMsg(s21,0);
+					fnSQ_Play("S2-21");
+					fnSQ_ChangeState(CaseTurn2_4);
+					fnSQ_Synchronize;
+				else
+					bRollCheck = FALSE;
+					nState = CaseTurn2_4;
+				endif;
+				nRollTarget = 0;
+				nRollToleranceMax = 3;
+				nRollToleranceMin = -3;
+				fnSQ_ToleranceFlag(TF_ROLL,10);
+			endif;
+		endcase;
+
+		case CaseTurn2_4: // detection of roll out/clean up
+			writeln("CaseTurn2_3");
+			// If they're "close enough" to straight and level, move on.
+			if (bWithinTolerance) and (bRollCheck) then  // a 20 degree turn takes ~ 1 minute
+				fnThrottle_Hold(0.80);
+				fnSQ_ChangeState(CaseTurn3);
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn3: //Instruct a right turn
+			Writeln ("CaseTurn3");
+			nMoveOnTo = CaseTurn4;
+			bRollCheck = FALSE;
+			AP.HeadingHold		= FALSE; // Allow the student to control the bank
+			AP.WingLeveler		= FALSE; // We may have turned this on to recover a failed rollout
+			AP.Heading = kHdg3; // Turn to this heading
+			nRollTarget			= 10;
+			nRollToleranceMax	= 5;
+			nRollToleranceMin	= -5;
+			fnSQ_NormalMsg(s19,0);
+			fnSQ_Play("S2-19"); // I want you to make a right turn at 10 degrees
+			fnSQ_ToleranceFlag(TF_ROLL,10);
+			fnSQ_ChangeState(CaseTurn3_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn3_1: // Detecting the start/failure to start the turn
+			Writeln ("CaseTurn3_1");
+			if (bWithinTolerance) and (bRollCheck) then
+				nTimer = 0;
+				fnThrottle_Hold(0.85);
+				fnSQ_GaugeHilight("Heading_Indicator",7);
+				fnSQ_Play("s2-20"); // Notice how slowly the heading changes
+				fnSQ_ChangeState(CaseTurn3_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTurn3_3: // Detect time and need for roll out
+			writeln("CaseTurn3_3");
+			// Let then turn a while
+			if (nTimer > 15) then
+				nTimer = 0;
+				// If they're still banked (they should be), prompt roll out; else move on.
+				if (bWithinTolerance) and (bRollCheck) then
+					bRollCheck = FALSE;
+					fnSQ_NormalMsg(s21,0);
+					fnSQ_Play("S2-21");
+					fnSQ_ChangeState(CaseTurn3_4);
+					fnSQ_Synchronize;
+				else
+					bRollCheck = FALSE;
+					nState = CaseTurn3_4;
+				endif;
+				nRollTarget			= 0;
+				nRollToleranceMax	= 3;
+				nRollToleranceMin	= -3;
+				fnSQ_ToleranceFlag(TF_ROLL,5);
+			endif;
+		endcase;
+
+		case CaseTurn3_4: // Monitor roll out
+			writeln("CaseTurn3_4");
+			if (bWithinTolerance) and (bRollCheck) then  // a 20 degree turn takes ~ 1 minute
+				fnSQ_ChangeState(CaseTurn4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn4: //Demo Turn and talk
+			Writeln ("CaseTurn4");
+			bRollCheck = FALSE;
+			cpOffice.ElevatorTrim = 0.20; // Set trim so the airplane doesn't nose dive when the user releases control
+			nHeadingTarget = nYaw + 160;
+			if nHeadingTarget > 360 then nHeadingTarget = nHeadingTarget - 360; endif;
+			AP.Heading = nHeadingTarget; //089;
+			AP.HeadingHold = TRUE;
+			fnSQ_NormalMsg(sImFlying, 0);
+			fnSQ_Play("S2-22"); // Thank you, I've got the airplane again
+			fnSQ_GaugeHilight("Turn_Indicator",6);
+			fnSQ_NormalMsg(s23,0);
+			fnSQ_Play("S2-23"); // While we're turning, look at the turn coordinator
+			fnSQ_Play("S2-24"); // As long as the black ball
+			fnSQ_GaugeHilight("Heading_Indicator",4);
+			fnSQ_NormalMsg(s25,0);
+			fnSQ_Play("S2-25"); // There is one more thing about the heading indicator
+			fnSQ_Play("S2-26"); // To set the heading bug,
+			fnSQ_Play("S2-27"); // As you do this, you will probably notice
+			fnSQ_Play("S2-28"); // Scratch Audio?
+			fnSQ_Play("S2-31"); // Scratch Audio?  "The End"
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+		endcase;											// CaseTalk4
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

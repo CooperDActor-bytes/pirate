@@ -1,0 +1,291 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 5.abl
+ *
+ *    DESC:			Student Lesson 5: Takeoffs
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches takeoffs.  The student is
+ *						introduced to the takeoff procedure.   The student
+ *						will practice applying power, monitoring airspeed
+ *						during acceleration down the runway, rotating,
+ *						establishing an initial climb pitch, and then
+ *						establishing an enroute climb pitch.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson5;
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\student\lesson 5.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	nThereLat;              // Parking Spot Lat
+	static	number	nThereLon;              // Parking Spot Lon
+	static	number	bDoOnce;
+	static	number	bReminder1;
+	static	number	bReminder2;
+	static	number	bReminder3;
+	static	number	bReminder4;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnNormalMsg(sIdle);
+		fnThrottle_Hold(0.05);
+		AP.Master = FALSE;
+		bCrashCheck = FALSE;
+		//Setup runway coords
+		nPoint[0,LAT] 				= 47.49979;
+		nPoint[0,LON] 				= -122.7554;
+		nPoint[1,LAT] 				= 47.5;
+		nPoint[1,LON] 				= -122.7559;
+		nPoint[2,LAT] 				= 47.48573;
+		nPoint[2,LON] 				= -122.7695;
+		nPoint[3,LAT] 				= 47.48552;
+		nPoint[3,LON] 				= -122.7690;
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1: //talk up a storm
+			Writeln ("CaseTalk1");
+			nSpeedTarget 				= 10;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 0;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 1200;
+			nRPMToleranceMax			= 700;
+			nRPMToleranceMin			= -500;
+			nRollTarget					= 0;
+			nRollToleranceMax			= 10;
+			nRollToleranceMin			= -10;
+			nHeadingTarget 			= 190;
+			nHeadingToleranceMax 	= 15;
+			nHeadingToleranceMin 	= -15;
+			bParkingBrakeTarget		= TRUE;
+			bDoOnce = TRUE;
+			bReminder1 = FALSE;
+			bReminder2 = FALSE;
+			bReminder3 = FALSE;
+			VHFNAV1 = acMe.VORRadio(1);
+			fnTolerance(TF_PARKINGBRAKE,ON,0);
+			cpOffice.ElevatorTrim = 0.25; // Set trim for takeoff.
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("S5-1"); // In this lesson...take off
+			fnSQ_Play("S5-2"); // We're in Cessna 172
+			fnSQ_Play("S5-3"); // We aren't going anywhere yet
+			fnSQ_Pause(1);
+			fnSQ_Play("S5-4"); // Takeoffs are easy...
+			fnSQ_Play("S5-5"); // As you remember...
+			fnSQ_Play("S5-6"); // We want to make sure of...
+			fnSQ_NormalMsg(s7,0);
+			fnSQ_Play("S5-7"); // Check the final approach path..
+			fnSQ_Pause(10);
+			fnSQ_Play("S5-8"); // If the final approach path is clear...
+			fnSQ_Pause(2);
+			fnSQ_ChangeState(CaseTalk1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTalk1_1: //talk up a storm
+			Writeln ("CaseTalk1_1");
+			fnTolerance(TF_PARKINGBRAKE,OFF,0);
+			bParkingBrakeTarget		= FALSE;
+			fnSQ_Play("S5-9"); // I want you to release the brakes
+			fnSQ_NormalMsg(s9b,0);
+			fnSQ_Play("S5-9b"); // Ready?  Let's go!
+			fnSQ_ToleranceFlag(TF_SPEED,0);
+			fnSQ_ToleranceFlag(TF_PITCH,0);
+			fnSQ_ToleranceFlag(TF_PARKINGBRAKE,6);
+			fnSQ_ResetTimer;
+			fnSQ_ChangeState(CaseTaxi1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTaxi1:
+			Writeln ("CaseTaxi1");
+			if (bDoOnce) then
+				fnThrottle_Manual; // release throttle to user
+				fnAtStop; //Init this function
+				bDoOnce = FALSE;
+			endif;
+			if (bParkingBrakeCheck) and (not bRPMCheck) and (nTimer > 10) then bRPMCheck = TRUE; endif;
+			if (not (fnAtStop)) then
+				bRPMCheck = FALSE;
+				fnSQ_NormalMsg(s9c,0);
+				fnSQ_ToleranceFlag(TF_RUNWAY,16);
+				fnSQ_ChangeState(CaseTaxi1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTaxi1_1: // Instructions are over make sure the student is moving
+			Writeln ("CaseTaxi1_1");
+			if not bRunwayCheck then if (fnAtRunway) then fnTolerance(TF_RUNWAY,ON,0); endif; endif;
+			if (bWithinTolerance) and (fnAtStop) then
+				bAltitudeCheck = FALSE;
+				bSpeedCheck 	= FALSE;
+				bPitchCheck		= FALSE;
+				fnThrottle_Hold(0.05);
+				fnSQ_NormalMsg(s10, 0);
+				fnSQ_Play("S5-10"); // Let's do checklist
+				fnSQ_ChangeState(CaseRolling1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseRolling1: //run way down the run way
+			Writeln ("CaseRolling1");
+			fnThrottle_Manual;
+			bReminder1 = FALSE;
+			bReminder2 = FALSE;
+			bReminder3 = FALSE;
+			fnNormalMsg(s11);
+			fnSQ_Play("S5-11"); // Apply full power
+			fnSQ_ToleranceFlag(TF_PITCH,5);
+			fnSQ_ToleranceFlag(TF_THROTTLE,5);
+			fnSQ_ToleranceFlag(TF_ROLL,5);
+			fnSQ_ChangeState(CaseRolling1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseRolling1_1:
+			Writeln ("CaseRolling1_1");
+			if (not bReminder1) and (nIASNow > 10) then
+				fnSQ_NormalMsg(s13,0);
+				fnSQ_Play("S5-13"); // At 55 knots
+				bReminder1 			= TRUE;
+			endif;
+			if (not bReminder2) and (nIASNow >= 50) then
+				bPitchCheck			= FALSE;
+				bReminder2			= TRUE;
+			endif;
+			if (not bReminder3) and (nIASNow >= 55) then
+				nPitchTarget		= 10;
+				fnSQ_ToleranceFlag(TF_PITCH,5);
+				bWithinTolerance	= FALSE;
+				bReminder3 			= TRUE;
+			endif;
+			if (not bWOW) and (bRunwayCheck) then bRunwayCheck = FALSE; endif;
+			if (bWithinTolerance) and (not bWow) and (bPitchCheck) then
+				bRunwayCheck 		= FALSE;
+				bCrashCheck 		= TRUE;
+				bDoOnce	 			= TRUE;
+				fnSQ_NormalMsg(s14,0);
+				fnSQ_Play("S5-14"); // Look at the attitude indicator
+				fnSQ_Pause(2);
+				fnSQ_NormalMsg(s15,0);
+				fnSQ_Play ("S5-15");// When we're at 500 AGL
+				fnSQ_ChangeState(CaseClimb1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1: //wait for them to hit 85 knots.
+			Writeln ("CaseClimb1");
+			if (nAltAGL > 100) and (not bCrashCheck) then bCrashCheck = TRUE; endif;
+			if (nAltAGL > 500) and (bDoOnce) then
+				nSpeedTarget = 85;
+				nSpeedToleranceMin = 0;
+				fnSQ_NormalMsg(s15b,0);
+				fnResetToleranceFlags;
+				fnSQ_ToleranceFlag(TF_SPEED,5);
+				bDoOnce = FALSE;
+			endif;
+			if (bWithinTolerance) and (bSpeedCheck) and (nIASnow >= 85) then
+				fnToleranceChecking(FALSE);
+				fnSQ_ChangeState(CasePostflight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			fnSQ_Play("S5-16"); // That's about all there is...
+			fnSQ_Play("S5-17"); // You can end this flight...
+			fnSQ_Play("S5-18"); // As with all things...
+			fnSQ_Pause(2);
+			fnSQ_ChangeState(CasePostFlight_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CasePostFlight_1:
+			writeln("CasePostFlight_1");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.
+

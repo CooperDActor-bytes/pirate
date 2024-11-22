@@ -1,0 +1,705 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 7.abl
+ *
+ *    DESC:			Student Lesson 7: First Solo
+ *
+ *    COMMENTS:	As per Spec
+ *          You'll start with the Cessna 172 lined up on Runway 19 in
+ *          Bremerton. I’ll be talking with you via the radio and will
+ *          provide you with directions on where and when to maneuver
+ *          the airplane. You’ll takeoff, climb and make a rectangular
+ *          circuit about the runway using left hand turns. All turns
+ *          will be made at 20 degrees of bank. You’ll climb to a traffic
+ *          pattern altitude of 1,500 feet, level off and fly offset and
+ *          parallel to the runway in the opposite direction you departed.
+ *          When the runway threshold is about 45 degrees behind your left
+ *          shoulder you’ll make two 90 degree turns to align yourself with
+ *          the runway and, at the appropriate time, you’ll begin a
+ *          descent for landing.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson7;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\student\lesson 7.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1400;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 190;          // First heading...upwind
+	kHdg2           = 090;          // Crosswind
+	kHdg3           = 010;          // Downwind
+	kHdg4           = 000;          // Base
+	kHdg5           = 190;          // Final
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+	static	number	bReminder1;
+	static	number	bReminder2;
+	static	number	bLandedOffRunway;
+	static	number	bTaxiedOffRunway;
+	static	number	bStoppedOffRunway;
+	static	number	nLat;
+	static	number	nLon;
+	static	number	bDoGood;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+
+		fnMsg(normal,sIdle);
+		fnThrottle_Hold(0.05);
+		Writeln ("Finished with Init");
+		bCrashCheck = FALSE;
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	nLat = posHere.Latitude;
+	nLon = posHere.Longitude;
+
+	if (AP.Master) then  //no autopilot
+		AP.Master = FALSE;
+		// fnSQ_Play("Dont_try"); // Sound doesn't exist
+		fnSQ_Synchronize;
+	endif;
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+		case CaseTalk1: // Sitting at the runnway, now be a good student and don't move.
+			Writeln ("CaseTalk1");
+			fnSQ_NormalMsg(s1,0);
+			fnResetToleranceFlags;
+			nHeadingTarget			= 190;
+			nHeadingToleranceMax		= 10;
+			nHeadingToleranceMin		= -10;
+			nSpeedTarget 			= 0;
+			nSpeedToleranceMax		= 3;
+			nSpeedToleranceMin		= 0;
+			nThrottleTarget 		= 0;
+			nThrottleToleranceMax		= 0.1;
+			nThrottleToleranceMin		= 0;
+			bDoOnce				= FALSE;
+			fnToleranceChecking(TRUE);
+			bThrottleCheck = TRUE;
+			bSpeedCheck = TRUE;
+			fnSQ_ChangeState(CaseTalk1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1_1: // Talk and get done talking
+			Writeln ("CaseTalk1_");
+			if (not bDoOnce) then
+				fnSQ_Play("solo1"); //OK partner, now for the moment of truth
+				fnSQ_Play("solo2"); //I’ll be telling you by radio when to turn to fly the pattern
+				fnSQ_Play("solo3"); //I’d like to see you do that on your own.
+				fnSQ_Play("solo4"); //But here’s some last minute advice
+				fnSQ_Play("solo5"); //Don’t forget that pitch, power, and trim is your key
+				fnSQ_Play("solo8"); //Notice that the heading bug is set to the runway heading
+				fnSQ_Play("solo6"); //All right.  Time to solo.
+				fnSQ_Play("solo7"); //So here you go. I want you to take off, climb to 1500 feet, and maintain 80 knots during your climb.
+				fnSQ_NormalMsg(s7,0);
+				fnSQ_ThrottleManual;
+				bDoOnce = TRUE;
+			endif;
+
+			if (bDoOnce) then
+				nSpeedTarget 				= 80;
+				nSpeedToleranceMax		= 25;
+				nSpeedToleranceMin		= -10;
+				nPitchTarget 				= 10;
+				nPitchToleranceMax		= 7;
+				nPitchToleranceMin		= -5;
+				nThrottleTarget 			= 1;
+				nThrottleToleranceMax	= 0.1;
+				nThrottleToleranceMin	= -0.3;
+				nRollTarget					= 0;
+				nRollToleranceMax			= 10;
+				nRollToleranceMin			= -10;
+				nAltitudeTarget			= 1500;
+				nAltitudeToleranceMax	= 100;
+				nAltitudeToleranceMin	= -150;
+				nToleranceTimeWarn		= 20;
+				nToleranceTimeErr			= 20;
+				bDoOnce						= FALSE;
+				bThrottleCheck 			= FALSE;
+				bSpeedCheck 				= FALSE;
+				nMoveOnTo					= CaseTimeOut; //if they time out - quit the lesson
+				//bTextWarnings           	= FALSE;// disable text and audio warnings
+				//bAudioWarnings          	= FALSE;
+				//bToleranceTimeCheck		= FALSE;
+
+				fnSQ_ChangeState(CaseTakeOff);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeoff: // Takeoff
+			Writeln ("CaseTakeoff");
+			//Setup Bremerton runway coords
+			nPoint[0,LAT] 				= 47.49979;
+			nPoint[0,LON] 				= -122.7554;
+			nPoint[1,LAT] 				= 47.5;
+			nPoint[1,LON] 				= -122.7559;
+			nPoint[2,LAT] 				= 47.48573;
+			nPoint[2,LON] 				= -122.7695;
+			nPoint[3,LAT] 				= 47.48552;
+			nPoint[3,LON] 				= -122.7690;
+
+			bHeadingCheck				= TRUE;
+			bRunwayCheck				= TRUE;
+			bCrashCheck					= TRUE;
+			bRollCheck					= TRUE;
+			fnSQ_ToleranceFlag(TF_THROTTLE,10);
+			fnSQ_ToleranceFlag(TF_PARKINGBRAKE,20);
+			fnSQ_ToleranceFlag(TF_SPEED,40);
+			fnSQ_ChangeState(CaseTakeoff_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeOff_1: //takeoff - wait for the student to throttle up.
+			Writeln ("CaseTakeOff_1");
+			if (ecEngines[0].Throttle > (nThrottleTarget + nThrottleToleranceMin)) then
+				nState = CaseTakeOff_2;
+				fnSQ_ResetTimer;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTakeOff_2: //takeoff - down the runway and pitch up
+			Writeln ("CaseTakeOff_2");
+			if (not bWow) then
+				fnSQ_ToleranceFlag(TF_PITCH,5);
+				bRunwayCheck = FALSE;
+				fnSQ_ChangeState(CaseClimb1);
+				fnSQ_Synchronize;
+			endif;
+
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1: // check and see if they made a nice takeoff
+			Writeln("CaseClimb1");
+			strAString = "";
+			if (nPitchMax <> 0) then concat(strAString,sPitchHigh); endif;
+			if (nPitchMin <> 0) then concat(strAString,sPitchLow); endif;
+			if (nThrottleMax <> 0) then concat(strAString,sThrHigh); endif;
+			if (nThrottleMin <> 0) then concat(strAString,sThrLow); endif;
+			if (nSpeedMax <> 0) then concat(strAString,sIASHigh); endif;
+			if (nSpeedMin <> 0) then concat(strAString,sIASLow); endif;
+			if (nHeadingMax <> 0) then concat(strAString,sHeadingSoon); endif;
+			if (nHeadingMin <> 0) then concat(strAString,sHeadingLate); endif;
+			if (strAString == "") then
+				fnSQ_Play("solo9"); //Nice takeoff.
+			else
+//				fnSQ_Play("solo9a"); //bad takeoff.
+			endif;
+			fnSQ_Play("solo10"); //Continue your climb to traffic pattern altitude.
+			fnSQ_ChangeState(CaseClimb1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1_1: // Climb to 1500'
+			Writeln ("CaseClimb1_1");
+
+			if (nAltitude >= (nAltitudeTarget + nAltitudeToleranceMin)) then
+				bPitchCheck = FALSE;
+			endif;
+
+			// The entire point to this segment is achieving 1500' - let's make sure they do it.
+			// Option 1: They do it expeditiously and hit minimum altitude before time expires.
+			// Option 2: They're slow.  At 10 deg. pitch, the student ought to hit 1500' well under 3 minutes.
+
+			if ((nAltitude >= (nAltitudeTarget - 50)) or (nTimer > 190)) and (not bAltitudeCheck) then
+				bAltitudeCheck 		= TRUE;
+				bPitchCheck		= FALSE;  // Should be off already, but just to be safe.
+				bThrottleCheck		= FALSE;
+				bWithinTolerance 	= FALSE;
+				bHeadingCheck		= TRUE;
+				nTimer = 0;
+			endif;
+
+			if (nIASNow >= (nSpeedTarget + nSpeedToleranceMin)) and (not bSpeedCheck) then
+				bThrottleCheck = FALSE;
+				bSpeedCheck = TRUE;
+				bWithinTolerance = FALSE;
+				nTimer = 0;
+			endif;
+
+			if (bWithinTolerance) and (bSpeedCheck) and (bAltitudeCheck) then nManTime = nManTime + 1; endif;
+			if (bWithinTolerance) and (nManTime >= 5) then nState = CaseTurn1; endif;
+
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+		case CaseTurn1:
+			writeln("CaseTurn1");
+			if (nLat <=  47.4833) then
+				bRollCheck				= FALSE;
+				bHeadingCheck			= FALSE;
+				AP.Heading 				= 100;
+				fnSQ_NormalMsg(s11,0);// turn left 90 degrees to a heading of 100 degrees. Use a 20 degree bank.
+				fnSQ_Play("solo11"); //Ok, it looks like you’ve leveled off, so turn left 90 degrees
+				fnSQ_ChangeState(CaseTurn1_1);
+				fnSQ_Synchronize;
+			else
+				nRollTarget 		= 0;
+				bRollCheck			= TRUE;
+			endif;
+		endcase;
+
+		case CaseTurn1_1:
+			writeln("CaseTurn1_1");
+			//  we want to prompt student to turn left 90 degrees when we reach a certain latitude
+			//  prompt student to do turn
+			//  monitor heading and speed
+			nHeadingTarget		= 100;
+			nRollTarget			= -20;
+			bDoOnce 				= FALSE;
+			//bTextWarnings				= FALSE; // disable text and audio warnings
+			//bAudioWarnings			= FALSE;
+			//bToleranceTimeCheck			= FALSE;
+			fnSQ_ToleranceFlag(TF_ROLL, 10);
+			fnSQ_ToleranceFlag(TF_HEADING, 35);
+			fnSQ_ChangeState(CaseTurn1_2);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn1_2:
+			writeln("CaseTurn1_1");
+			if (nLat <= 47.4667) and (bWarnHeading) and (bDoOnce) and (nTimer > 10) then
+				//  issue warning about doing turn and end simulation
+				fnSQ_ErrorMsg(s11,0);
+				fnSQ_Play("soloding9"); //Well, you seemed to have missed an important instruction to turn left.
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			endif;
+			if (nLat <=  47.475) and (bWarnHeading) and (not bDoOnce) then
+				//  issue warning about doing turn and continue to monitor
+				fnSQ_WarningMsg(s11,0);
+				fnSQ_Play("soloding2"); //You need to turn to a heading of one zero zero right now
+				bDoOnce = TRUE;
+				nTimer = 0;
+			endif;
+			if (Diff(nYaw,100) < 20) then  // is student at correct heading?
+				fnClearMsg;
+				bRollCheck = FALSE;
+				nTimer = 0;
+				fnSQ_ChangeState(Case2ndSeg);  // if yes, then continue
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case Case2ndSeg:
+			writeln("Case2ndSeg");
+			//  prompt student to do turn
+			//  monitor heading and speed
+			if (Diff (nRoll,0) < 2 ) then
+				fnSQ_NormalMsg(s11a,0);
+			endif;
+
+			if (nLon >= -122.7583) then
+				bHeadingCheck			= FALSE;
+				bRollCheck 			= FALSE;
+				AP.Heading 			= 10;
+				fnSQ_NormalMsg(s12,0); //Make another 90 degree left turn to a heading of 010. Use a 20 degree bank.
+				fnSQ_Play("solo12"); //It’s time to make another left turn.
+				fnSQ_ChangeState(CaseTurn2);
+				fnSQ_Synchronize;
+			else
+				if (nTimer > 10) then
+					nRollTarget 			= 0;
+					bRollCheck			= TRUE;
+				endif;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn2:
+			writeln ("CaseTurn2");
+				nHeadingTarget			= 10;
+				nRollTarget 			= -20;
+				//bTextWarnings			= FALSE; // disable text and audio warnings
+				//bAudioWarnings		= FALSE;
+				//bToleranceTimeCheck		= FALSE;
+				bDoOnce 			= FALSE;
+				fnSQ_ToleranceFlag(TF_HEADING, 35);
+				fnSQ_ToleranceFlag(TF_ROLL, 15);
+				fnSQ_ChangeState(CaseTurn2_1);
+				fnSQ_Synchronize;
+		endcase;
+
+		case CaseTurn2_1:
+			writeln ("CaseTurn2_1");
+
+			if ( nLon >= -122.73 and bWarnHeading ) and (bDoOnce) and (nTimer > 15) then
+				//  issue warning about doing turn and end simulation
+				fnSQ_ErrorMsg(s12,0);
+				fnSQ_Play("soloding9"); //Well, you seemed to have missed an important instruction to turn left.
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			endif;
+			if (nLon >=  -122.74) and (bWarnHeading) and (not bDoOnce) then
+				//  issue warning about doing turn and continue to monitor
+				fnSQ_WarningMsg(s12,0);
+				fnSQ_Play("soloding2"); //You need to turn to a heading of zero one zero right now
+				nTimer = 0;
+				bDoOnce = TRUE;
+			endif;
+			if (Diff (nYaw,10) < 20) and (not bWarnHeading) then     // is student at correct heading?
+				fnClearMsg;
+				bRollCheck = FALSE;
+				fnSQ_ChangeState(CaseDownwind1);  // if yes, then continue
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDownwind1:
+			writeln ("CaseDownwind1");
+			fnSQ_Play("solo14"); //Looking good
+			fnSQ_NormalMsg(s11a,0);
+			//bTextWarnings			= TRUE;// enable text and audio warnings
+			//bAudioWarnings		= TRUE;
+			//bToleranceTimeCheck		= FALSE;
+			nRollTarget			= 0;
+			fnSQ_ToleranceFlag(TF_ROLL, 10);
+			fnSQ_ChangeState(CaseAbeam1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseAbeam1:
+			writeln ("CaseAbeam1");
+			if ( nLat > 47.4745 ) then   // are we abeam the runway?
+				// tell user to descend to 1300 feet and apply 10 degress of flap
+				bAltitudeCheck = FALSE;
+				fnSQ_NormalMsg(s15,0);
+				fnSQ_Play("solo15"); //OK, you’re abeam the runway threshold so apply 10 degrees of flaps and maintain
+				nHeadingTarget				= 10;
+				nAltitudeTarget			= 1300;
+				nAltitudeToleranceMax	= 150;
+				nFlapsTarget				= 1;
+				//bTextWarnings           	= TRUE;	// enable text and audio warnings
+				//bAudioWarnings          	= TRUE;
+				//bToleranceTimeCheck		= FALSE;
+				fnSQ_ToleranceFlag(TF_ALTITUDE, 40);
+				fnSQ_ToleranceFlag(TF_FLAPS,10);
+				fnSQ_ChangeState(CaseAbeam1_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseAbeam1_1:
+			writeln ("CaseAbeam1_1");
+			if (cpOffice.FlapsHandlePos == 1) and (Diff (nAltitude, 1300) < 100) then
+				fnSQ_NormalMsg(s11a,0);
+				bFlapsCheck = FALSE; // we should turn off flaps because the sound file say's they can set it to 20 even
+			endif;
+			if (nLat >= 47.5) then
+				bRollCheck			= FALSE;
+				bHeadingCheck		= FALSE;
+				AP.Heading 			= 280;
+				fnSQ_NormalMsg(s16,0);
+				fnSQ_Play("solo16"); //Now it’s time to make another 90 degree turn
+				fnSQ_ChangeState(CaseTurn3);
+				fnSQ_Synchronize;
+			else
+				nRollTarget			= 0;
+				bRollCheck			= TRUE;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn3:
+			writeln("CaseTurn3");
+			nRollTarget 			= -20;
+			nHeadingTarget 			= 280;
+			//bTextWarnings			= FALSE;	// disable text and audio warnings
+			//bAudioWarnings		= FALSE;
+			//bToleranceTimeCheck		= FALSE;
+			bDoOnce				= FALSE;
+			fnSQ_ToleranceFlag(TF_HEADING, 30);
+			fnSQ_ToleranceFlag(TF_ROLL, 5);
+			fnSQ_ChangeState(CaseTurn3_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn3_1:
+			writeln ("CaseTurn3_1");
+			// check bWarnAltitude and issue nasty warning message if not at 1300 feet
+			if (nLat > 47.525) and (bWarnHeading) and (bDoOnce) and (nTimer > 15)then
+				//  issue warning about doing turn and end simulation
+				fnSQ_ErrorMsg(s16,0);
+				fnSQ_Play("soloding9"); //Well, you seemed to have missed an important instruction to turn left.
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			endif;
+			if (nLat >=  47.5167) and (bWarnHeading) and (not bDoOnce) then
+				//  issue warning about doing turn and continue to monitor
+				fnSQ_WarningMsg(s16,0);
+				fnSQ_Play("soloding4"); //You need to turn to a heading of two eight zero right now
+				bDoOnce = TRUE;
+				nTimer = 0;
+			endif;
+			if (not bWarnHeading) and (Diff (nYaw, 280) < 20) then
+				fnClearMsg;
+				bRollCheck = FALSE;
+				fnSQ_NormalMsg(s11a,0);
+				nTimer = 0;
+				fnSQ_ChangeState(CaseBase1);  // if yes, then continue
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseBase1:
+			writeln("CaseBase1");
+     		if (nLon <= -122.7266) or (nLocalizer < 10) then
+				AP.Heading 				= 190;
+				bHeadingCheck				= FALSE;
+				bRollCheck				= FALSE;
+				bAltitudeCheck 				= FALSE;
+				fnSQ_NormalMsg(s17,0);
+				fnSQ_Play("solo17"); //Now it’s time to make your last 90 degree turn
+				fnSQ_ChangeState(CaseTurn4);
+				fnSQ_Synchronize;
+			else
+				if (nTimer > 10) then
+					nRollTarget 			= 0;
+					bRollCheck			= TRUE;
+				endif;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		//todo: This turn seems to happen too late. User has already passed the airport by the time they are instructed to turn.
+		case CaseTurn4:
+			writeln("CaseTurn4");
+			//  prompt student to do turn
+			//  should we monitor RPM?
+			nHeadingTarget				= 190;
+			nSpeedToleranceMax 			= 15;
+			nSpeedToleranceMin			= -15;
+			nRollTarget				= -20;
+			//bTextWarnings           		= FALSE; // disable text and audio warnings
+			//bAudioWarnings          		= FALSE;
+			//bToleranceTimeCheck			= FALSE;
+			fnSQ_ToleranceFlag(TF_ROLL, 5);
+			bDoOnce					= FALSE;
+			fnSQ_ChangeState(CaseTurn4_1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTurn4_1:
+			writeln ("CaseTurn4_1");
+			if ( nLon < -122.75 ) and (bWarnHeading) and (bDoOnce) and (nTimer > 15) then
+				//  issue warning about doing turn and end simulation
+				fnSQ_ErrorMsg(s17,0);
+				fnSQ_Play("soloding9"); //Well, you seemed to have missed an important instruction to turn left.
+				fnSQ_ChangeState(CaseEnd);
+				fnSQ_Synchronize;
+			endif;
+			if (nLon <=  -122.7417) and (bWarnHeading) and (not bDoOnce) then
+				//  issue warning about doing turn and continue to monitor
+				fnSQ_WarningMsg(s17,0);
+				fnSQ_Play("soloding5"); //You don't seem to be lined up with the runway, so turn make a turn to the left.
+				bDoOnce = TRUE;
+				nTimer = 0;
+			endif;
+			if (Diff (nYaw,190) < 20) then
+				bRollCheck = FALSE;
+				fnSQ_NormalMsg(s18,0);
+				fnSQ_ChangeState(CaseFinal1);  // if yes, then continue
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		//todo: should probably add in code to detect missed approach and kick the user out if this occurs
+		case CaseFinal1:
+			writeln("CaseFinal1");
+			fnSQ_Play("solo18"); //Ok ,the runway is in front of you
+			bGlideSlopeCheck = TRUE;
+			bLocalizerCheck = TRUE;
+			fnSQ_ChangeState(CaseLanding);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding:
+			writeln("CaseLanding");
+			if (nAltAGL <= 350) then
+				fnSQ_NormalMsg(s19,0);
+				fnSQ_Play("solo19"); //Start your descent and line up on a good glidepath using the VASI.
+				fnSQ_Play("solo20"); //So come pick me up down here
+				// set flags to turn off localizer and glide slope checks
+				bSpeedCheck				= FALSE;
+				bLocalizerCheck				= FALSE;
+				bGlideSlopeCheck			= FALSE;
+				bRollCheck 				= FALSE;
+				nTimer = 0;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_1: //landing
+			Writeln ("CaseLanding_1");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+			if (bWOW) then
+				bRunwayCheck = TRUE;
+				bDoOnce = TRUE;
+				bLandedOffRunway = TRUE;
+				bTaxiedOffRunway = FALSE;
+				bStoppedOffRunway = TRUE;
+
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_4:
+			writeln("CaseLanding_4");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				nTimer 					= 0;
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 5;
+				nSpeedToleranceMin	= 0;
+				bDoOnce = FALSE;
+			endif;
+			if not bTaxiedOffRunway then bTaxiedOffRunway = bWarnRunway; endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_5);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding_5:
+			writeln("CaseLanding_5");
+			if (bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway) then
+				fnSQ_NormalMsg(sGoodEffort,0);
+				fnSQ_Play("CommonGoodEffort");	// That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				fnSQ_NormalMsg(sGoodEffort,0);
+				fnSQ_Play("solo22"); //Well, you got the plane on the ground, but I think you might need to practice a bit more.
+				fnSQ_Pause(2);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				nDoneFlag = 2;
+				fnSQ_NormalMsg(sGreatJob,0);
+				fnSQ_Play("solo21"); //Well done! Congratulations on your first solo
+				fnSQ_Pause(2);
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+			fnSQ_Synchronize;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

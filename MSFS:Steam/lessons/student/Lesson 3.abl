@@ -1,0 +1,760 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 3.abl
+ *
+ *    DESC:			Student Lesson 3: Climbs & Descents
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches climbing and descending.  This
+ *						lesson introduces the Tachometer and Flaps.
+ *						Students will refer to other instruments introduced
+ *						in previous lessons.  The student will practice
+ *						adjusting the power setting, changing pitch and
+ *						trim to enter climbs and descents, and changing
+ *						trim.  The student will also practice lowering the
+ *						flaps and monitoring airspeed/pitch, as a way to
+ *						configure the aircraft for landing
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson3;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\student\lesson 3.msg";
+	#include "messages\lib\tolerances.msg";
+
+	//Key headings and altitudes for this flight/lesson	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+	static	number	bReminder1;
+	static	number	bReminder2;
+	static	number	bReminder3;
+	static	number	bReminder4;
+	static	number	bReminder5;
+	static	number	bBored;					// This variable is used in turn "nudge" code.
+	static	number	nTimeTarget;
+	static	number	nFlapsLast;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\STDChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		fnNormalMsg(sThrottleSet);
+		fnThrottle_HoldRPM(2400);
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+code
+
+	#include "script\lib\STDHousekeeping.abl";
+
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1: //Talk 'em to death
+		 	Writeln ("CaseTalk1");
+			fnThrottle_HoldRPM(2400);
+			bReminder1 = FALSE;
+			bReminder2 = FALSE;
+			bReminder3 = FALSE;
+			bReminder4 = FALSE;
+			bReminder5 = FALSE;
+			fnToleranceChecking(FALSE);
+			fnSQ_NormalMsg(s1,0);
+			fnSQ_Play("S3-1"); // In this lesson, we're going to go through
+			fnSQ_Play("S3-2"); // In this lesson, we're going to learn
+			fnSQ_GaugeHilight("Attitude",8);
+			fnSQ_Play("S3-3"); // As always, because this is a simulator,
+			fnSQ_Play("S3-4"); // It says we are flying straight and level
+			fnSQ_Pause(3);
+			fnSQ_GaugeHilight("Tachometer",5);
+			fnSQ_Play("S3-5"); // Check the tachometer on the lower right hand
+			fnSQ_Pause(2);
+			fnSQ_Play("S3-6"); // Climbing an airplane consists of three steps
+			fnSQ_Play("S3-7"); // We always, always do these steps in this order
+			fnSQ_ChangeState(CaseClimb1);
+			fnSQ_Synchronize;
+		endcase; //CaseTalk1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb1: //Demo a 1000' climb
+			Writeln ("CaseClimb1");
+			fnSQ_Play("S3-8"); // Watch as I demonstrate
+			fnSQ_Play("S3-9"); // I begin by raising the nose
+			fnSQ_ChangeState(CaseClimb1_1);
+			fnSQ_Play("S3-10"); // As the nose comes up
+			fnSQ_Synchronize;
+		endcase; //CaseClimb1
+
+		case CaseClimb1_1:
+			Writeln ("CaseClimb1_1");
+			AP.AltitudeHold = FALSE;
+			nTemp = cpOffice.ElevatorTrim;
+			if (nPitch < 10) then
+				if (nTemp < 0.4900) then
+					nTemp = nTemp + 0.05;
+				else
+					nTemp = 0.4900;
+				endif;
+			endif;
+			cpOffice.ElevatorTrim = nTemp;
+			if (nPitch >= 5.0) and (nIASNow < 95) then
+				Writeln (fn1Str1Num("AS= ",nIASNow));
+				nAltitudeTarget = 4000;
+				AP.Altitude = nAltitudeTarget;
+				AP.VerticalSpeed = 700;
+				AP.AltitudeHold = TRUE;
+				fnThrottle_Hold(1.0);
+				fnSQ_GaugeHilight("Airspeed",6);
+				fnSQ_Play("S3-11"); // when the attitude selected
+				fnSQ_Pause(2);
+				fnSQ_Play("S3-18"); // every aiplane has a speed at which
+				fnSQ_ChangeState(CaseClimb1_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb1_1
+
+		case CaseClimb1_2:
+			Writeln ("CaseClimb1_2");
+			if (nAltitude >= (nAltitudeTarget - 500)) then
+				fnSQ_Play("S3-12"); // As the airplane approaches 200'
+				fnSQ_ChangeState(CaseClimb1_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb1_2
+
+		case CaseClimb1_3:
+			Writeln ("CaseClimb1_3");
+			if (nAltitude >= (nAltitudeTarget - 200)) then
+				AP.VerticalSpeed = 100;
+				AP.AirSpeedHold = FALSE;
+				fnSQ_Play("S3-13"); // I gently push the nose over
+				nState = CaseClimb1_4;
+			endif;
+		endcase; //CaseClimb1_4
+
+		case CaseClimb1_4:
+			Writeln ("CaseClimb1_4");
+			if (nIASNow >= 100) then
+				fnThrottle_HoldRPM(2500);
+				fnSQ_Play("S3-14"); // When reaching this speed, I reduce power
+				fnSQ_ChangeState(CaseTalk2);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb1_4
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2: //Student climbs 1000'
+			Writeln ("CaseTalk2");
+			//set the target and tolerances for this segment
+			nAltitudeTarget 			= 5000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget 				= 75;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget 				= 10;
+			nPitchToleranceMax 		= 5;
+			nPitchToleranceMin 		= -5;
+			nThrottleTarget 			= 1;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget 					= 2500;
+			nRPMToleranceMax			= 50;
+			nRPMToleranceMin			= -50;
+			nRollTarget					= 0;
+			nRollToleranceMax			= 5;
+			nRollToleranceMin			= -5;
+			nTimeTarget					= 30;
+			ap.Altitude = nAltitudeTarget;
+			bReminder1 = FALSE;
+			fnResetToleranceFlags;
+			bPitchCheck = TRUE;
+			bThrottleCheck = TRUE;
+			bSpeedCheck = TRUE;
+			bBored = FALSE;
+			fnSQ_Play("S3-15"); // Okay, now that you've seen how it's done
+			fnSQ_ChangeState(CaseClimb2);
+			fnSQ_Tolerance(20);
+			fnSQ_Synchronize;
+		endcase; //CaseTalk2
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb2: //wait for climb to start, move on when throttle is max
+			Writeln ("CaseClimb2");
+			if (not bReminder1) then
+				fnSQ_NormalMsg(s16,0);
+				fnSQ_Play("S3-16"); // Ready, OK, You've got the controls
+				AP.AltitudeHold = FALSE;
+				fnThrottle_Manual;
+				bReminder1 = TRUE;
+			endif;
+        	// Detect start of climb
+			if (bWithinTolerance) then  //they've pitched up and set the throttle - move on
+				nTimer = 0;
+				bReminder1 = FALSE;
+				bBored = FALSE;
+				nState = CaseClimb2_1;
+			endif;
+		endcase; //CaseClimb2
+
+		case CaseClimb2_1:  //Wait for altitude watching tolerances & overall time
+			Writeln ("CaseClimb2_1");
+			if (nAltitude >= (nAltitudeTarget - 500)) and (not bReminder1) then
+				fnSQ_Play("S3-22"); // Remember: Attitude, Power and Trim in that order.
+				bReminder1 = TRUE;
+			endif;
+			if (nAltitude >= (nAltitudeTarget - 200)) and (not bReminder3) then
+				fnSQ_NormalMsg(s20,0);
+				fnResetToleranceFlags; //while user levels
+				bThrottleCheck = TRUE;
+				bReminder3 = TRUE
+			endif;
+			if (nAltitude >= nAltitudeTarget) and (not bAltitudeCheck)  then
+				nSpeedTarget = 100;
+				fnTolerance(TF_ALTITUDE,ON,0);
+				fnTolerance(TF_SPEED,ON,30);
+			endif;
+			if (bWithinTolerance) and (nIASNow >= 100) then //they've reached altitude - move on
+				bReminder1 = FALSE;
+				bReminder2 = FALSE;
+				bReminder3 = FALSE;
+				fnTolerance(TF_SPEED,OFF,0);
+				fnResetToleranceFlags;
+				fnToleranceChecking(FALSE);
+				nTimer = 0;
+				fnSQ_NormalMsg(s23,0);
+				fnSQ_Play("S3-23"); // Excellent Job! Let me take over for a moment
+				fnThrottle_HoldRPM(2500);
+				AP.Altitude = nAltitudeTarget;
+				if ((nAltitude > nAltitudeTarget) and (acMe.VerticalSpeed < 500) ) then
+					AP.VerticalSpeed = -200;
+				endif;
+				if (nAltitude < nAltitudeTarget) then
+					AP.VerticalSpeed = 200;
+				endif;
+				AP.AltitudeHold = TRUE;
+				AP.HeadingHold = TRUE;
+				AP.Master = TRUE;
+				fnSQ_ChangeState(CaseTalk3);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb2_1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk3: //Talk about Descents
+			Writeln ("CaseTalk3");
+	 		nAltitudeTarget 			= 4000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget				= 90;
+			nSpeedToleranceMax		= 10;
+			nSpeedToleranceMin		= -10;
+			nPitchTarget 				= -5;
+			nThrottleTarget			= 0;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget					= 2500;
+			nRollTarget					= 0;
+			fnSQ_Play("S3-24"); // A descent is a little different
+			fnSQ_Play("S3-25"); // Thats why there are no gliders stuck
+			fnSQ_Play("S3-26"); // We do, however, have a choice of the speed
+			fnSQ_Play("S3-27"); // If we desire, we can adjust our rate of descent
+			fnSQ_Play("S3-28"); // Don't worry, the engine won't quit
+			fnSQ_Play("S3-29"); // In the descent, we don't have to pitch over very much
+			fnSQ_Play("S3-30"); // With all that in mind,
+			fnSQ_Play("S3-31"); // If you're going too fast
+			fnSQ_ChangeState(CaseTalk3_1);
+			fnSQ_Synchronize;
+		endcase; //CaseTalk3
+
+		case CaseTalk3_1:
+			Writeln("CaseDesc1");
+			fnSQ_NormalMsg(s32a,0);
+			fnSQ_Play("S3-32"); // Ready? I'll keep the wings level for you
+			fnThrottle_Manual;
+			nTimer = 0;
+			AP.AltitudeHold = FALSE;
+			AP.Altitude = nAltitudeTarget;
+			fnSQ_ChangeState(CaseDesc1);
+			bThrottleCheck = TRUE;
+			bSpeedCheck = TRUE;
+			fnSQ_Tolerance(10);
+			fnSQ_Synchronize;
+		endcase; // CaseTalk3_1
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseDesc1: //Student descends 1000;
+			Writeln ("CaseDesc1");
+			if (nAltitude <= (nAltitudeTarget + 200))  and (not bReminder1) then
+				bSpeedCheck = FALSE;
+				bThrottleCheck = FALSE;
+				bWithinTolerance = FALSE;
+				bReminder1 = TRUE;
+			endif;
+			if (nAltitude <= nAltitudeTarget) and (not bReminder2) then
+				fnMsg(Normal, s32b);
+				bAltitudeCheck = TRUE;
+				bWithinTolerance = FALSE;
+				nTimer = 0;
+				bReminder2 = TRUE;
+			endif;
+			if (nTimer > 20) and (bReminder2) and (not bReminder3) then
+				nSpeedTarget = 100;
+				bSpeedCheck = TRUE;
+				bWithinTolerance = FALSE;
+				bReminder3 = TRUE;
+			endif;
+			if (bWithinTolerance) and (bReminder2) and (nIASNow >= 100) then
+				bReminder1 = FALSE;
+				bReminder2 = FALSE;
+				bReminder3 = FALSE;
+				nTimer = 0;
+				fnResetToleranceFlags;
+				fnToleranceChecking(FALSE);
+				fnSQ_NormalMsg(s33,0);
+				fnSQ_Play("S3-33"); // All right, You did fine, Captain!!!
+				fnThrottle_HoldRPM(2500);
+				AP.Altitude = nAltitudeTarget;
+				if (nIASNow < 100) then
+					fnThrottle_Hold(1.0);
+				else
+					fnThrottle_Hold(0.9);
+				endif;
+				AP.VerticalSpeed = 500;
+				AP.AltitudeHold = TRUE;
+				AP.HeadingHold = TRUE;
+				AP.Master = TRUE;
+				fnSQ_ChangeState(CaseTalk4);
+				fnSQ_Synchronize;
+			endif;
+		endcase; // caseDesc1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk4: //Talk about flaps
+	     	Writeln ("CaseTalk4");
+			nAltitudeTarget			= 3000;
+			nAltitudeToleranceMax	= 100;
+			nAltitudeToleranceMin	= -100;
+			nSpeedTarget				= 75;
+			nSpeedToleranceMax 		= 10;
+			nSpeedToleranceMin 		= -10;
+			nPitchTarget				= 5;
+  			nPitchToleranceMax		= 5;
+  			nPitchToleranceMin		= -5;
+			nThrottleTarget			= 0;
+			nThrottleToleranceMax	= 0.1;
+			nThrottleToleranceMin	= -0.1;
+			nRPMTarget					= 2500;
+			nTimeTarget					= 40;
+			fnSQ_Play("S3-34"); // It's time to talk about flaps
+			fnSQ_Play("S3-35"); // When it's time to land
+			fnSQ_Play("S3-36"); // Most airplanes have flaps
+			fnSQ_Play("S3-37"); // This airplane has 4 flap settings
+			fnSQ_GaugeHilight("Flaps",8);
+			fnSQ_Play("S3-38"); // Notice that the flap selector
+			fnSQ_Play("S3-39"); // Each time you press the F7 key
+			fnSQ_Play("S3-40"); // Now I want you to practice extending
+			fnSQ_Play("S3-43"); // You'll find that the nose of the airplane
+			fnSQ_Play("S3-41"); // Ready, I'll keep the wings level
+			fnSQ_ChangeState(CaseTalk4_1);
+			fnSQ_NormalMsg(s42a,0);
+			fnSQ_Play("S3-42"); // Ok, reduce the power to idle
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseTalk4_1:
+	     	Writeln ("CaseTalk4_1");
+			nTimer = 0;
+			AP.Altitude = nAltitudeTarget;
+			AP.AltitudeHold = FALSE;
+			fnThrottle_Manual;
+			nFlapsLast = 0;
+			fnSQ_ChangeState(CaseClimb3);
+			bThrottleCheck = TRUE;
+			bWithinTolerance = FALSE;
+			fnSQ_Tolerance(5);
+			fnSQ_Synchronize;
+		endcase; //CaseTalk4_1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb3: //Descend 2000'
+			Writeln ("CaseClimb3");
+			if (bWithinTolerance) and (bThrottleCheck) then
+				fnToleranceChecking(FALSE);
+				fnResetToleranceFlags;
+				fnSQ_NormalMsg(s42b,0);
+				fnSQ_ChangeState(CaseClimb3_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb3
+
+		case CaseClimb3_1:
+			Writeln("CaseClimb3_1");
+			//issue the next instruction
+			if (not bReminder1) and (cpOffice.FlapsHandlePos == 1) then
+				fnClearMsg;
+				fnMsg(Normal,s44);
+				fnSQ_Play("S3-44"); //  Press F7 again as the airspeed slows to 85
+				bReminder1 = TRUE;
+			endif;
+			if (not bReminder2) and (cpOffice.FlapsHandlePos == 2) then
+				fnClearMsg;
+				fnMsg(Normal,s45);
+				bReminder2 = TRUE;
+			endif;
+			if (not bReminder3) and (cpOffice.FlapsHandlePos == 3) then
+				fnClearMsg;
+				fnMsg(Normal,s45b);
+				fnSQ_Play("S3-45"); // Adjust the pitch to maintain 65 knots
+				bReminder3 = TRUE;
+			endif;
+			//set the flaps target
+			if (nIASnow <= 110) and (nFlapsTarget < 1) then
+				fnToleranceChecking(FALSE);
+				nFlapsTarget		= 1;
+				bFlapsCheck			= TRUE;
+				bWithinTolerance 	= FALSE;
+				fnSQ_Tolerance(3);
+			endif;
+			if (nIASnow <= 85) and (nFlapsTarget < 2) then
+				fnToleranceChecking(FALSE);
+				nFlapsTarget 		= 2;
+				bWithinTolerance	= FALSE;
+				fnSQ_Tolerance(1);
+			endif;
+			if (nIASnow <= 75) and (nFlapsTarget < 3) then
+				fnToleranceChecking(FALSE);
+				nFlapsTarget 		= 3;
+				nSpeedTarget		= 65;
+				nSpeedToleranceMax = 10;
+				nSpeedToleranceMin = -10;
+				bSpeedCheck			= TRUE;
+				bThrottleCheck		= FALSE;
+				bWithinTolerance	= FALSE;
+				fnSQ_Tolerance(1);
+			endif;
+			if (bWithinTolerance) and (nFlapsTarget == 3) and (nIASnow <= 66) then
+				bDoOnce				= FALSE;
+				bReminder1			= TRUE;
+				bReminder2			= FALSE;
+				bReminder3			= FALSE;
+				nAltitudeToleranceMax = nAltitude - nAltitudeTarget;
+				bAltitudeCheck = TRUE;
+				fnSQ_NormalMsg(s46,0);
+				fnSQ_Play("S3-46"); // Now, I want you to add a little power
+				fnSQ_Play("S3-47"); // This is excellent practice
+				fnSQ_NormalMsg(s48,0);
+				fnSQ_Play("S3-48"); // When we reach 3,000 feet
+				fnSQ_ChangeState(CaseClimb3_2);
+				fnSQ_Synchronize;
+			endif;
+			//if we're already at the bottom, we need just move on.
+			if (nAltitude <= (nAltitudeTarget+300)) then
+				fnSQ_ClearAll;
+				fnSQ_NormalMsg(s49,0);
+				nState = CaseClimb3_2;
+				bAltitudeCheck = TRUE;
+				bWithinTolerance	= FALSE;
+				bDoOnce				= FALSE;
+				bReminder1			= TRUE;
+				bReminder2			= FALSE;
+				bReminder3			= FALSE;
+			endif;
+		endcase; //CaseClimb3_1
+
+		case CaseClimb3_2:
+     		Writeln("CaseClimb3_2");
+     		if (not bDoOnce) then
+				nSpeedTarget		= 65;
+				bSpeedCheck			= TRUE;
+				bThrottleCheck		= FALSE;
+				bWithinTolerance	= FALSE;
+				bDoOnce = TRUE;
+			endif;
+			if (nAltitude <= nAltitudeTarget) and (bReminder1) then
+				nAltitudeToleranceMax = 100;
+				fnSQ_NormalMsg(s49,0);
+	     		fnSQ_Play("S3-49"); // Okay, here's what I want you to do
+	     		bReminder1 = FALSE;
+			endif;
+			if (bWithinTolerance) and (not bThrottleCheck) and (nAltitudeToleranceMax == 100) then
+				fnToleranceChecking(FALSE);
+				fnSQ_NormalMsg(s50,0);
+	     		fnSQ_Play("S3-50"); // Now don't let the nose come up more than 5 degrees
+				fnSQ_Tolerance(1);
+				fnSQ_NormalMsg(s51,0);
+	     		fnSQ_Play("S3-51"); // Now we need to begin raising the flaps, so press F6
+	     		fnSQ_ChangeState(CaseClimb3_3);
+	     		nTimer = 0;
+	     		bDoOnce = FALSE;
+	     		bReminder1 = FALSE;
+	  			fnResetToleranceFlags;
+	  			bPitchCheck = TRUE;
+	  			fnSQ_Tolerance(1);
+	     		fnSQ_Synchronize;
+	     	endif;
+	   endcase; //CaseClimb3_2
+
+	   case CaseClimb3_3:
+   		Writeln("CaseClimb3_3");
+			if cpOffice.FlapsHandlePos <> nFlapsLast then
+				nFlapsLast = cpOffice.FlapsHandlePos;
+				switch nFlapsLast
+					case 3:
+					endcase;
+					case 2:
+						fnClearMsg;
+						fnMsg(Normal,s52);
+			  			fnSQ_Play("S3-52"); // Let the airplane stabilize and begin to accelerate
+			  			fnSQ_Pause(1);
+					endcase;
+					case 1:
+						fnClearMsg;
+						fnMsg(Normal,s53);
+			  			fnSQ_Play("S3-53"); // Now press the F6 key again to get rid of the last
+			  			fnSQ_Pause(1);
+					endcase;
+					case 0:
+						bPitchCheck = FALSE;
+						nSpeedTarget = 75;
+						bSpeedCheck = TRUE;
+						bWithinTolerance = FALSE;
+					endcase;
+				endswitch;
+			endif;
+	   	if (bWithinTolerance) and (nFlapsLast == 0) then
+				bReminder1 = FALSE;
+				bReminder2 = FALSE;
+				bReminder3 = FALSE;
+				nTimer = 0;
+				fnResetToleranceFlags;
+				fnToleranceChecking(FALSE);
+				fnSQ_NormalMsg(s54,0);
+				fnSQ_Play("S3-54"); // Congratulations! You've just simulated
+				fnSQ_Pause(1);
+				fnSQ_ChangeState(CaseClimb4);
+				fnSQ_Synchronize;
+	  		endif;
+	  	endcase; //CaseClimb3_3
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseClimb4: //AutoPilot up to 5000' while talking about flaps
+			Writeln ("CaseClimb4");
+			nAltitudeTarget = 5000;
+			AP.Altitude = nAltitudeTarget;
+			AP.Master = TRUE;
+			AP.AltitudeHold = TRUE;
+			AP.VerticalSpeed = 750;
+			AP.Heading = 270;
+			fnThrottle_Hold(1.0);
+			bReminder1 = FALSE;
+			bReminder2 = FALSE;
+			fnSQ_Play("S3-55"); // okay, let's climb back to 5000 feet while turning
+			fnSQ_ChangeState(CaseClimb4_1);
+			fnSQ_Synchronize;
+		endcase; //CaseClimb4
+
+		case CaseClimb4_1:  //Play some sound files as we climb
+			Writeln ("CaseClimb4_1");
+			if (nAltitude >= (nAltitudeTarget - 900)) and (not bReminder1) then
+				fnSQ_Play("S3-56"); // When we get to 5000 feet, I'd like you to try a descent
+				fnSQ_Pause(2);
+				fnSQ_Play("S3-57"); // Up till now, I've kept the wings level
+				bReminder1 = TRUE;
+			endif;
+			if (nAltitude >= (nAltitudeTarget - 400)) and (not bReminder2) then
+				fnSQ_Play("S3-58"); // I want you to use 20 degrees of bank
+				bReminder2 = TRUE;
+			endif;
+			if (nAltitude >= (nAltitudeTarget - 100)) then
+				bReminder1 = FALSE;
+				bReminder2 = FALSE;
+				fnSQ_Play("S3-59"); // Okay, we're coming up on 5000
+				fnSQ_Pause(2);
+				fnSQ_Play("S3-60"); // I'm giving you control
+				fnSQ_Pause(1);
+				fnSQ_ChangeState(CaseDesc2);
+				fnSQ_Synchronize;
+			endif;
+		endcase; //CaseClimb4_1
+
+		case CaseDesc2: //Start descent
+			Writeln ("CaseDesc2");
+			if (not bReminder1) then //Do this the first time in
+				fnResetToleranceFlags;
+				fnToleranceChecking(TRUE);
+				bReminder1 = TRUE;
+				fnSQ_NormalMsg(s61,0);
+				fnSQ_Play ("S3-61"); // First, I want you to enter descent and maintain a heading
+				fnSQ_ToleranceFlag(TF_THROTTLE,5);
+				fnSQ_ToleranceFlag(TF_SPEED,10);
+				AP.HeadingHold = FALSE;
+				AP.AltitudeHold = FALSE;
+				fnThrottle_Manual;
+				nAltitudeTarget			= 4000;
+				nSpeedTarget 				= 90;
+				nThrottleTarget 			= 0;
+				nRollTarget					= 0;
+				nAltitudeToleranceMax	= 150;
+				nAltitudeToleranceMin 	= -150;
+				nSpeedToleranceMax		= 5;
+				nSpeedToleranceMin		= -5;
+			endif;
+			if (bWithinTolerance) and (bSpeedCheck) then  //everyting is within tolerance(s) - move on
+				bReminder1 = FALSE;
+				nState = CaseDesc2_1;
+			endif;
+		endcase; //CaseDesc2
+
+		case CaseDesc2_1: //Continue descent and start right turn
+			Writeln("CaseDesc2_1");
+			if (nTimer > 10) and (not bReminder1) then //Instruct: right turn
+				bRollCheck = FALSE;
+				nRollTarget = 20;
+				fnSQ_NormalMsg(s62,0);
+				fnSQ_Play ("S3-62"); // Commander, you're looking good.  Now turn right.
+				fnSQ_ToleranceFlag(TF_ROLL,10);
+				bReminder1 = TRUE;
+			endif;
+			if (nAltitude <= (nAltitudeTarget + 500)) and (not bReminder3) then
+				fnSQ_NormalMsg(s63a,0);
+				fnSQ_Play ("S3-63"); // You're doing fine. When you reach 4000
+				bReminder3 = TRUE;
+			endif;
+			if (nAltitude <= (nAltitudeTarget + 200)) then bRollCheck = FALSE; endif;
+			//It doesn't matter if the student is within tolerance or not because the ground is coming  up
+			//and it forces us to move on
+			if (nAltitude <= nAltitudeTarget) then
+				bReminder1 = FALSE;
+				nState = CaseDesc2_2;
+			endif;
+		endcase; //CaseDesc2_1
+
+		case CaseDesc2_2: //Continue descent & right turn
+			Writeln ("CaseDesc2_2");
+			//It doesn't matter if the student is within tolerance or not because the ground is coming  up
+			//and it forces us to move on
+			if (nAltitude <= nAltitudeTarget) then
+				bReminder1 = FALSE;
+				bReminder2 = FALSE;
+				bReminder3 = FALSE;
+				nRollTarget = -20;
+				fnSQ_NormalMsg(s63b,0);
+				fnSQ_ToleranceFlag(TF_ROLL,20);
+				nAltitudeTarget = 3000;
+				nState = CaseDesc2_3;
+			endif;
+		endcase; //CaseDesc2_2
+
+		case CaseDesc2_3: //Continue descent & left turn
+			Writeln ("CaseDesc2_3");
+			if (nAltitude <= (nAltitudeTarget + 500)) and (not bReminder1) then
+				fnSQ_Play ("S3-64"); // Now, I want you to enter straight and level
+				bReminder1 			= TRUE;
+			endif;
+			if (nAltitude <= (nAltitudeTarget +300)) and (not bReminder2) then
+				fnSQ_NormalMsg(s65a,0);
+				fnSQ_Play ("S3-65"); // Start your level out when you pass through
+				fnSQ_ToleranceFlag(TF_SPEED,20);
+				fnSQ_ToleranceFlag(TF_ROLL,20);
+				bThrottleCheck		= FALSE;
+				bSpeedCheck			= FALSE;
+				bRollCheck			= FALSE;
+				bAltitudeCheck		= FALSE;
+				nSpeedTarget 		= 100;
+				nRollTarget 		= 0;
+				nThrottleTarget 	= 1;
+				bWithinTolerance	= FALSE;
+				bReminder2 			= TRUE;
+			endif;
+			if (nAltitude <= (nAltitudeTarget + nAltitudeToleranceMax)) then bAltitudeCheck = TRUE; endif;
+			if (nAltitude <= nAltitudeTarget) and (not bReminder3) then
+				fnSQ_NormalMsg(s65b,0);
+				bReminder3 = TRUE;
+			endif;
+			if (bWithinTolerance) and (bAltitudeCheck) and (bReminder3) then
+				fnResetToleranceFlags;
+				fnToleranceChecking(FALSE);
+				nState = CaseDesc2_4;
+			endif;
+		endcase; //CaseDesc2_3
+
+		case CaseDesc2_4: //Level out
+			Writeln ("CaseDesc2_4");
+			fnSQ_NormalMsg(s66,30);
+			fnSQ_Play ("S3-66"); // Fantastic. You did real well.
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+		endcase; //CaseDesc2_4
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			fnResetToleranceFlags;
+			bToleranceCheck = OFF;
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseWait);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

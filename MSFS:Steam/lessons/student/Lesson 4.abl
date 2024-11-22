@@ -1,0 +1,284 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 4.abl
+ *
+ *    DESC:			Student Lesson 4: Slow Flight
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches how to fly the aircraft at low
+ *						airspeeds, such as needed on final approach.  The
+ *						student is introduced to the relationship between
+ *						airspeed and angle of attack, slowing the aircraft
+ *						to and maintaining airspeeds close to stall speed
+ *						without losing altitude, and how to recover into
+ *						cruise configuration.  The student practices slowing
+ *						the aircraft, lowering flaps, maintaining an altitude
+ *						at approximately 60 knots, and then reconfiguring the
+ *						aircraft into a cruise situation.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson4;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\student\lesson 4.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1           = 1000;         // First important altitude (autopilot takover)
+	kAlt2           = 1460;         // Second important altitude (reached pattern altitude)
+	kAlt3           = 1500;         // Pattern altitude
+	kAlt4           = 1680;         // Third important altitude (demonstrated climb)
+	kAlt5           = 1980;         // Fourth...(Student did a climb)
+	kAlt6           = 1750;         // Demonstrated descent
+	kAlt7           = 1550;         // Student's descent
+	kHdg1           = 130;          // First heading...(demonstrated turn)
+	kHdg2           = 180;          // Student's turn
+	kHdg3           = 090;          // 2nd demonstrated turn
+	kHdg4           = 000;          // Student's 2nd turn
+	kTurn1          = defRight;     // First turn is to the right
+	kTurn2          = defRight;     // Second turn is to the right
+	kTurn3          = defLeft;      // Third turn is to the left
+	kTurn4          = defLeft;      // Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip       = TRUE;         // Recriprocating engine(s)?
+	bIsTurboProp    = FALSE;        // Turboprop?
+	bIsTurbine      = FALSE;        // Pure turbine
+	bConstSpeedProp = FALSE;        // Constant speed (variable pitch) prop?
+	nV1             = 40;           // Takeoff commit speed
+	nVr             = 48;           // Rotate speed
+	nV2             = 65;           // Minimum safe flying speed
+	bRetract        = FALSE;        // Retractable landing gear?
+	nVX             = 70;           // Best Angle of Climb Velocity
+	nVY             = 75;           // Best Rate of Climb Velocity
+	nVYSE           = 75;           // Best Single Engine Rate of Climb Velocity
+	nVNE            = 150;          // Velocity Never Exceed
+	nVMO            = 150;          // Velocity Max Operating
+	nMMO            = 0.210;        // Max Mach Operating speed
+	nVLRC           = 120;          // Velocity Long Range Cruise
+	nCeiling        = 15000;        // Maximum certified altitude
+	nNormAlt        = 9500;         // Normal cruise altitude
+
+var
+	static	number	bDoOnce;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit.abl";
+		fnNormalMsg(sThrottleSet);
+		fnThrottle_HoldRPM(2400);
+		Writeln ("Finished with Init");
+	endfunction;                                                    // End of Initialization
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+
+	switch (nState)
+		#include "script\lib\STDCases.abl"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1:	//Rod demonstrates slow fight
+			Writeln("CaseTalk1");
+			fnSQ_NormalMsg(sImFlying, 0);
+			fnSQ_Play("S4-1"); // slow lesson
+			fnSQ_Play("S4-2"); // practice slow flight just above stall speed
+			fnSQ_Play("S4-3"); // remember to do your homework
+			fnSQ_Play("S4-4"); // 4,000 feet over Puget Sound
+			fnSQ_Play("S4-5"); // feel comfertable operating at slow speeds
+			fnSQ_Play("S4-6"); // close to stalling, will need to know critical points
+			fnSQ_Play("S4-7"); // demonstrate airspeed/angle of attack relationship
+			fnSQ_ChangeState(CaseCruise1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1: // get the student to slow to 60 knots.
+			Writeln("CaseCruise1");
+			bDoOnce = TRUE;
+			fnSQ_Play("S4-18"); // relationship
+			fnSQ_ChangeState(CaseCruise1_1);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise1_1:
+			writeln("CaseCruise1_1");
+			if (bDoOnce) then
+				fnSQ_Pause(5);
+				fnSQ_Play("S4-9"); // watch how I increase pitch
+				fnThrottle_HoldRPM(1750);
+				cpOffice.ElevatorTrim = 0.28;
+				bDoOnce = FALSE;
+			endif;
+			if (eMotors[0].RPM <> 1750) then
+				fnThrottle_HoldRPM(1750);
+			endif;
+			if (nIASNow < 75) then
+				fnSQ_Play("S4-11"); // angle of attack easier to see below 70 knots
+				fnSQ_Play("S4-20"); // you can fly an airplane at any speed between cruise & stall
+				fnSQ_ChangeState(CaseCruise1_2);
+				fnSQ_Synchronize;
+				bDoOnce = TRUE;
+			endif;
+		endcase;
+
+		case CaseCruise1_2:
+			Writeln("CaseCruise1_2");
+			if (bDoOnce) then
+				fnThrottle_Hold(1.0);
+				bDoOnce = FALSE;
+			endif;
+			if (nIASnow >= 100) then
+				fnSQ_ChangeState(CaseTalk2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2: // Student performs slowflight
+			Writeln("CaseTalk2");
+			bDoOnce = TRUE;
+			fnSQ_Play("S4-14"); // Let's GO!
+			fnSQ_NormalMsg(s8, 0);
+			fnSQ_Play("S4-8"); // Reduce power to 1500 rpm + airspeed 60
+			fnSQ_ChangeState(CaseCruise2);
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseCruise2:
+			Writeln("CaseCruise2");
+			if (bDoOnce) then
+				AP.AltitudeHold = FALSE;
+				AP.Master = FALSE;
+				fnThrottle_Manual;
+				nAltitudeTarget 			= 4000;
+				nAltitudeToleranceMax	= 100;
+				nAltitudeToleranceMin	= -100;
+				nSpeedTarget 				= 60;
+				nSpeedToleranceMax 		= 10;
+				nSpeedToleranceMin 		= -10;
+				nPitchTarget 				= 10;
+				nPitchToleranceMax 		= 5;
+				nPitchToleranceMin 		= -5;
+				nThrottleTarget 			= 1;
+				nThrottleToleranceMax	= 0.1;
+				nThrottleToleranceMin	= -0.1;
+				nRPMTarget 					= 1500;
+				nRPMToleranceMax			= 50;
+				nRPMToleranceMin			= -50;
+				nRollTarget					= 0;
+				nRollToleranceMax			= 10;
+				nRollToleranceMin			= -10;
+				fnSQ_ToleranceFlag(TF_ROLL,15);
+				fnSQ_ToleranceFlag(TF_ALTITUDE,15);
+				fnSQ_ToleranceFlag(TF_RPM,15);
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				bDoOnce = FALSE;
+			endif;
+			if (bWithinTolerance) and (bAltitudeCheck) then
+				bRPMCheck		= FALSE;
+				nTimer = 0;
+				fnSQ_NormalMsg(sTemp1, 0);
+				fnSQ_ChangeState(CaseCruise2_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise2_1:
+			Writeln("CaseCruise2_1");
+			if (bWithinTolerance) and (nTimer >= 5) then
+				bSpeedCheck 	= FALSE;
+				nRPMTarget 		= 2000;
+				fnSQ_NormalMsg(s10, 0);
+				fnSQ_Play("S4-10"); // Increase to 20000 RPM keep at 4000 feet
+				fnSQ_ToleranceFlag(TF_RPM,10);
+				fnSQ_ChangeState(CaseCruise2_2);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise2_2:
+			Writeln("CaseCruise2_2");
+			if (bWithinTolerance) and (bRPMCheck) then
+				fnSQ_NormalMsg(s12, 0);
+				fnSQ_Play("S4-12"); // Adjust pitch to hold 60 knots at 4000 feet
+				fnSQ_ToleranceFlag(TF_SPEED,10);
+				fnSQ_ChangeState(CaseCruise2_3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise2_3:
+			Writeln("CaseCruise2_3");
+			if (bWithinTolerance) and (bSpeedCheck) then
+				bSpeedCheck 	= FALSE;
+				bRPMCheck		= FALSE;
+				bDoOnce			= TRUE;
+				fnSQ_Play("S4-13"); // Exit slow flight
+				fnSQ_NormalMsg(s15, 0);
+				fnSQ_Play("S4-15"); // Add full power and lower the nose
+				fnSQ_ToleranceFlag(TF_THROTTLE,5);
+				fnSQ_ChangeState(CaseCruise2_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseCruise2_4:
+			if (bWithinTolerance) and (nIASnow >= 90) and (bDoOnce) then
+				nSpeedTarget = 100;
+				fnSQ_NormalMsg(s15a, 0);
+				fnSQ_Play("S4-15a"); // When you reach 100 knots reduce power to 2,400 RPM
+				fnSQ_ToleranceFlag(TF_SPEED,0);
+				bDoOnce = FALSE;
+			endif;
+			if (bWithinTolerance) and (bSpeedCheck) then
+				fnToleranceChecking(FALSE);
+				fnThrottle_Hold(1.0);
+				AP.AltitudeHold = nAltitude;
+				AP.WingLeveler = TRUE;
+				AP.Master = TRUE;
+				fnSQ_ChangeState(CaseTalk3);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk3: // blah blah blah
+			Writeln("CaseTalk3");
+			fnSQ_NormalMsg(s16, 0);
+			fnSQ_Play("S4-16"); //This is how you exit slow flight and return
+			fnSQ_Play("S4-17"); //You can see that in order to maintain altitude
+			fnSQ_Play("S4-19"); //Now, if you’re not getting this, refer to the Ground School session
+			fnSQ_Play("S4-21"); //I think you probably have many questions.
+			fnSQ_Play("S4-22"); //Hopefully, this won't put knots in your stomach.
+			fnSQ_Play("S4-23"); //Just add power as necessary to maintain altitude
+			fnSQ_NormalMsg(stemp2,30);
+			fnSQ_ChangeState(CasePostFlight);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostFlight:
+			writeln("CasePostFlight");
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.

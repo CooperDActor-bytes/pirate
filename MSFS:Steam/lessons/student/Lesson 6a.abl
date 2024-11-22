@@ -1,0 +1,312 @@
+/*******************************************************************
+ *    FILENAME:	Lesson 6a.abl
+ *
+ *    DESC:			Student Lesson 6a: Landings Part I
+ *
+ *    COMMENTS:	As per Spec
+ * 					This lesson teaches the student to land the aircraft
+ *						with some assistance from the instructor and the
+ *						EFIS hoops.  This lesson introduces configuring the
+ *						aircraft for landing, VASI, flaring, and braking.
+ *						The student will practice landing by flying the
+ *						approach through the hoops, flaring when prompted to,
+ *						holding flare attitude, and braking to a stop after
+ *						touching down on the runway.
+ *******************************************************************/
+
+//#debug_on
+//#print_on
+
+module Lesson6;
+
+const
+	#include "script\lib\STDKonstants.abl";
+	#include "messages\lib\tolerances.msg";
+	#include "messages\student\lesson 6.msg";
+
+	//Key headings and altitudes for this flight/lesson
+	kAlt1					= 1000;			// First important altitude (autopilot takover)
+	kAlt2					= 1460;			// Second important altitude (reached pattern altitude)
+	kAlt3					= 1500;			// Pattern altitude
+	kAlt4					= 1680;			// Third important altitude (demonstrated climb)
+	kAlt5					= 1980;			// Fourth...(Student did a climb)
+	kAlt6					= 1750;			// Demonstrated descent
+	kAlt7					= 1550;			// Student's descent
+	kHdg1					= 130;			// First heading...(demonstrated turn)
+	kHdg2					= 180;			// Student's turn
+	kHdg3					= 090;			// 2nd demonstrated turn
+	kHdg4					= 000;			// Student's 2nd turn
+	kTurn1				= defRight;		// First turn is to the right
+	kTurn2				= defRight;		// Second turn is to the right
+	kTurn3				= defLeft;		// Third turn is to the left
+	kTurn4				= defLeft;		// Fourth turn is to the right
+
+	//Items that will change dependant on the airplane
+	bIsRecrip			= TRUE;			// Recriprocating engine(s)?
+	bIsTurboProp		= FALSE;			// Turboprop?
+	bIsTurbine			= FALSE;			// Pure turbine
+	bConstSpeedProp	= FALSE;			// Constant speed (variable pitch) prop?
+	nV1					= 40;				// Takeoff commit speed
+	nVr					= 48;				// Rotate speed
+	nV2					= 65;				// Minimum safe flying speed
+	bRetract				= FALSE;			// Retractable landing gear?
+	nVX					= 70;				// Best Angle of Climb Velocity
+	nVY					= 75;				// Best Rate of Climb Velocity
+	nVYSE					= 75;				// Best Single Engine Rate of Climb Velocity
+	nVNE					= 150;			// Velocity Never Exceed
+	nVMO					= 150;			// Velocity Max Operating
+	nMMO					= 0.210;			// Max Mach Operating speed
+	nVLRC					= 120;			// Velocity Long Range Cruise
+	nCeiling 			= 15000;			// Maximum certified altitude
+	nNormAlt 			= 9500;			// Normal cruise altitude
+
+	//specific konstants for this lesson
+	kPWTLat				=   47.499;		// Bremerton latitude
+	kPWTLon				= -122.75564;	// Bremerton Longitude
+
+var
+	static	number		nDist2Thresh;
+	static	number		bDoOnce;
+	static	number		bLandedOffRunway;
+	static	number		bTaxiedOffRunway;
+	static	number		bStoppedOffRunway;
+
+	#include "script\lib\STDVars.abl";
+	#include "script\lib\StringFns.abl";
+	#include "script\lib\Math.abl";
+	#include "script\lib\Messages.abl";
+	#include "script\lib\Throttle.abl";
+	#include "script\lib\SimQueue.abl";
+	#include "script\lib\stdChkTolerances.abl";
+	#include "script\lib\fnUserEvents.abl";
+
+	function Init;
+	var
+	code
+		#include "script\lib\STDInit";
+		Writeln ("Begin Init");
+		fnMsg(normal,sSetThrottle);
+		fnThrottle_HoldRPM(2100);
+		Writeln ("Finished with Init");
+	endfunction;
+
+code
+	#include "script\lib\STDHousekeeping.abl";
+	nDist2Thresh = posHere.DistanceTo(kPWTLat,kPWTLon);
+	switch (nState)
+		#include "script\lib\STDCases.abl";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk1: //Start talking
+			Writeln ("CaseTalk1");
+			fnSQ_ChangeState(CaseTalk2);
+			fnSQ_NormalMsg(sImFlying,0);
+			fnSQ_Play("S6-4"); // I've got the airplane
+			fnSQ_Play("S6-1"); // We're going to land back at Bremerton
+			fnSQ_Play("S6-2"); // We already did one landing
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseTalk2: //Turn the plane over to the user we start moving above glideslope
+			Writeln ("CaseTalk2");
+			if (nGlideSlope >= 0.0 ) then
+				AP.AltitudeHold = FALSE;
+				AP.AttitudeHold = FALSE;
+				AP.GlideSlopeHold = TRUE;
+				fnThrottle_HoldRPM(1850);
+				fnSQ_Play("S6-7"); // I've configured the plane for 75 knots -- you take over
+				fnSQ_NormalMsg(sYouAreFlying,0);   //You are flying
+				fnSQ_ChangeState(CaseTalk2_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseTalk2_1: //continue down the glideslope through the hoops
+			Writeln ("CaseTalk2_1");
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnResetToleranceFlags;
+			nHeadingTarget			= 193;
+			nHeadingToleranceMax	= 15;
+			nHeadingToleranceMin	= -15;
+			nSpeedTarget 			= 75;
+			nSpeedToleranceMax 	= 15;
+			nSpeedToleranceMin 	= -15;
+			nRollTarget				= 0;
+			nRollToleranceMax		= 15;
+			nRollToleranceMin		= -15;
+			nLocalizerTolerance	= 0.5;
+			nGlideSlopeTolerance	= 0.4;
+			nVORSelect 				= 1;
+			bHeadingCheck			= TRUE;
+			bSpeedCheck				= TRUE;
+			bRollCheck				= TRUE;
+			bLocalizerCheck		= TRUE;
+			bGlideSlopeCheck		= TRUE;
+			nMoveOnTo				= CaseTimeOut; //if they time out - quit the lesson
+			fnToleranceChecking(TRUE);
+			fnSQ_Pause(2);
+			fnSQ_Play("S6-8");// Notice power setting 1900... 75 knots
+			fnSQ_NormalMsg(sHoops,5);
+			fnSQ_Play("S6-6");// You may have noticed the hoops...
+			fnSQ_NormalMsg(sYouAreFlying,0);
+			fnSQ_Play("S6-3");// Ordinarily, we'd fly a rectangular pattern
+			fnSQ_Play("S6-5");// The key to making your first landing a good one
+			fnSQ_ChangeState(CaseFinal1);
+			fnSQ_Synchronize;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseFinal1: //Keep the plane on the glideslope (within the hoops)
+			writeln("CaseFinal1");
+			fnSQ_ChangeState(CaseFinal1_1);
+			fnSQ_Play("S6-13"); // We'll maintain this speed
+			fnSQ_NormalMsg(sPrepare2Flare,0);
+			fnSQ_Play("S6-14"); // Then, reduce the power and flare
+			fnSQ_Play("S6-17"); // .. by reducing power and raising the nose
+			fnSQ_Synchronize;
+		endcase;
+
+		case CaseFinal1_1:
+			writeln("CaseFinal1_1");
+			writeln(fn1Str1Num("Dist2Thresh = ",nDist2Thresh));
+			if (nDist2Thresh > 0.5 ) then
+				if (nDist2Thresh <= 1.5) then
+					fnSQ_Play("S6-11"); // See those green lights
+					fnSQ_NormalMsg(sPrepare2Flare,0);
+					fnSQ_ResetTimer;
+					fnSQ_ChangeState(CaseLanding);
+					fnSQ_Synchronize;
+				endif;
+			else;
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CaseLanding: //wait for 350 AGL
+			writeln("CaseLanding");
+			if (nTimer > 60) then
+				nState = CaseTimeOut;
+			endif;
+			if (nAltAGL <= 350) then
+				// set flags to turn off localizer and glide slope checks
+				bSpeedCheck			= FALSE;
+				bLocalizerCheck	= FALSE;
+				bGlideSlopeCheck	= FALSE;
+				fnSQ_Play("S6-18");  // We're coming up on flare height
+				fnSQ_Play("S6A-15"); // Within 100 ft, resist temptation
+				fnSQ_ResetTimer;
+				fnSQ_ChangeState(CaseLanding_1);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_1: //wait for 100 AGL
+			writeln("CaseLanding_1");
+			bDoOnce = TRUE;
+			if (nTimer > 60) then
+				nState = CaseTimeOut;
+			endif;
+			if (nAltAGL <= 100) then
+				//Setup runway coords
+				nPoint[0,LAT]	= 47.49979;
+				nPoint[0,LON]	= -122.7554;
+				nPoint[1,LAT]	= 47.5;
+				nPoint[1,LON]	= -122.7559;
+				nPoint[2,LAT]	= 47.48573;
+				nPoint[2,LON]	= -122.7695;
+				nPoint[3,LAT]	= 47.48552;
+				nPoint[3,LON]	= -122.7690;
+				fnSQ_ClearAll;
+				fnSQ_ResetTimer; // We'll detect whether the student is straying excessively
+				fnSQ_ChangeState(CaseLanding_2);
+				fnSQ_NormalMsg(sFlare,0); // Reduce power and raise the nose slightly
+				fnSQ_Play("S6-19"); // We're now at flare height
+				fnSQ_NormalMsg(sBrake,0);
+				fnSQ_Play("S6-20"); // As soon as we touch down
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_2: //wait for the student to touch down
+			writeln("CaseLanding_2");
+			if not bRunwayCheck then fnTolerance(TF_RUNWAY,ON,0); endif;
+			if (nTimer > 60) then nState = CaseTimeOut; endif;
+			if (bWow) then //6 points
+				bDoOnce 				= TRUE;
+				bLandedOffRunway	= TRUE;
+				bTaxiedOffRunway	= FALSE;
+				bStoppedOffRunway	= TRUE;
+				nState = CaseLanding_3;
+			endif;
+		endcase;
+
+		case CaseLanding_3: //track the student on the runway while we wait for him to stop
+			writeln("CaseLanding_3");
+			if (bWOW) and (bDoOnce) then
+				bLandedOffRunway = bWarnRunway;
+				fnSQ_ToleranceFlag(TF_SPEED,15);
+				nTimer 					= 0;
+				nSpeedTarget 			= 0;
+				nSpeedToleranceMax 	= 5;
+				nSpeedToleranceMin	= 0;
+				bDoOnce = FALSE;
+			endif;
+			if not bTaxiedOffRunway then bTaxiedOffRunway = bWarnRunway; endif;
+			if (IsStopped) then
+				bStoppedOffRunway = bWarnRunway;
+				fnSQ_ClearAll;
+				fnSQ_ChangeState(CaseLanding_4);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+		case CaseLanding_4: //eval the landing
+			writeln("CaseLanding_4");
+			if bLandedOffRunway or bTaxiedOffRunway or bStoppedOffRunway then
+				fnSQ_NormalMsg(sGoodEffort,0);
+				fnSQ_Play("CommonGoodEffort"); // That was a good effort
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOff");
+				endif;
+				if (bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOffStopOn");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnStopOff");
+				endif;
+				if (not bLandedOffRunway) and (bTaxiedOffRunway) and (not bStoppedOffRunway) then
+					fnSQ_Play("commonLandOnDriftOffStopOn");
+				endif;
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			else
+				fnSQ_NormalMsg(sGreatJob,0);
+				fnSQ_Play("S6-21"); // Well done.
+				fnSQ_Play("S6-22"); // Load up the second lesson...
+				fnSQ_ChangeState(CasePostFlight);
+				fnSQ_Synchronize;
+			endif;
+		endcase;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		case CasePostflight:
+			Writeln ("CasePostFlight");
+			fnClearMsg;
+			AP.Master = FALSE;
+			fnThrottle_Manual;
+			fnSQ_ChangeState(CaseEnd);
+		endcase;
+
+	endswitch;
+	fnMsgDisplay;
+endmodule.
