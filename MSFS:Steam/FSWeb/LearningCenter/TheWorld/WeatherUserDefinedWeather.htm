@@ -1,0 +1,2042 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 12 April 2005), see www.w3.org">
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=iso-8859-1">
+
+  <title>Using User-Defined Weather</title>
+  <link href="../../common/style.css" rel="stylesheet" type=
+  "text/css">
+</head>
+
+<body class="stdcolor" >
+  
+    <a name="top"></a>
+
+    <table width="100%" cellpadding="0" cellspacing="10" summary="SummaryTBD">
+      <tr>
+        <td width="85" valign="top">
+          <p>&nbsp;</p>
+
+          <table cellspacing="5" cellpadding="0" summary="SummaryTBD">
+            <tr>
+              <td><a href="WeatherIndex.htm"><img src=
+              "images/WeatherBack.jpg" width="63" height="63" alt=
+              "" border="0"></a><br>
+              <a href="WeatherIndex.htm" class="TopLink">Back to
+              Weather Page</a></td>
+            </tr>
+          </table>
+        </td>
+
+        <td>
+          <table width="100%" border="0" cellspacing="0"
+          cellpadding="0" summary="SummaryTBD">
+            <tr>
+              <td class="GSTable"><span class="GSH1">Using
+              User-Defined Weather</span></td>
+            </tr>
+
+            <tr>
+              <td bgcolor="#000000"><img src=
+              "../../Common/images/1ptrans.gif" width="1" height=
+              "1" alt="" border="0"></td>
+            </tr>
+          </table>
+
+          <div class="articleDeck">
+            Control your flying conditions
+          </div>
+
+          <div class="article-bodycopy">
+            <table border="0" cellspacing="10" cellpadding="0"
+            align="right" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <span class="TOCsubhead">Contents</span><br>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#WeatherStations">Using Weather
+                      Stations</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#Map">Using the
+                      Weather Map</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="#AdvancedWeather">Advanced
+                      Weather</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#CloudLayers">
+                      Creating and Modifying Cloud Layers</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#WindLayers">
+                      Creating and Modifying Wind Layers</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#TempLayers">
+                      Temperature and Pressure Layers</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "#VisibilityLayer">The
+                      Visibility Layer and Fog</a></td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="2" align="center"><img src=
+                      "../../Common/images/1ptrans.gif" width="1"
+                      height="1" alt="" border="0"></td>
+                    </tr>
+                  </table>
+
+                  <span class="TOCsubhead">Related
+                  Links</span>
+
+                  <table border="0" cellspacing="5" cellpadding="0"
+                  class="RelatedLinkTableThin" summary="SummaryTBD">
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="Weatherintro.htm">Introduction
+                      to Flight Simulator Weather</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="WeatherThemes.htm">Using Weather
+                      Themes</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "WeatherRealWorldWeather.htm">Using
+                      Real-World Weather</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="WeatherOptions.htm">Weather
+                      Settings</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href="WeatherTopTen.htm">Top 10
+                      Weather Concepts</a></td>
+                    </tr>
+
+                    <tr class="article-bodycopy">
+                      <td valign="top"><img src=
+                      "../../Common/images/RelatedBullet.gif"
+                      width="6" height="12" alt="" border="0"></td>
+
+                      <td><a href=
+                      "WeatherAviationWeatherBasics.htm">Aviation
+                      Weather Basics</a></td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="2" align="center"><img src=
+                      "../../Common/images/1ptrans.gif" width="1"
+                      height="1" alt="" border="0"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <p>Unlike in the real world, you can control weather to
+            a large degree in Flight Simulator. <strong>User-defined
+            weather</strong> gives you more control over Flight
+            Simulator weather than <strong>Weather themes</strong> or
+            <strong>Real-world weather</strong>. You can create custom
+            conditions that define where you want to encounter
+            weather, and what type of weather you want across the
+            path of your intended flight. Better yet, you can also
+            create conditions that will cause surprises along the
+            way.</p>
+
+            <p><strong>Note:</strong> You can also use <strong>User-defined
+            weather</strong> to modify the conditions set by either
+            <strong>Real-world weather</strong> or a <strong>Weather theme</strong>.
+            When you open the <strong>Weather</strong> dialog box, all of the
+            weather settings will be set to clear skies. When you
+            select a specific weather station (or stations),
+            downloaded weather will be reflected in its
+            settings.</p>
+
+            <p>When using real-world weather or themes, the weather
+            settings are different at different weather stations.
+            When using one of these weather options, the settings
+            on the <strong>Custom</strong> or <strong>Advanced</strong> weather dialog
+            boxes may not match the conditions displayed in the
+            simulator or on the first weather screen. By default
+            the <strong>Custom</strong> and <strong>Advanced</strong> weather dialog do
+            not display conditions at individual stations; select
+            the <strong>Specific weather station</strong> option on the
+            <strong>Custom</strong> or <strong>Advanced</strong> dialog boxes to view
+            conditions at individual weather stations.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p>To open the User-defined weather dialog
+                  boxes</p>
+
+                  <ol>
+                    <li>On the main screen, click <strong>Free
+                    Flight</strong>.</li>
+
+                    <li>In the <strong>Current Weather</strong> box, click
+                    <strong>Change</strong>.</li>
+
+                    <li>On the <strong>Weather</strong> screen, select the
+                    <strong>User-defined weather</strong> option.</li>
+
+                    <li>Click <strong>Customize</strong> to go to the
+                    <strong>User-defined Weather</strong> dialog box.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p><strong>Note:</strong> Your goal is to select the locations
+            where you want to set weather, then choose the weather
+            conditions that you want to appear in those
+            locations.</p><a name="WeatherStations"></a>
+
+            <p class="SubHead">Using Weather Stations</p>
+
+            <p>To create your own weather, first select a weather
+            station or group of stations on the map. (If you want
+            to set the same weather at all locations across the
+            entire world, read the <strong>All Weather Stations</strong>
+            section below.)</p>
+			
+			<img src="images/WeatherUserDefinedWeather01.jpg" width="526"
+            height="316" alt="" border="0">
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a single weather station</strong></p>
+
+                  <ul>
+                    <li>Click a weather station on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around a weather station on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select multiple weather stations</strong></p>
+
+                  <ul>
+                    <li>Hold down <strong>CTRL</strong> and then click
+                    weather stations on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around weather stations on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <p>Once you've set weather at specific weather
+            stations, you can define weather at all other stations
+            by clicking the <strong>Stations that you have not set</strong>
+            option, and then moving the weather sliders. Using this
+            option lets you quickly set weather in the rest of the
+            world without losing the settings you already chose for
+            specific stations.</p>
+
+            <p><img src="images/WeatherUserDefinedWeather02.jpg"
+            width="600" height="88" alt="" border="0"></p>
+
+            <p class="SubHead2">All Weather Stations</p>
+
+            <p>If want to set identical weather conditions at all
+            locations in the entire world, click the <strong>All weather
+            stations</strong> option and then move the weather sliders.
+            When you select this button and move the weather
+            sliders, any weather you've set at specific weather
+            stations will be lost.</p>
+
+            <table width="85%" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              <tr bgcolor="#F5DEB3">
+                <td colspan="2">
+                  <p><strong>To make quick, broad changes to weather
+                  elements</strong></p>
+
+                  <ul>
+                    <li>Use the <strong>Conditions</strong> sliders on the
+                    right side of the <strong>Weather</strong> dialog
+                    box</li>
+                  </ul>
+                </td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td rowspan="6"><img src=
+                "images/WeatherUserDefinedWeather03.jpg" width=
+                "219" height="319" alt="" border="0"></td>
+
+                <td>Drag the <strong>Clouds</strong> slider to the right to
+                increase cloud coverage, selecting from <strong>Few</strong>,
+                <strong>Scattered</strong>, <strong>Broken</strong>, <strong>Overcast</strong>,
+                or <strong>Thunderstorms</strong>. Drag the slider to the
+                left to reduce the cloud coverage.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td>Drag the <strong>Precipitation</strong> slider to the
+                right to increase precipitation. Drag the slider to
+                the left to decrease precipitation.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td>Drag the <strong>Visibility</strong> slider to the right
+                to increase visibility. Drag the slider to the left
+                to decrease visibility.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td>Drag the <strong>Wind speed</strong> slider to the right
+                to increase wind speed, or to the left to decrease
+                wind speed.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td>Drag the pointer around the circle to select a
+                wind direction. The wind direction in the center
+                will update as you move the pointer.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td>Click <strong>Advanced Weather</strong> to set more
+                specific weather conditions.</td>
+              </tr>
+            </table><a name="#Map"></a>
+
+            <p class="SubHead">Using the Weather Map</p>
+
+            <p>The weather map helps you select locations where you
+            want to set weather. The interactive map displays a
+            variety of information to help you decide where to set
+            the weather.</p>
+
+            <img src="images/WeatherUserDefinedWeather01.jpg" width="526"
+            height="316" alt="" border="0">
+
+            <p>Use the buttons at the top of the map to zoom in and
+            out, display navigational aids on the map, and print
+            the map.</p>
+
+            <table width="100%" border="0" cellspacing="1"
+            cellpadding="5" bgcolor="#003366" class=
+            "article-bodycopy" summary="SummaryTBD">
+              <tr bgcolor="#F5DEB3">
+                <td><strong>Icon</strong></td>
+
+                <td><strong>Function</strong></td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05a.jpg"
+                width="28" height="27" alt="" border="0"></td>
+
+                <td valign="top">Zoom in</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05q.jpg"
+                width="28" height="27" alt="" border="0"></td>
+
+                <td valign="top">Zoom out</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05b.jpg"
+                width="28" height="27" alt="" border="0"></td>
+
+                <td valign="top">Center map on your aircraft's
+                current position.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05c.jpg"
+                width="28" height="27" alt="" border="0"></td>
+
+                <td valign="top">Print the current map.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05d.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide airports.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05e.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide VORs. (To learn
+                more, see <a href=
+                "../navigation/UsingVORAndADF.htm">What You Need to
+                Know About a VOR</a>.)</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05f.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide NDBs. (To learn
+                more, see <a href=
+                "../navigation/AutomaticDirectionFinder.htm">Automatic
+                Direction Finder</a>.)</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05j.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide ILS feathers. (To
+                learn more, see the Instrument Lessons in the
+                <strong>Flight Academy</strong>.)</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05g.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide airway
+                intersections.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05h.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide low altitude
+                airways.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05i.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide high altitude
+                airways.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05k.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide airspace
+                boundaries. (To learn more, see <a href=
+                "../AirTrafficControl/UnderstandingAirspace.htm">Understanding
+                Airspace</a>.)</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05l.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide your aircraft's
+                flight path. (Note: You must create a flight plan
+                before this button will work.)</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05m.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide weather
+                stations.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05n.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide weather
+                systems.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05o.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide data tags.</td>
+              </tr>
+
+              <tr bgcolor="#FFFFFF">
+                <td width="35" align="center" valign="top">
+                <img src="images/WeatherUserDefinedWeather05p.jpg"
+                width="30" height="30" alt="" border="0"></td>
+
+                <td valign="top">Display or hide topographic
+                features.</td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Navigating on the Map</p>
+
+            <p>If you want to set weather at a station that isn't
+            near your current location, you can scroll to a new
+            location on the map. When you move the pointer to any
+            edge of the map, note that it becomes a large arrow
+            pointing towards the edge of the map. Click the left
+            mouse button to scroll the map.</p>
+
+            <img src="images/WeatherUserDefinedWeather01.jpg" width="526"
+            height="316" alt="" border="0">
+
+            <p>If the distance between where the map is currently
+            centered and the area where you want to set weather is
+            not great, you may be able to see the new area simply
+            by zooming out.</p>
+
+            <p class="SubHead2">Selecting Weather Stations</p>
+
+            <p>Weather stations appear on the map as a point with a
+            text label showing the station identifier. You can
+            select a single weather station or a group of weather
+            stations.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a single weather station</strong></p>
+
+                  <ul>
+                    <li>Click a weather station on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around a weather station on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select multiple weather stations</strong></p>
+
+                  <ul>
+                    <li>Hold down <strong>CTRL</strong> and then click
+                    weather stations on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around weather stations on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <p>If you want to set the same weather at all locations
+            everywhere in the world, you don't need to select
+            specific weather stations; you can select the <strong>All
+            weather stations</strong> option.</p>
+
+            <p><strong>Note:</strong> You can select a specific weather
+            station or group of weather stations using the weather
+            map. You don't have to position your airplane at the
+            location where you want to set weather.</p><a name=
+            "AdvancedWeather"></a>
+
+            <p class="SubHead">Advanced Weather</p>
+
+            <p>Advanced weather settings give you the greatest
+            degree of control over Flight Simulator weather
+            conditions. You can fine tune all the weather
+            variables, experimenting with different combinations of
+            clouds, wind, and other conditions to create the
+            weather you want. Your goal is to select the locations
+            where you want to define weather conditions, and then
+            choose the conditions that you want to appear in those
+            locations.</p>
+
+            <p>The <strong>Advanced Weather</strong> dialog box is divided
+            into four tabs: <strong>Clouds</strong>, <strong>Wind</strong>,
+            <strong>Temp/Pressure</strong>, and <strong>Visibility</strong>. You can
+            make changes to all of these areas during one visit to
+            the <strong>Advanced Weather</strong> dialog box, or return again
+            and again to refine the weather.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To use the Advanced weather dialog
+                  box</strong></p>
+
+                  <ol>
+                    <li>From the main screen, click <strong>Free
+                    Flight</strong>.</li>
+
+                    <li>In the <strong>Weather</strong> box, click
+                    <strong>Change</strong>.</li>
+
+                    <li>On the <strong>Weather</strong> screen, click
+                    <strong>User-defined weather</strong> and then click
+                    <strong>Customize</strong>.</li>
+
+                    <li>On the <strong>Weather</strong> dialog box, click
+                    <strong>Advanced</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">The Weather Map</p>
+
+            <p>First, select a weather station or group of stations
+            on the map. (If you want to set the same weather at all
+            locations across the entire world, see <strong>All weather
+            stations</strong> below.) For more detailed information, see
+            <a href="#Map">Using the
+            Weather Map</a>.</p>
+
+            <img src="images/WeatherUserDefinedWeather01.jpg" width="526"
+            height="316" alt="" border="0">
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a single weather station</strong></p>
+
+                  <ul>
+                    <li>Click a weather station on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around a weather station on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select multiple weather stations</strong></p>
+
+                  <ul>
+                    <li>Hold down the <strong>CTRL</strong> key and then
+                    click weather stations on the map.<br>
+                    -or-</li>
+
+                    <li>Drag a box around weather stations on the
+                    map.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <p>Once you've defined weather at specific weather
+            stations, you can choose to define weather at all other
+            stations by clicking the <strong>Stations not already
+            set</strong> option and then moving the weather sliders. The
+            <strong>Stations not already set</strong> option lets you quickly
+            set weather conditions in the rest of the world without
+            losing the weather settings you already chose for
+            specific stations.</p>
+
+            <p><img src="images/WeatherUserDefinedWeather02.jpg"
+            width="600" height="88" alt="" border="0"></p>
+
+            <p class="SubHead2">All Weather Stations</p>
+
+            <p>If just want to set identical weather conditions at
+            all locations for the entire world, click the <strong>All
+            weather stations</strong> option and then move the weather
+            sliders. When you select this button and move the
+            weather sliders, any weather you've set at specific
+            weather stations will be lost.</p><a name=
+            "CloudLayers"></a>
+
+            <p class="SubHead">Creating and Modifying Cloud
+            Layers</p>
+
+            <p>You can create multiple cloud layers containing
+            different types of clouds, and you can adjust the tops
+            and bases of the layers. The <strong>Clouds</strong> tab also
+            lets you create turbulence in cloud layers, add icing
+            conditions, and modify precipitation levels.</p>
+
+            <p>The <strong>Clouds</strong> tab depicts all current cloud
+            layers in the <strong>Cloud layer</strong> window (see below).
+            You can select any of the cloud layers and modify them.
+            Use the zoom buttons to zoom in and out in the <strong>Cloud
+            layers</strong> window. The altitude in feet (MSL) is shown
+            to the left of the window.</p>
+
+            <p class="SubHead2">Cloud Layers</p><br>
+
+            <table border="0" cellspacing="5" cellpadding="5"
+            width="121" summary="SummaryTBD">
+              <tr>
+                <td class="LessonFigureTable"><img src=
+                "images/WeatherUserDefinedWeather07.jpg" width=
+                "227" height="333" alt="" border="0"><br>
+                <span class="Figure1">The Cloud layer
+                window</span></td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add a cloud layer</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Clouds</strong> tab, click the <strong>add
+                    cloud</strong> button.<br>
+                    The new cloud layer will be added above
+                    existing layers.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To delete a cloud layer</strong></p>
+
+                  <ol>
+                    <li>Click the box depicting the cloud layer
+                    that you want to delete.</li>
+
+                    <li>Click the <strong>delete cloud</strong> button.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a cloud layer</strong></p>
+
+                  <ul>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change a cloud layer's type</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select a cloud type in the <strong>Cloud
+                    type</strong> box.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>For a detailed discussion of cloud types, see
+            <a href="WeatherIntro.htm">Introduction to Aviation
+            Weather</a>.</p>
+
+            <p class="SubHead2">Cloud Coverage</p>
+
+            <p>Cloud coverage applies to the area you've selected
+            for a particular cloud layer. In other words, if you
+            selected only one weather station and then created a
+            cloud layer with <strong>Overcast</strong> coverage, it will only
+            be overcast above that one station. If you select
+            <strong>All weather stations</strong> and choose <strong>Overcast</strong>
+            cloud coverage, the entire world would be overcast.</p>
+
+            <table width="85%" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              <tr valign="top" bgcolor="#F5DEB3">
+                <td><strong>Coverage Setting</strong></td>
+
+                <td><strong>Amount of Sky Covered</strong></td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Few</td>
+
+                <td>1/4</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Scattered</td>
+
+                <td>3/8 to 1/2</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Broken</td>
+
+                <td>5/8 to 7/8</td>
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Overcast</td>
+
+                <td>Completely covered</td>
+              </tr>
+            </table><br>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change a cloud layer's coverage</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select cloud coverage from the <strong>Cloud
+                    coverage</strong> box.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>The <strong>Tops</strong> box determines the highest vertical
+            development of the layer; the <strong>Base</strong> box specifies
+            where the cloud layer begins. Note that cloud layers in
+            Flight Simulator are set to altitudes above sea level,
+            not above the ground. If the airport where you want to
+            set the weather is located at 1,000 feet, you must set
+            the first cloud layer higher than 1,000 feet MSL. Cloud
+            layers set at the same level as the ground will not
+            appear as fog. To create fog-like conditions, read
+            <a href="#VisibilityLayer">The
+            Visibility Layer and Fog</a> section below.</p>
+
+            <p>There are two ways to set the tops and bases of
+            cloud layers.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change a cloud layer's tops or
+                  base</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.</li>
+
+                    <li>The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Drag the top or base of the box depicting
+                    the cloud layer to the altitude you want.<br>
+                    -or-<br>
+                    Click in the <strong>Tops</strong> or <strong>Base</strong> box and
+                    type the altitude you want.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Turbulence in Cloud Layers</p>
+
+            <p>Turbulence&#8212;or instability in the
+            atmosphere&#8212;usually manifests itself as bumpy
+            flying conditions. In Flight Simulator, you can add
+            turbulence either to cloud layers or to wind
+            layers.</p>
+
+            <p>In aviation, turbulence is defined by its
+            severity:</p>
+
+            <p><strong>Light:</strong> Loose objects in aircraft remain at
+            rest.<br>
+            <strong>Moderate:</strong> Unsecured objects are dislodged.
+            Occupants feel definite strains against seat belts and
+            shoulder straps.<br>
+            <strong>Severe:</strong> Occupants thrown violently against seat
+            belts, momentary loss of aircraft control, and
+            unsecured objects tossed about.<br>
+            <strong>Extreme:</strong> Aircraft is tossed violently about and
+            impossible to control; extreme turbulence may cause
+            structural damage.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add turbulence to a cloud layer</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.</li>
+
+                    <li>The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select a severity in the <strong>Turbulence</strong>
+                    list.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Icing</p>
+
+            <p>Icing is a condition in which moisture in the air
+            turns to a solid form when it strikes a solid surface
+            like an aircraft wing. This can create a critical
+            flight situation, as even a small amount of ice buildup
+            on a wing's surface seriously affects the wing's
+            ability to create lift and keep the airplane aloft.
+            Icing will affect lift in Flight Simulator, but you
+            will not see the ice build up on the wings.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add icing to a cloud layer</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select a severity in the <strong>Icing</strong>
+                    list.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name="precipitation"></a>
+
+            <p class="SubHead2">Precipitation</p>
+
+            <p>Precipitation&#8212;moisture that falls from clouds
+            in the form of rain or snow&#8212;can restrict
+            visibility and create a greater challenge on takeoffs
+            and landings. <strong><em>Precipitation only takes place when
+            a cloud layer is visible</em></strong> (both in Flight
+            Simulator and in the real world).</p>
+
+            <p>You can set precipitation for any cloud layer that
+            you create. The precipitation group includes a
+            precipitation <strong>Type</strong>, a <strong>Base altitude</strong>, and
+            a <strong>Rate</strong>.</p>
+
+            <p>Flight Simulator offers two types of precipitation:
+            <strong>Rain</strong> and <strong>Snow</strong> (the simulation does not
+            model hail, sleet, or other forms of precipitation).
+            <strong>Note:</strong> Turning off snow in the Weather dialog box
+            will not make snow on the ground disappear immediately.
+            You'll have to fly away from the area and return or
+            start a new flight before the snow on the ground will
+            disappear.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add precipitation to a cloud
+                  layer</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select <strong>Rain</strong> or <strong>Snow</strong> from the
+                    <strong>Type</strong> list.<br>
+                    -or-<br>
+                    Select <strong>None</strong> if you don't want any
+                    precipitation.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>The <strong>base altitude</strong> box defines the altitude
+            (above sea level) where precipitation dissipates or
+            stops. The value in this box is automatically set to
+            the earth's lowest altitude: -1,499 feet. If you leave
+            the box at this setting, any precipitation that you
+            define will fall to the ground; you can set the base
+            altitude higher if you don't want the precipitation to
+            fall all the way to the ground. You can also set the
+            base altitude within a cloud layer or above a lower
+            cloud layer.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set the precipitation base</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Click in the <strong>Base altitude</strong> text box
+                    and then type an altitude.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>You can set the precipitation rate&#8212;that is,
+            define how much precipitation is falling&#8212;using
+            settings that range from very light to very heavy.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set the precipitation rate</strong></p>
+
+                  <ol>
+                    <li>Click any of the boxes in the <strong>Cloud
+                    layer</strong> window.<br>
+                    The selected cloud layer will be outlined in
+                    blue.</li>
+
+                    <li>Move the <strong>Rate</strong> slider to select the
+                    rate you want.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Cloud Specifications in Flight
+            Simulator</p>
+
+            <p>The list below details the specifications of the
+            various cloud types included in Flight Simulator's
+            weather.</p>
+
+            <table width="100%" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              <tr valign="top" bgcolor="#F5DEB3">
+                <td><strong>Type</strong></td>
+
+                <td><strong>Height</strong></td>
+
+                <td><strong>Altitude</strong></td>
+
+                <td><strong>Coverage</strong></td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Cumulus</strong></td>
+
+                <td></td>
+
+                <td></td>
+
+                <td></td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Altocumulus</td>
+
+                <td>Below 3,000 feet</td>
+
+                <td>Medium</td>
+
+                <td>5/8 to complete</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Stratocumulus</td>
+
+                <td>Below 3,000 feet</td>
+
+                <td>Low to High</td>
+
+                <td>5/8 to complete</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cumulus Humilis</td>
+
+                <td>Below 3,000 feet</td>
+
+                <td>All</td>
+
+                <td>1/8 to 1/2</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cumulus Mediocris</td>
+
+                <td>Between 3,000 feet and 6,000 feet</td>
+
+                <td>All</td>
+
+                <td>All</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cumulus Congestus</td>
+
+                <td>Between 6,000 feet and 10,000 feet</td>
+
+                <td>All</td>
+
+                <td>All</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Towering Cumulus</td>
+
+                <td>Higher than 10,000 feet</td>
+
+                <td>All</td>
+
+                <td>All</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Cumulonimbus</strong><br>(Thunderstorms)</td>
+
+                <td></td>
+
+                <td></td>
+
+                <td></td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cumulonimbus Calvus</td>
+
+                <td>Below (or at) 15,000 feet</td>
+
+                <td>All</td>
+
+                <td>1/8 to 1/4; 3/8 to 1/2; 5/8 to 7/8;
+                complete</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cumulonimbus Incus</td>
+
+                <td>Below 15,000 feet</td>
+
+                <td>All</td>
+
+                <td>1/8 to 1/4; 3/8 to 1/2; 5/8 to 7/8;
+                complete</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Stratus</strong></td>
+
+                <td></td>
+
+                <td></td>
+
+                <td></td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Nimbostratus</td>
+
+                <td>All (with rain or snow)</td>
+
+                <td>All</td>
+
+                <td>All</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Altostratus</td>
+
+                <td>Between 2,000 feet and 5,000 feet</td>
+
+                <td>Medium</td>
+
+                <td>5/8 to complete</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Stratus</td>
+
+                <td>All (without precipitation)</td>
+
+                <td>All</td>
+
+                <td>All</td>
+
+              </tr>
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td><strong>Cirrus</strong></td>
+
+                <td></td>
+
+                <td></td>
+
+                <td></td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cirrostratus</td>
+
+                <td>Thin, wispy ice crystals</td>
+
+                <td>Above 18,000 feet</td>
+
+                <td>Variable</td>
+
+              </tr>
+
+              <tr valign="top" bgcolor="#FFFFFF">
+                <td>Cirrocumulus</td>
+
+                <td>Small, rounded, ice crystals</td>
+
+                <td>Above 18,000 feet</td>
+
+                <td>Variable</td>
+
+              </tr>
+            </table><a name="#WindLayers"></a>
+
+            <p class="SubHead">Creating and Modifying Wind
+            Layers</p>
+
+            <p>Have you ever driven a van on the highway in a
+            strong side wind? Even with the friction of the tires
+            on the road, the wind pushes the vehicle around. When
+            flying, you deal with winds not only during takeoff and
+            landing, but also up at higher altitudes. Wind doesn't
+            just push the airplane around like a van on a highway;
+            depending on the direction of the wind and the
+            direction you're flying, the wind might increase or
+            decrease your airspeed.</p>
+
+            <p>If you set a strong wind blowing in the same
+            direction that you're traveling, that <em>tailwind</em>
+            will make you fly faster. Conversely, a <em>headwind</em>
+            will slow you down. You can also set winds at right
+            angles to a runway to practice taking off and landing
+            in crosswind situations. For example, on a runway that
+            has a designation number of 9, set a crosswind at 180
+            or 0 degrees, depending on whether you want the wind
+            blowing from the right or from the left.</p>
+
+            <p>Real-world pilots pay close attention to surface
+            winds and winds aloft in their weather briefings. Winds
+            aloft factor into preflight planning, depending on how
+            the wind is blowing at the altitudes where the pilot
+            wants to fly. In Flight Simulator, you can create
+            multiple wind layers, each with different
+            conditions.</p>
+
+            <p class="SubHead2">Wind Layers</p>
+
+            <p>Wind doesn't divide neatly into layers in the real
+            world. Wind layers in Flight Simulator create changes
+            in wind speed and direction at different altitudes. The
+            <strong>Wind</strong> tab's <strong>Wind layer</strong> window displays all
+            current wind layers; you can select any of the wind
+            layers and modify them. Use the zoom buttons to zoom in
+            and out in the <strong>Wind layers</strong> window; altitude is
+            shown to the right of the window.</p>
+
+            <p>The lowest-level wind layer is depicted as a box in
+            the <strong>Winds</strong> window. The wind speed and direction
+            you set for this layer will be the same from the
+            surface up to the highest altitude you set for the
+            layer. Any wind layers you create for altitudes above
+            the lowest layer are depicted as a line, so values you
+            set for upper layers will be true only for the exact
+            altitude set for that layer. Flight Simulator gradually
+            adjusts all values between layers automatically as you
+            move between layers.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="note" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>Example:</strong> If you set the lowest-level
+                  wind layer to an upper altitude of 3,000 feet
+                  (914 meters) with wind speed of 15 knots and wind
+                  direction of 180 degrees, those conditions will
+                  apply within that entire layer. If you create a
+                  second layer at 9,000 feet (1,524 meters) and set
+                  the speed to 25 knots and the direction to 240
+                  degrees, the wind will gradually shift between
+                  3,000 feet and 9,000 feet from the values set for
+                  the lower level to the values set for the upper
+                  layer. You can make the wind shift more dramatic
+                  by increasing the shear strength.</p><br>
+                </td>
+              </tr>
+            </table>
+
+            <table width="100%" cellspacing="1" cellpadding="5"
+            bgcolor="#003366" class="article-bodycopy" summary="SummaryTBD">
+              <tr bgcolor="#C0CFE2">
+                <td rowspan="4"><img src=
+                "images/WeatherUserDefinedWeather08.jpg" width=
+                "186" height="299" alt="" border="0"></td>
+
+                <td height="65"><strong>9,000 feet</strong></td>
+              </tr>
+
+              <tr bgcolor="#C0CFE2">
+                <td height="120">Wind conditions for upper layers
+                adjust gradually from the conditions set in the
+                layers below to the conditions set above. In the
+                example, from 3,000 ft up to 9,000 ft the wind
+                speed would gradually adjust from 15 knots to 25
+                knots.</td>
+              </tr>
+
+              <tr bgcolor="#C0CFE2">
+                <td height="30"><strong>3,000 feet</strong></td>
+              </tr>
+
+              <tr bgcolor="#C0CFE2">
+                <td height="85">Wind conditions in the lowest
+                layer, 240 at 25, apply from the surface to the top
+                of layer (in this example, 3,000 ft).</td>
+              </tr>
+            </table><br>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add wind layers</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Wind</strong> tab, click the <strong>add
+                    wind</strong> button.<br>
+                    New wind layers will be added above existing
+                    layers.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To delete wind layers</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Click the <strong>delete wind</strong> button.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a wind layer</strong></p>
+
+                  <ul>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change wind layer altitude</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Drag the top of the layer up or down.<br>
+                    -or-<br>
+                    Click the <strong>Altitude</strong> text box and type the
+                    altitude you want.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To modify a wind layer</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Change <strong>altitude</strong>, <strong>speed</strong>,
+                    <strong>direction</strong>, <strong>gusts</strong>,
+                    <strong>turbulence</strong>, or <strong>shear
+                    strength</strong>.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p><strong>Note:</strong> Wind speeds increase as your aircraft
+            moves higher. If you set a wind layer at the surface,
+            however, and set no layers above it, the wind will have
+            a speed of zero above the initial layer.</p>
+
+            <p class="SubHead2">Wind Direction</p>
+
+            <p>Wind direction refers to the direction from which
+            the wind is blowing. If the wind is a northerly wind
+            that means that the wind is blowing from the north
+            towards the south. In aviation, surface winds are
+            reported in degrees of magnetic compass heading. If you
+            listen to the Automated Terminal Information Service
+            (ATIS) at an airport in Flight Simulator, you'll hear
+            wind reported as something like, &quot;Wind one-eight-zero
+            at one-zero.&quot; This means the wind is blowing from 180
+            degrees magnetic (due south) at ten knots, blowing
+            towards the north.</p>
+
+            <p>You can set the wind to help or challenge your
+            flight.</p>
+
+            <p><img src="images/WeatherUserDefinedWeather09.jpg"
+            width="99" height="99" alt="" border="0"></p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set the wind direction</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Drag the triangle pointer around the
+                    <strong>Wind Direction</strong> compass.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Wind Gusts</p>
+
+            <p>Gusts are unpredictable wind surges of short
+            duration. Encountering gusts is especially challenging
+            when taking off or landing.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set wind gusts</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Click the <strong>Gusts to</strong> text box and then
+                    type a speed in knots.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Turbulence in Wind Layers</p>
+
+            <p>You can set turbulence in wind layers or cloud
+            layers, or in both. If you have wind and clouds set at
+            the same altitude and you set turbulence in both
+            layers, the turbulence you define for the wind layer
+            will take precedence.</p>
+
+            <p>Turbulence&#8212;or instability in the
+            atmosphere&#8212;usually manifests itself as bumpy
+            flying conditions. In Flight Simulator, you can add
+            turbulence either to cloud layers or to wind
+            layers.</p>
+
+            <p>In aviation, turbulence is defined by its
+            severity:</p>
+
+            <p><strong>Light:</strong> Loose objects in aircraft remain at
+            rest.<br>
+            <strong>Moderate:</strong> Unsecured objects are dislodged.
+            Occupants feel definite strains against seat belts and
+            shoulder straps.<br>
+            <strong>Severe:</strong> Occupants thrown violently against seat
+            belts, momentary loss of aircraft control, and
+            unsecured objects tossed about.<br>
+            <strong>Extreme:</strong> Aircraft is tossed violently about and
+            impossible to control; extreme turbulence may cause
+            structural damage.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To set turbulence in a wind layer</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Select a severity from the
+                    <strong>Turbulence</strong> list.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Wind Shear</p>
+
+            <p>Wind shear&#8212;a change in wind speed or wind
+            direction (sometimes both) over a short distance,
+            resulting in a tearing or shearing effect&#8212;can
+            occur in a horizontal or vertical direction, and
+            occasionally in both. In Flight Simulator the change in
+            wind speed and direction between any two wind layers is
+            adjusted gradually as you move from one to the other.
+            You can make these changes more drastic by increasing
+            the shear strength.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To adjust the shear strength</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Wind layer</strong>
+                    window.<br>
+                    The selected layer will be outlined in
+                    blue.</li>
+
+                    <li>Drag the <strong>Shear strength</strong> slider right
+                    to increase strength and left to decrease
+                    strength.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table><a name=
+            "#TempLayers"></a>
+
+            <p class="SubHead">Creating and Modifying Temperature
+            and Pressure Layers</p>
+
+            <p>Temperature and atmospheric pressure play an
+            important role in weather formation and aircraft
+            performance. Temperature decreases with an increase in
+            altitude at a rate known as the <em>standard lapse</em>
+            rate. For every 1,000-foot (305-meter) increase in
+            altitude, temperature decreases 3.5&deg; F (2&deg; C) in
+            standard conditions. In some conditions, the
+            temperature will actually increase with an increase in
+            altitude; this is known as a <em>temperature
+            inversion</em>. You can create this kind of condition
+            (or other temperature conditions) by creating
+            temperature layers in the <strong>Temp/Pressure</strong> tab of
+            the <strong>Advanced Weather</strong> dialog box.</p>
+
+            <p class="SubHead2">Temperature Layers</p>
+
+            <p>The lowest temperature layer is automatically set to
+            ground level at your current location (that is, the
+            blue line is level with the ground in the
+            <strong>Temperature layers</strong> window on the
+            <strong>Temp/Pressure</strong> tab). You can use this layer to
+            set the temperature on the ground, and then add more
+            layers to create different temperatures at different
+            altitudes. If you use only the lowest layer and don't
+            add any higher layers, the standard lapse rate will
+            apply as you increase in altitude, and the temperature
+            will decrease.</p>
+
+            <p>If you chose to set temperature at all weather
+            stations to 80 F while at a high-altitude airport such
+            as Denver, Colorado, and then you flew to an airport at
+            sea level, the temperature would rise as altitude
+            decreased. If you set the temperature at all stations
+            at 80 F while you were at a sea level airport and then
+            flew to Denver, you would see the temperature drop as
+            you increased in altitude.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add temperature layers</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Temperature</strong> tab, click the
+                    <strong>add layer</strong> button.<br>
+                    The new layer will be added above any existing
+                    layers.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To delete temperature layers</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Temperature
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Click the <strong>delete layer</strong> button.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a temperature layer</strong></p>
+
+                  <ul>
+                    <li>Click any layer in the <strong>Temperature
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To modify a temperature layer</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Temperature
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Change the altitude or temperature.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change a temperature layer's
+                  altitude</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Temperature
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Drag the layer to the altitude you
+                    want.<br>
+                    -or-<br>
+                    Click the <strong>Altitude</strong> text box and then
+                    type the altitude you want.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Barometric Pressure</p>
+
+            <p>The value you set for barometric pressure in Flight
+            Simulator is always set at sea level. It is reported as
+            inches of mercury (Hg). When the barometer reads 29.92,
+            the atmospheric pressure at sea level will push a
+            column of mercury up a glass tube 29.92 inches. As your
+            aircraft climbs, atmospheric pressure decreases. Low
+            pressure areas are often associated with poor weather,
+            high pressure with better weather.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change the sea level barometric
+                  pressure</strong></p>
+
+                  <ol>
+                    <li>Click the <strong>barometric pressure</strong> text
+                    box.</li>
+
+                    <li>Type a value between 25.00 and 35.00.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p>Hotter temperatures also make the atmosphere less
+            dense. The combination of high temperature and high
+            altitude create a condition called density altitude, a
+            potentially dangerous condition. Pilots need to factor
+            density altitude into their flight planning when flying
+            to airports with this condition. To learn more about
+            density altitude, see <a href=
+            "WeatherAviationWeatherBasics.htm">Aviation Weather
+            Basics</a>.</p><a name=
+            "#VisibilityLayer"></a>
+
+            <p class="SubHead">The Visibility Layer and Fog</p>
+
+            <p>Visibility&#8212;the ability to see objects at a
+            distance&#8212;is limited by a number of factors like
+            cloud layers, fog, and the amount of light. Aviation
+            weather reports describe visibility in miles and
+            fractions of miles.</p>
+
+            <p>You can add multiple visibility layers to Flight Simulator weather.
+			 As with all Flight Simulator weather
+            features, you can choose where you want the effects to
+            appear and how large an area they'll cover. You may
+            want low visibility at one weather station and
+            unlimited visibility by the time you reach another.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To add visibility layers</strong></p>
+
+                  <ul>
+                    <li>On the <strong>Visibility</strong> tab, click the
+                    <strong>add layer</strong> button.<br>
+                    The new layer will be added above any existing
+                    layers.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To delete visibility layers</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Visibility
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Click the <strong>delete layer</strong> button.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To select a visibility layer</strong></p>
+
+                  <ul>
+                    <li>Click any layer in the <strong>Visibility
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To modify a visibility layer</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Visibility
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Change the altitude or temperature.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To change a visibility layer's
+                  altitude</strong></p>
+
+                  <ol>
+                    <li>Click any layer in the <strong>Visibility
+                    layer</strong> window.<br>
+                    The selected layer line will be blue.</li>
+
+                    <li>Drag the layer to the altitude you
+                    want.<br>
+                    -or-<br>
+                    Click the <strong>Altitude</strong> text box and then
+                    type the altitude you want.</li>
+
+                    <li>Click <strong>OK</strong>.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p class="SubHead2">Fog</p>
+
+            <p>To create the appearance of fog, use a combination
+            of low clouds and reduced visibility.</p>
+
+            <table border="0" cellspacing="0" cellpadding="0"
+            class="SideBarTable" summary="SummaryTBD">
+              <tr>
+                <td>
+                  <p><strong>To create fog</strong></p>
+
+                  <ol>
+                    <li>Add a cloud layer with the <strong>Base</strong> at
+                    ground level and the <strong>Tops</strong> at 500 to
+                    3,000 feet (152 to 914 meters).</li>
+
+                    <li>Set the top of the visibility layer at the
+                    same altitude as the top of the cloud layer in
+                    step 1.</li>
+
+                    <li>Set the visibility slider to 5 miles (8
+                    kilometers) or less, depending on how thick you
+                    want the fog to be.</li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+
+            <p><strong>Did You Know?</strong></p>
+
+            <p>You can hear Flight Simulator weather reports by
+            using the <strong>Air Traffic Control</strong> feature. To learn
+            more, see <a href=
+            "../AirTrafficControl/AirportATCoperations.htm#Getting%20Airport%20Information">
+            Getting Airport Information</a> (ATIS/ASOS/AWOS).</p>
+          </div>
+
+          <div class="TopLink">
+            <a href="#top" class="TopLink">- top -</a>
+          </div>
+        </td>
+      </tr>
+    </table>
+  
+</body>
+</html>
