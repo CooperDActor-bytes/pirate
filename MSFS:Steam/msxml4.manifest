@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'>
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity type='win32' name='Microsoft.MSXML2' version='4.20.9818.0' processorArchitecture='x86' publicKeyToken='6bd6b9abf345378f' />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity type='win32' name='Microsoft.MSXML2R' version='4.1.0.0' processorArchitecture='x86' publicKeyToken='6bd6b9abf345378f' />
+    </dependentAssembly>
+  </dependency>
+</assembly>

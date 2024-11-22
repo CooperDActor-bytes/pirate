@@ -1,0 +1,66 @@
+"symlink"
+{
+}
+"Run Process"
+{
+	"msxml 1"
+	{
+		"Process"		"msiexec"
+		"Command"		"/i \"e:\\Program Files (x86)\\Steam\\steamapps\\common\\FSX\\Installers\\msxml.msi\" /passive /norestart"
+		"description"		"Microsoft XML Libraries"
+		"HasRunKey"		"HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\314160"
+		"RunKeyName"		"msxml"
+		"MinimumHasRunValue"		"1"
+		"IgnoreExitCode"		"0"
+		"Sequence"		"0"
+		"Environment"
+		{
+			"appID"		"314160"
+		}
+	}
+	"config 1"
+	{
+		"Process"		"FSXSEConfig.exe"
+		"Command"		""
+		"description"		"Set up FSX:Steam Edition"
+		"HasRunKey"		"HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\314160"
+		"RunKeyName"		"config"
+		"MinimumHasRunValue"		"1"
+		"IgnoreExitCode"		"1"
+		"Sequence"		"1"
+		"Environment"
+		{
+			"appID"		"314160"
+		}
+	}
+	"simconnect11remove 1"
+	{
+		"Process"		"msiexec"
+		"Command"		"/x {33D89314-361A-4495-A1E1-0ACBCE08F78D} /passive /norestart"
+		"description"		"Remove old  SimConnect Libraries"
+		"HasRunKey"		"HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\314160"
+		"RunKeyName"		"simconnect11remove"
+		"MinimumHasRunValue"		"1"
+		"IgnoreExitCode"		"1"
+		"Sequence"		"2"
+		"Environment"
+		{
+			"appID"		"314160"
+		}
+	}
+	"simconnect11install 1"
+	{
+		"Process"		"msiexec"
+		"Command"		"/i \"e:\\Program Files (x86)\\Steam\\steamapps\\common\\FSX\\SDK\\Core Utilities Kit\\SimConnect SDK\\lib\\SimConnect.msi\" /passive /norestart"
+		"description"		"Install new  SimConnect Libraries"
+		"HasRunKey"		"HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\314160"
+		"RunKeyName"		"simconnect11install"
+		"MinimumHasRunValue"		"1"
+		"IgnoreExitCode"		"0"
+		"Sequence"		"3"
+		"Environment"
+		{
+			"appID"		"314160"
+		}
+	}
+}
